@@ -1,0 +1,27 @@
+[data-boardid="historyChessBoard"] {
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+[data-boardid="historyChessBoard"] .board-square {
+    transition: background-color 0.3s ease-in-out;
+}
+
+[title="Choose promotion piece"] [data-square-color*="w"] {
+
+}
+
+/* Custom pieces fixed size */
+[data-boardid="historyChessBoard"] img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
+
+/* Change square colors */
+[data-boardid="historyChessBoard"] [data-square-color="white"] {
+  background-color: AliceBlue !important;
+}
+
+[data-boardid="historyChessBoard"] [data-square-color="black"] {
+  background-color: CornflowerBlue !important;
+}
