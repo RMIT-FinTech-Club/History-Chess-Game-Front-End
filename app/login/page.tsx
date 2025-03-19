@@ -54,7 +54,7 @@ const Page = () => {
     <div
       className="bg-black bg-opacity-70 text-white p-[1.25%] pl-[50%] pr-[7%] font-poppins font-bold"
       style={{
-      backgroundImage: "url('/image/FTC_Logo.svg')",
+      backgroundImage: "url('/FTC_Logo.svg')",
       backgroundPosition: "left",
       backgroundRepeat: "no-repeat",
       backgroundSize: "65%",
@@ -139,7 +139,7 @@ const Page = () => {
       </button>
       <button className="w-full flex items-center justify-center bg-[#ECECEC] hover:shadow-[#DCB968] cursor-pointer text-gray-900 font-bold py-3 rounded-md">
         <img
-        src="/image/Google-Logo.svg"
+        src="/Google-Logo.svg"
         alt="Google Icon"
         className="mr-2 w-5 h-5"
         />{" "}
