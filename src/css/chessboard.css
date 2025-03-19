@@ -1,11 +1,11 @@
 :root {
-    --white: AliceBlue;
-    --black: CornflowerBlue;
+    --black: #c0c0c0;
   }
 
 [data-boardid="historyChessBoard"] {
     border-radius: 5px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    background-image: linear-gradient(#E9B654, #363624);
 }
 
 [data-boardid="historyChessBoard"] .board-square {
@@ -13,7 +13,7 @@
 }
 
 [title="Choose promotion piece"] [data-piece*="Q"], [title="Choose promotion piece"] [data-piece*="B"] {
-    background-color: var(--white) !important;
+    background-image: linear-gradient(#E9B654, #83662F)  !important;
 }
 
 [title="Choose promotion piece"] [data-piece*="R"], [title="Choose promotion piece"] [data-piece*="N"] {
@@ -28,7 +28,7 @@
 
 /* Change square colors */
 [data-boardid="historyChessBoard"] [data-square-color="white"] {
-  background-color: var(--white) !important;
+  background: transparent !important;
 }
 
 [data-boardid="historyChessBoard"] [data-square-color="black"] {
