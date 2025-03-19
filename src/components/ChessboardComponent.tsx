@@ -3,34 +3,15 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Chess, Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { defaultPieces } from "./Pieces";
-import Image from "next/image";
+import { defaultPieces } from "@/src/components/Pieces";
 import "../css/chessboard.css";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface PieceProps {
   squareWidth: number;
   isDragging: boolean;
 }
 
-// Custom piece rendering (example for kings)
-const customPieces = {
-  wK: (props: PieceProps) => (
-    <Image
-      src="/img/Skibidi Toilet.jpg"
-      alt="Skibidi Toilet"
-      width={props.isDragging ? props.squareWidth * 1.75 : props.squareWidth}
-      height={props.isDragging ? props.squareWidth * 1.75 : props.squareWidth}
-    />
-  ),
-  bK: (props: PieceProps) => (
-    <Image
-      src="/img/Skibidi Toilet.jpg"
-      alt="Skibidi Toilet"
-      width={props.isDragging ? props.squareWidth * 1.75 : props.squareWidth}
-      height={props.isDragging ? props.squareWidth * 1.75 : props.squareWidth}
-    />
-  ),
-};
 
 const ChessboardComponent = () => {
   const [mounted, setMounted] = useState(false);
@@ -41,7 +22,6 @@ const ChessboardComponent = () => {
   const [capturedBlack, setCapturedBlack] = useState<string[]>([]);
 
   // Helper function to calculate the path between two squares for sliding pieces.
-  // Converts from algebraic notation based on board indices.
   function getPathBetween(from: Square, to: Square): Square[] {
     const path: Square[] = [];
     const fromFile = from.charCodeAt(0) - 97;
@@ -82,56 +62,46 @@ const ChessboardComponent = () => {
     return path;
   }
 
-  // Compute the squares to highlight when in check.
-  // This includes the checking piece and the path between it and the king.
+  // Compute the squares that are in check.
   const checkSquares = useMemo(() => {
+    console.log("FEN:", game.fen(), "Is check?", game.isCheck(), "Turn:", game.turn());
     if (!game.isCheck()) return [];
-
-    // Locate the king under attack (for the side whose turn it is).
-    const kingSquare =
-      game
-        .board()
-        .flat()
-        .find(piece => piece && piece.type === "k" && piece.color === game.turn()) &&
-      // Compute king square using the board indices
-      (() => {
-        // Find indices manually since chess.js pieces do not have a square property.
-        for (let i = 0; i < 8; i++) {
-          for (let j = 0; j < 8; j++) {
-            const p = game.board()[i][j];
-            if (p && p.type === "k" && p.color === game.turn()) {
-              return `${String.fromCharCode(97 + j)}${8 - i}` as Square;
-            }
+  
+    const kingSquare = (() => {
+      for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+          const p = game.board()[i][j];
+          if (p && p.type === "k" && p.color === game.turn()) {
+            const square = `${String.fromCharCode(97 + j)}${8 - i}` as Square;
+            console.log("King found at:", square);
+            return square;
           }
         }
-        return "";
-      })();
-
+      }
+      return "" as Square;
+    })();
+  
     if (!kingSquare) return [];
-
+  
     const checkingSquares: Square[] = [];
     const opponentColor = game.turn() === "w" ? "b" : "w";
-
-    // Create a temporary game instance from the current FEN.
-    const tempGame = new Chess(game.fen());
-    const board = tempGame.board();
-
-    // Loop through each square of the board.
+    const board = game.board();
+  
+    // Clone the game and flip the turn to simulate opponent's moves
+    const tempGame = new Chess();
+    const fenParts = game.fen().split(" ");
+    fenParts[1] = opponentColor; // Opponent's turn
+    tempGame.load(fenParts.join(" "));
+    console.log("Temp FEN (opponent's turn):", tempGame.fen());
+  
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
         const piece = board[i][j];
         if (piece && piece.color === opponentColor) {
-          // Compute the square coordinate (e.g. "e4") for this piece.
           const pieceSquare = `${String.fromCharCode(97 + j)}${8 - i}` as Square;
-          // Temporarily remove the king to test if this piece can reach its square.
-          const removedKing = tempGame.remove(kingSquare);
           const moves = tempGame.moves({ square: pieceSquare, verbose: true });
-          tempGame.put(removedKing!, kingSquare); // Restore king
-
-          // If the moves include the king's square, then this piece is giving check.
           if (moves.some(m => m.to === kingSquare)) {
             checkingSquares.push(pieceSquare);
-            // For sliding pieces (rook, bishop, queen), add the path between the piece and king.
             if (["r", "b", "q"].includes(piece.type)) {
               const path = getPathBetween(pieceSquare, kingSquare);
               checkingSquares.push(...path);
@@ -140,39 +110,21 @@ const ChessboardComponent = () => {
         }
       }
     }
-    // Always include the king's square to highlight it.
+  
     checkingSquares.push(kingSquare);
-    console.log(checkingSquares);
-
-    // Remove any duplicates and return.
     return [...new Set(checkingSquares)];
-  }, [game, fen]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fen]);
 
   // Compute custom styles for squares based on checkSquares.
-  const customSquareStyles = useMemo(() => {
-    // Recompute the king square to compare.
-    const kingSquare =
-      (() => {
-        for (let i = 0; i < 8; i++) {
-          for (let j = 0; j < 8; j++) {
-            const piece = game.board()[i][j];
-            if (piece && piece.type === "k" && piece.color === game.turn()) {
-              return `${String.fromCharCode(97 + j)}${8 - i}` as Square;
-            }
-          }
-        }
-        return "";
-      })();
+  const customSquareStyles = useMemo(() => {;
     return checkSquares.reduce((styles, square) => {
       styles[square] = {
-        backgroundColor:
-          square === kingSquare
-            ? "rgba(255, 0, 0, 0.4)" // Red for king's square
-            : "rgba(255, 165, 0, 0.4)", // Orange for checking piece/path
+        backgroundColor: "rgba(255, 0, 0, 0.4)" 
       };
       return styles;
     }, {} as { [square: string]: React.CSSProperties });
-  }, [checkSquares, game]);
+  }, [checkSquares]);
 
   useEffect(() => {
     setMounted(true);
@@ -190,7 +142,6 @@ const ChessboardComponent = () => {
     if (move) {
       setHistory(prevHistory => [...prevHistory, move.san]);
       if (move.captured) {
-        // Since the turn flips after a move, the captured piece color is opposite.
         const capturedColor = move.color === "w" ? "b" : "w";
         const capturedPieceKey = `${capturedColor}${move.captured.toUpperCase()}`;
         if (capturedColor === "w") {
@@ -206,16 +157,16 @@ const ChessboardComponent = () => {
     return false;
   };
 
+  // Check the game state after each move.
   const checkGameState = () => {
     if (game.isCheckmate()) {
       alert("Checkmate! Game over.");
     } else if (game.isDraw()) {
       alert("Stalemate! The game is a draw.");
-    } else if (game.isCheck()) {
-      alert("Check!");
-    }
+    } 
   };
 
+  // Undo the last move.
   const undoMove = () => {
     const undoneMove = game.undo();
     if (undoneMove) {
@@ -231,6 +182,7 @@ const ChessboardComponent = () => {
     }
   };
 
+  // Reset the game to the initial state.
   const resetGame = () => {
     game.reset();
     setHistory([]);
@@ -263,7 +215,6 @@ const ChessboardComponent = () => {
             id="historyChessBoard"
             position={fen}
             onPieceDrop={handleDrop}
-            customPieces={customPieces}
             boardWidth={600}
             animationDuration={300}
             customSquareStyles={customSquareStyles}
