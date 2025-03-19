@@ -5,6 +5,7 @@ import { Chess, Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { defaultPieces } from "@/src/components/Pieces";
 import "../css/chessboard.css";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface PieceProps {
@@ -20,6 +21,9 @@ const ChessboardComponent = () => {
   const [fen, setFen] = useState(game.fen());
   const [capturedWhite, setCapturedWhite] = useState<string[]>([]);
   const [capturedBlack, setCapturedBlack] = useState<string[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [notification, setNotification] = useState("");
+  const [notificationDescription, setNotificationDescription] = useState("");
 
   // Helper function to calculate the path between two squares for sliding pieces.
   function getPathBetween(from: Square, to: Square): Square[] {
@@ -159,11 +163,36 @@ const ChessboardComponent = () => {
 
   // Check the game state after each move.
   const checkGameState = () => {
+
+    // Check if the game is over
     if (game.isCheckmate()) {
-      alert("Checkmate! Game over.");
-    } else if (game.isDraw()) {
-      alert("Stalemate! The game is a draw.");
+      setDialogOpen(true);
+      setNotification("Checkmate!");
+      setNotificationDescription(
+        `${game.turn() === "w" ? "Black" : "White"} wins!`
+      );
+    }
+
+    // Check if the game is a draw 
+    else if (game.isDraw()) {
+      setDialogOpen(true);
+      setNotification("Draw!");
+      setNotificationDescription("The game is a draw.");
     } 
+
+    // Check if the game is in stalemate
+    else if (game.isStalemate()) {
+      setDialogOpen(true);
+      setNotification("Stalemate!");
+      setNotificationDescription("The game is a stalemate.");
+    } 
+    
+    // Check if the game is drawn due to threefold repetition
+    else if (game.isThreefoldRepetition()) {
+      setDialogOpen(true);
+      setNotification("Draw!");
+      setNotificationDescription("The game is a draw due to threefold repetition.");
+    }
   };
 
   // Undo the last move.
@@ -264,6 +293,32 @@ const ChessboardComponent = () => {
           ))}
         </ol>
       </div>
+
+      {/* Checkmate Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{notification}</DialogTitle>
+          </DialogHeader>
+          <p className="text-center">
+            {notificationDescription}
+          </p>
+          <div className="flex justify-center space-x-4 mt-4">
+            <button
+              onClick={resetGame}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md"
+            >
+              New Game
+            </button>
+            <button
+              onClick={() => setDialogOpen(false)}
+              className="bg-gray-500 text-white px-4 py-2 rounded-md"
+            >
+              Close
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
