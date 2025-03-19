@@ -1,7 +1,5 @@
 "use client";
-import React from "react";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,52 +12,69 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { FaFacebook, FaGoogle } from "react-icons/fa";
+import { FaFacebook} from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
-import { RiLockPasswordFill } from "react-icons/ri";
-import { FaKey } from "react-icons/fa6";
 
-const formSchema = z.object({
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
-  }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters." })
-    .refine((value) => /[A-Z]/.test(value), {
-      message: "Password must contain at least one uppercase letter.",
-    })
-    .refine((value) => /[0-9]/.test(value), {
-      message: "Password must contain at least one number.",
-    })
-    .refine((value) => /[^A-Za-z0-9]/.test(value), {
-      message: "Password must contain at least one special character.",
-    }),
-});
+const mockUsers = [
+  { username: "test@example.com", password: "Password123!" },
+  { username: "user@example.com", password: "SecurePass1@" },
+];
 
 const Page = () => {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const [error, setError] = useState("");
+  const form = useForm({
     defaultValues: {
       username: "",
       password: "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    alert(`Username: ${values.username}\nPassword: ${values.password}`);
+  type FormValues = {
+    username: string;
+    password: string;
+  };
+
+  function onSubmit(values: FormValues) {
+    const { username, password } = values;
+    const user = mockUsers.find((u) => u.username === username);
+    
+    if (!username && !password) {
+      setError("Please enter your username or email and password.");
+      return;
+    }
+    
+    if (!username) {
+      setError("Please enter your username or email.");
+      return;
+    }
+
+    if (!password) {
+      setError("Please enter your password.");
+      return;
+    }
+    
+    if (!user) {
+      setError("The username or email you entered is not registered.");
+      return;
+    }
+    if (user.password !== password) {
+      setError("The password you entered is incorrect.");
+      return;
+    }
+    alert(`Sign in successful!\nUsername/Email: ${username}\nPassword: ${password}`);
   }
 
   return (
     <div
       className="bg-black bg-opacity-70 text-white p-[1.25%] pl-[50%] pr-[7%] font-poppins font-bold"
       style={{
-      backgroundImage: "url('/FTC_Logo.svg')",
-      backgroundPosition: "left",
-      backgroundRepeat: "no-repeat",
-      backgroundSize: "65%",
-      backgroundAttachment: "fixed",
+        backgroundImage: "url('/FTC_Logo.svg')",
+        backgroundPosition: "left",
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "70%",
+        backgroundAttachment: "fixed",
       }}
+      
     >
       <h2 className="text-center text-[40px] mb-6">Sign In</h2>
       <Form {...form}>
@@ -121,6 +136,8 @@ const Page = () => {
         <a href="#">Forgot Password?</a>
         </div>
 
+        {error && <p className="text-red-500 text-sm font-bold">{error}</p>}
+        
         <Button
         type="submit"
         className="w-full bg-[#000000] hover:shadow-xl hover:shadow-[#DCB968] cursor-pointer text-[#FFFFFF] font-bold py-6 rounded-md"
@@ -149,7 +166,7 @@ const Page = () => {
 
       <div className="text-center text-[#C4C4C4] font-normal mt-6">
       Don’t have an account?{" "}
-      <a href="#" className="text-[#184BF2] font-bold">
+      <a href="/sign_up" className="text-[#184BF2] font-bold">
         Sign Up
       </a>
       </div>
