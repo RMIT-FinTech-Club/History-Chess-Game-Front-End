@@ -21,12 +21,17 @@ import { useRouter } from "next/navigation";
 
 const formSchema = z
   .object({
-    email: z.string().email({ message: "Invalid email address." }),
+    email: z
+      .string()
+      .min(1, { message: "Please enter your email." })
+      .email({ message: "Invalid email address." }),
     username: z
       .string()
+      .min(1, { message: "Please enter your username." })
       .min(2, { message: "Username must be at least 2 characters." }),
     password: z
       .string()
+      .min(1, { message: "Please enter your password." })
       .min(8, { message: "Password must be at least 8 characters." })
       .refine((value) => /[A-Z]/.test(value), {
         message: "Password must contain at least one uppercase letter.",
@@ -37,7 +42,9 @@ const formSchema = z
       .refine((value) => /[^A-Za-z0-9]/.test(value), {
         message: "Password must contain at least one special character.",
       }),
-    confirmPassword: z.string(),
+    confirmPassword: z
+      .string()
+      .min(1, { message: "Please confirm your password." }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match.",
@@ -46,17 +53,26 @@ const formSchema = z
 
 const SignUp = () => {
   const router = useRouter();
-  const form = useForm({ resolver: zodResolver(formSchema) });
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      username: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    if (data.password !== data.confirmPassword) {
-      alert(
-        `Sign up failed: Passwords do not match.\nPassword: ${data.password}`
-      );
-      return;
-    }
+  // Password validation tracking
+  const isMinLength = password.length >= 8;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
 
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -80,6 +96,7 @@ const SignUp = () => {
         <h2 className="text-center text-[40px] mb-6">Sign Up</h2>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+            {/* Email Field */}
             <FormField
               control={form.control}
               name="email"
@@ -108,6 +125,7 @@ const SignUp = () => {
               )}
             />
 
+            {/* Username Field */}
             <FormField
               control={form.control}
               name="username"
@@ -138,6 +156,7 @@ const SignUp = () => {
               )}
             />
 
+            {/* Password Field */}
             <FormField
               control={form.control}
               name="password"
@@ -147,19 +166,31 @@ const SignUp = () => {
                     Password
                   </FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <PasswordInput
-                        placeholder="Enter your password"
-                        {...field}
-                        className="pl-13 py-5.5 font-medium rounded-md"
-                      />
-                    </div>
+                    <PasswordInput
+                      placeholder="Enter your password"
+                      {...field}
+                      className="pl-13 py-5.5 font-medium rounded-md"
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setPassword(e.target.value);
+                      }}
+                    />
                   </FormControl>
+
+                  {/* Dynamic Password Checklist */}
+                  <ul className="font-normal text-[0.9em] text-[#C4C4C4]">
+                    {!isMinLength && <li>✔ 8 characters minimum</li>}
+                    {!hasUppercase && <li>✔ At least 1 capital letter</li>}
+                    {!hasNumber && <li>✔ At least 1 digit</li>}
+                    {!hasSpecialChar && <li>✔ At least 1 special character</li>}
+                  </ul>
+
                   <FormMessage />
                 </FormItem>
               )}
             />
 
+            {/* Confirm Password Field */}
             <FormField
               control={form.control}
               name="confirmPassword"
@@ -169,19 +200,18 @@ const SignUp = () => {
                     Confirm Password
                   </FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <PasswordConfirm
-                        placeholder="Confirm your password"
-                        {...field}
-                        className="pl-13 py-5.5 font-medium rounded-md"
-                      />
-                    </div>
+                    <PasswordConfirm
+                      placeholder="Confirm your password"
+                      {...field}
+                      className="pl-13 py-5.5 font-medium rounded-md"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
+            {/* Submit Button */}
             <Button
               type="submit"
               disabled={loading}
@@ -191,9 +221,14 @@ const SignUp = () => {
             </Button>
           </form>
         </Form>
+
+        {/* Sign In Link */}
         <div className="text-center text-[#C4C4C4] font-normal mt-6">
           Already have an account?{" "}
-          <a href="/sign_in" className="text-[#184BF2] font-bold hover:underline">
+          <a
+            href="/sign_in"
+            className="text-[#184BF2] font-bold hover:underline"
+          >
             Sign In
           </a>
         </div>
