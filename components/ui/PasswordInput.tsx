@@ -19,7 +19,12 @@ const PasswordInput = React.forwardRef<
     <div className="relative">
       {/* Left-side Key Icon */}
       <FaKey
-        className="absolute left-4 top-2.5 text-black text-[1.5em] cursor-pointer"
+        className="
+        absolute top-2 left-2.5 text-black text-[1.3em] cursor-pointer
+        sm:top-2 sm:left-3 sm:text-[1.4em]
+        md:top-2.5 md:left-3.5 md:text-[l.5em]
+        lg:top-3 lg:left-4 lg:text-[1.6em]
+        "
         onClick={() => document.getElementById("password-input")?.focus()}
       />
 
