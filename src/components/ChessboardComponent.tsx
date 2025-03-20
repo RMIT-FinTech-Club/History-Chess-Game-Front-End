@@ -58,11 +58,29 @@ const ChessboardComponent = () => {
     setSelectedPiece(sourceSquare);
   };
 
-  // Handle piece click
+  // Handle piece click with toggle functionality
   const onPieceClick = (piece: string, sourceSquare: Square) => {
-    setSelectedPiece(sourceSquare);
+    if (selectedPiece === sourceSquare) {
+      // Deselect if clicking the same piece
+      setSelectedPiece(null);
+    } else {
+      // Select new piece
+      setSelectedPiece(sourceSquare);
+    }
   };
 
+  // Add handler for square clicks to deselect pieces when clicking empty squares
+  const onSquareClick = (square: Square) => {
+    // If we have a piece selected and click on a different square
+    if (selectedPiece && square !== selectedPiece) {
+      // Try to move if it's a valid move
+      const success = makeMove(selectedPiece, square);
+      if (!success) {
+        // If not a valid move, just deselect the piece
+        setSelectedPiece(null);
+      }
+    }
+  };
   return (
     <div className="flex flex-col items-center">
       <h1 className="text-4xl flex justify-center mb-4">History Chess Game</h1>
@@ -77,6 +95,7 @@ const ChessboardComponent = () => {
             position={fen}
             onPieceDrop={handleDrop}
             onPieceClick={onPieceClick}
+            onSquareClick={onSquareClick}
             onPieceDragBegin={onPieceDragBegin}
             boardWidth={600}
             animationDuration={300}
