@@ -63,7 +63,7 @@ const SignUp = () => {
       alert(
         `Sign up successful!\n\nEmail: ${data.email}\nUsername: ${data.username}\nPassword: ${data.password}`
       );
-      router.push("/login");
+      router.push("/sign_in");
     } catch (error) {
       alert("Sign up failed");
     } finally {
@@ -73,16 +73,8 @@ const SignUp = () => {
 
   return (
     <div
-      className="bg-black bg-opacity-70 text-white p-[1.2%] pl-[50%] pr-[7%] font-poppins font-bold"
-      style={{
-        backgroundImage: "url('/FTC_Logo.svg')",
-        backgroundPosition: "left",
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "70%",
-        backgroundAttachment: "fixed",
-        height: "100%",
-        width: "100%",
-      }}
+      className="min-h-screen flex flex-col justify-center bg-black text-white bg-fixed bg-[left] bg-[length:70%] bg-no-repeat p-[1.2%] pl-[50%] pr-[7%] font-poppins font-bold"
+      style={{ backgroundImage: "url('/FTC_Logo.svg')" }}
     >
       <div>
         <h2 className="text-center text-[40px] mb-6">Sign Up</h2>
@@ -201,7 +193,7 @@ const SignUp = () => {
         </Form>
         <div className="text-center text-[#C4C4C4] font-normal mt-6">
           Already have an account?{" "}
-          <a href="/signin" className="text-[#184BF2] font-bold">
+          <a href="/sign_in" className="text-[#184BF2] font-bold hover:underline">
             Sign In
           </a>
         </div>

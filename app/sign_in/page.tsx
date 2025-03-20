@@ -68,7 +68,7 @@ const Page = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col justify-center bg-black text-white bg-[left] bg-[length:70%] bg-no-repeat p-[1.2%] pl-[50%] pr-[7%] font-poppins font-bold"
+      className="min-h-screen flex flex-col justify-center bg-black text-white bg-fixed bg-[left] bg-[length:70%] bg-no-repeat p-[1.2%] pl-[50%] pr-[7%] font-poppins font-bold"
       style={{ backgroundImage: "url('/FTC_Logo.svg')" }}
     >
       <h2 className="text-center text-2xl sm:text-3xl md:text-4xl lg:text-[40px] mb-6">
