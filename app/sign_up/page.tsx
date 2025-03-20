@@ -73,13 +73,15 @@ const SignUp = () => {
 
   return (
     <div
-      className="bg-black bg-opacity-70 text-white p-[1.25%] pl-[50%] pr-[7%] font-poppins font-bold"
+      className="bg-black bg-opacity-70 text-white p-[1.2%] pl-[50%] pr-[7%] font-poppins font-bold"
       style={{
         backgroundImage: "url('/FTC_Logo.svg')",
         backgroundPosition: "left",
         backgroundRepeat: "no-repeat",
         backgroundSize: "70%",
         backgroundAttachment: "fixed",
+        height: "100%",
+        width: "100%",
       }}
     >
       <div>

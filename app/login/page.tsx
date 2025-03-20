@@ -68,16 +68,8 @@ const Page = () => {
 
   return (
     <div
-      className="bg-black bg-opacity-70 text-white p-[1.2%] pl-[50%] pr-[7%] font-poppins font-bold"
-      style={{
-        backgroundImage: "url('/FTC_Logo.svg')",
-        backgroundPosition: "left",
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "70%",
-        backgroundAttachment: "fixed",
-        height: "100vh",
-        width: "100%",
-      }}
+      className="min-h-screen flex flex-col justify-center bg-black text-white bg-[left] bg-[length:70%] bg-no-repeat p-[1.2%] pl-[50%] pr-[7%] font-poppins font-bold"
+      style={{ backgroundImage: "url('/FTC_Logo.svg')" }}
     >
       <h2 className="text-center text-2xl sm:text-3xl md:text-4xl lg:text-[40px] mb-6">
         Sign In
@@ -223,10 +215,7 @@ const Page = () => {
 
       <div className="text-center text-[#C4C4C4] font-normal mt-2 text-[0.75em] sm:text-[0.8em] md:text-[0.85em] lg:text-base">
         Don’t have an account?{" "}
-        <a
-          href="/sign_up"
-          className="text-[#184BF2] font-bold hover:underline"
-        >
+        <a href="/sign_up" className="text-[#184BF2] font-bold hover:underline">
           Sign Up
         </a>
       </div>
