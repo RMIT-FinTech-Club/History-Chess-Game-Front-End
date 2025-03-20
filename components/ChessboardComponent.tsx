@@ -23,7 +23,6 @@ const ChessboardComponent = () => {
     history, 
     capturedWhite, 
     capturedBlack,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     selectedPiece,
     setSelectedPiece,
     customSquareStyles,
