@@ -75,6 +75,8 @@ const Page = () => {
         backgroundRepeat: "no-repeat",
         backgroundSize: "70%",
         backgroundAttachment: "fixed",
+        height: "100vh",
+        width: "100%",
       }}
     >
       <h2 className="text-center text-2xl sm:text-3xl md:text-4xl lg:text-[40px] mb-6">
