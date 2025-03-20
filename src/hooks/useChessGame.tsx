@@ -101,8 +101,10 @@ export function useChessGame() {
     }
   
     checkingSquares.push(kingSquare);
+    console.log(checkingSquares);
     return [...new Set(checkingSquares)];
-  }, [game]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fen]);
 
   // Compute possible moves for selected piece
   const possibleMoves = useMemo(() => {
