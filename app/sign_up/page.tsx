@@ -93,7 +93,9 @@ const SignUp = () => {
       style={{ backgroundImage: "url('/FTC_Logo.svg')" }}
     >
       <div>
-        <h2 className="text-center text-[40px] mb-6">Sign Up</h2>
+        <h2 className="text-center text-2xl sm:text-3xl md:text-4xl lg:text-[40px] mb-6">
+          Sign Up
+        </h2>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
             {/* Email Field */}
@@ -102,11 +104,18 @@ const SignUp = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold rounded-md">Email</FormLabel>
+                  <FormLabel className="font-bold text-[0.85em] sm:text-[0.9em] md:text-[0.95em] lg:text-[1em] rounded-md">
+                    Email
+                  </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <MdEmail
-                        className="absolute left-4 top-2.5 text-black text-2xl cursor-pointer"
+                        className="
+                        absolute top-2 left-2.5 text-black text-[1.3em] cursor-pointer
+                        sm:top-2 sm:left-3 sm:text-[1.4em]
+                        md:top-2.5 md:left-3.5 md:text-[l.5em]
+                        lg:top-2.5 lg:left-3.5 lg:text-[1.6em]
+                        "
                         onClick={() =>
                           document.getElementById("email-input")?.focus()
                         }
@@ -115,7 +124,13 @@ const SignUp = () => {
                         {...field}
                         id="email-input"
                         placeholder="Enter your email"
-                        className="pl-13 py-5.5 bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] font-medium rounded-md w-full"
+                        className="
+                          pl-[3em] py-[1.2em] text-[0.8em]
+                          sm:pl-[3.3em] sm:py-[1.3em] sm:text-[0.85em]
+                          md:pl-[3.4em] md:py-[1.4em] md:text-[0.9em]
+                          lg:pl-[3.5em] lg:py-[1.5em] lg:text-[0.95em]
+                          bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] font-medium rounded-md
+                        "
                         autoComplete="off"
                       />
                     </div>
@@ -131,13 +146,18 @@ const SignUp = () => {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold rounded-md">
+                  <FormLabel className="font-bold text-[0.85em] sm:text-[0.9em] md:text-[0.95em] lg:text-[1em] rounded-md">
                     Username
                   </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <FaUser
-                        className="absolute left-4 top-2.5 text-black text-2xl cursor-pointer"
+                        className="
+                        absolute top-2 left-2.5 text-black text-[1.3em] cursor-pointer
+                        sm:top-2 sm:left-3 sm:text-[1.4em]
+                        md:top-2.5 md:left-3.5 md:text-[l.5em]
+                        lg:top-2.5 lg:left-3.5 lg:text-[1.6em]
+                        "
                         onClick={() =>
                           document.getElementById("username-input")?.focus()
                         }
@@ -146,7 +166,13 @@ const SignUp = () => {
                         {...field}
                         id="username-input"
                         placeholder="Enter your username"
-                        className="pl-13 py-5.5 bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] font-medium rounded-md w-full"
+                        className="
+                          pl-[3em] py-[1.2em] text-[0.8em]
+                          sm:pl-[3.3em] sm:py-[1.3em] sm:text-[0.85em]
+                          md:pl-[3.4em] md:py-[1.4em] md:text-[0.9em]
+                          lg:pl-[3.5em] lg:py-[1.5em] lg:text-[0.95em]
+                          bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] font-medium rounded-md
+                        "
                         autoComplete="off"
                       />
                     </div>
@@ -162,14 +188,20 @@ const SignUp = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold rounded-md">
+                  <FormLabel className="font-bold text-[0.85em] sm:text-[0.9em] md:text-[0.95em] lg:text-[1em] rounded-md">
                     Password
                   </FormLabel>
                   <FormControl>
                     <PasswordInput
                       placeholder="Enter your password"
                       {...field}
-                      className="pl-13 py-5.5 font-medium rounded-md"
+                      className="
+                          pl-[3em] py-[1.2em] text-[0.8em]
+                          sm:pl-[3.3em] sm:py-[1.3em] sm:text-[0.85em]
+                          md:pl-[3.4em] md:py-[1.4em] md:text-[0.9em]
+                          lg:pl-[3.5em] lg:py-[1.5em] lg:text-[0.95em]
+                          bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] font-medium rounded-md
+                        "
                       onChange={(e) => {
                         field.onChange(e);
                         setPassword(e.target.value);
@@ -178,7 +210,7 @@ const SignUp = () => {
                   </FormControl>
 
                   {/* Dynamic Password Checklist */}
-                  <ul className="font-normal text-[0.9em] text-[#C4C4C4]">
+                  <ul className="font-normal text-[0.75em] sm:text-[0.8em] md:text-[0.85em] lg:text-[0.9em] rounded-md">
                     {!isMinLength && <li>✔ 8 characters minimum</li>}
                     {!hasUppercase && <li>✔ At least 1 capital letter</li>}
                     {!hasNumber && <li>✔ At least 1 digit</li>}
@@ -196,14 +228,20 @@ const SignUp = () => {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold rounded-md">
+                  <FormLabel className="font-bold text-[0.85em] sm:text-[0.9em] md:text-[0.95em] lg:text-[1em] rounded-md">
                     Confirm Password
                   </FormLabel>
                   <FormControl>
                     <PasswordConfirm
                       placeholder="Confirm your password"
                       {...field}
-                      className="pl-13 py-5.5 font-medium rounded-md"
+                      className="
+                          pl-[3em] py-[1.2em] text-[0.8em]
+                          sm:pl-[3.3em] sm:py-[1.3em] sm:text-[0.85em]
+                          md:pl-[3.4em] md:py-[1.4em] md:text-[0.9em]
+                          lg:pl-[3.5em] lg:py-[1.5em] lg:text-[0.95em]
+                          bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] font-medium rounded-md
+                        "
                     />
                   </FormControl>
                   <FormMessage />
@@ -215,7 +253,10 @@ const SignUp = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#000000] hover:shadow-xl hover:shadow-[#DCB968] cursor-pointer text-[#FFFFFF] font-bold py-6 rounded-md"
+              className="w-full bg-[#000000] hover:shadow-xl hover:shadow-[#DCB968] cursor-pointer text-[#FFFFFF] font-bold rounded-md py-3 text-[0.8em]
+              sm:text-[0.9em] sm:py-4 
+              md:text-base md:py-5
+              lg:text-[1.1em] lg:py-6"
             >
               {loading ? "Signing Up..." : "Sign Up"}
             </Button>
@@ -223,7 +264,7 @@ const SignUp = () => {
         </Form>
 
         {/* Sign In Link */}
-        <div className="text-center text-[#C4C4C4] font-normal mt-6">
+        <div className="text-center text-[#C4C4C4] font-normal mt-2 text-[0.75em] sm:text-[0.8em] md:text-[0.85em] lg:text-base">
           Already have an account?{" "}
           <a
             href="/sign_in"
