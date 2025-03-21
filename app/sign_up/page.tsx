@@ -88,34 +88,37 @@ const SignUp = () => {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col justify-center bg-black text-white bg-fixed bg-[left] bg-[length:70%] bg-no-repeat p-[1.2%] pl-[50%] pr-[7%] font-poppins font-bold"
-      style={{ backgroundImage: "url('/FTC_Logo.svg')" }}
-    >
-      <div>
-        <h2 className="text-center text-2xl sm:text-3xl md:text-4xl lg:text-[40px] mb-6">
-          Sign Up
-        </h2>
+    <div className="min-h-screen flex items-center justify-center md:justify-start text-white font-poppins font-bold relative">
+      <div className="w-[40vw] aspect-[1/1] ml-[5vw] mr-[3vw] relative md:block hidden">
+        <div className="w-full absolute aspect-[1/1] bg-[#DBB968] rounded-[50%] blur-[15vw] left-0 top-[50%] -translate-y-[50%]"></div>
+        <div
+          className="w-full absolute aspect-[1/1] bg-no-repeat bg-center bg-contain left-0 top-[50%] -translate-y-[50%]"
+          style={{ backgroundImage: "url('/FTC_Logo.png')" }}
+        ></div>
+      </div>
+      <div className="p-7">
+        <h2 className="text-center text-[7vh]">Sign Up</h2>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-3 w-[80vw] md:w-[42vw]"
+          >
             {/* Email Field */}
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold text-[0.85em] sm:text-[0.9em] md:text-[0.95em] lg:text-[1em] rounded-md">
+                  <FormLabel className="font-bold text-[3vh] rounded-md">
                     Email
                   </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <MdEmail
                         className="
-                        absolute top-2 left-2.5 text-black text-[1.3em] cursor-pointer
-                        sm:top-2 sm:left-3 sm:text-[1.4em]
-                        md:top-2.5 md:left-3.5 md:text-[l.5em]
-                        lg:top-2.5 lg:left-3.5 lg:text-[1.6em]
-                        "
+                        absolute text-black cursor-pointer
+                        top-[1.55vh] left-[0.95vw] text-[5vh]
+                      "
                         onClick={() =>
                           document.getElementById("email-input")?.focus()
                         }
@@ -125,17 +128,19 @@ const SignUp = () => {
                         id="email-input"
                         placeholder="Enter your email"
                         className="
-                          pl-[3em] py-[1.2em] text-[0.8em]
-                          sm:pl-[3.3em] sm:py-[1.3em] sm:text-[0.85em]
-                          md:pl-[3.4em] md:py-[1.4em] md:text-[0.9em]
-                          lg:pl-[3.5em] lg:py-[1.5em] lg:text-[0.95em]
-                          bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] font-medium rounded-md
+                          pl-[7vw]
+                          sm:pl-[5.5vw]
+                          md:pl-[4.5vw]
+                          lg:pl-[3.75vw] 
+                          py-[4vh] w-full
+                          bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] 
+                          !text-[3vh] font-normal rounded-[1.5vh]
                         "
                         autoComplete="off"
                       />
                     </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[2.5vh]" />
                 </FormItem>
               )}
             />
@@ -146,17 +151,15 @@ const SignUp = () => {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold text-[0.85em] sm:text-[0.9em] md:text-[0.95em] lg:text-[1em] rounded-md">
+                  <FormLabel className="font-bold text-[3vh] rounded-md">
                     Username
                   </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <FaUser
                         className="
-                        absolute top-2 left-2.5 text-black text-[1.3em] cursor-pointer
-                        sm:top-2 sm:left-3 sm:text-[1.4em]
-                        md:top-2.5 md:left-3.5 md:text-[l.5em]
-                        lg:top-2.5 lg:left-3.5 lg:text-[1.6em]
+                        absolute text-black cursor-pointer
+                        top-[1.6vh] left-[1vw] text-[4.5vh]
                         "
                         onClick={() =>
                           document.getElementById("username-input")?.focus()
@@ -167,17 +170,19 @@ const SignUp = () => {
                         id="username-input"
                         placeholder="Enter your username"
                         className="
-                          pl-[3em] py-[1.2em] text-[0.8em]
-                          sm:pl-[3.3em] sm:py-[1.3em] sm:text-[0.85em]
-                          md:pl-[3.4em] md:py-[1.4em] md:text-[0.9em]
-                          lg:pl-[3.5em] lg:py-[1.5em] lg:text-[0.95em]
-                          bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] font-medium rounded-md
+                          pl-[7vw]
+                          sm:pl-[5.5vw]
+                          md:pl-[4.5vw]
+                          lg:pl-[3.75vw] 
+                          py-[4vh] w-full
+                          bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] 
+                          !text-[3vh] font-normal rounded-[1.5vh]
                         "
                         autoComplete="off"
                       />
                     </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[2.5vh]" />
                 </FormItem>
               )}
             />
@@ -188,7 +193,7 @@ const SignUp = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold text-[0.85em] sm:text-[0.9em] md:text-[0.95em] lg:text-[1em] rounded-md">
+                  <FormLabel className="font-bold text-[3vh] rounded-md">
                     Password
                   </FormLabel>
                   <FormControl>
@@ -196,11 +201,13 @@ const SignUp = () => {
                       placeholder="Enter your password"
                       {...field}
                       className="
-                          pl-[3em] py-[1.2em] text-[0.8em]
-                          sm:pl-[3.3em] sm:py-[1.3em] sm:text-[0.85em]
-                          md:pl-[3.4em] md:py-[1.4em] md:text-[0.9em]
-                          lg:pl-[3.5em] lg:py-[1.5em] lg:text-[0.95em]
-                          bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] font-medium rounded-md
+                          pl-[7vw]
+                          sm:pl-[5.5vw]
+                          md:pl-[4.5vw]
+                          lg:pl-[3.75vw] 
+                          py-[4vh] w-full
+                          bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] 
+                          !text-[3vh] font-normal rounded-[1.5vh]
                         "
                       onChange={(e) => {
                         field.onChange(e);
@@ -210,14 +217,13 @@ const SignUp = () => {
                   </FormControl>
 
                   {/* Dynamic Password Checklist */}
-                  <ul className="font-normal text-[0.75em] sm:text-[0.8em] md:text-[0.85em] lg:text-[0.9em] rounded-md">
+                  <ul className="font-normal text-[2.5vh] rounded-md">
                     {!isMinLength && <li>✔ 8 characters minimum</li>}
                     {!hasUppercase && <li>✔ At least 1 capital letter</li>}
                     {!hasNumber && <li>✔ At least 1 digit</li>}
                     {!hasSpecialChar && <li>✔ At least 1 special character</li>}
                   </ul>
-
-                  <FormMessage />
+                  <FormMessage className="text-[2.5vh]" />
                 </FormItem>
               )}
             />
@@ -228,7 +234,7 @@ const SignUp = () => {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold text-[0.85em] sm:text-[0.9em] md:text-[0.95em] lg:text-[1em] rounded-md">
+                  <FormLabel className="font-bold text-[3vh] rounded-md">
                     Confirm Password
                   </FormLabel>
                   <FormControl>
@@ -236,15 +242,17 @@ const SignUp = () => {
                       placeholder="Confirm your password"
                       {...field}
                       className="
-                          pl-[3em] py-[1.2em] text-[0.8em]
-                          sm:pl-[3.3em] sm:py-[1.3em] sm:text-[0.85em]
-                          md:pl-[3.4em] md:py-[1.4em] md:text-[0.9em]
-                          lg:pl-[3.5em] lg:py-[1.5em] lg:text-[0.95em]
-                          bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] font-medium rounded-md
+                          pl-[7vw]
+                          sm:pl-[5.5vw]
+                          md:pl-[4.5vw]
+                          lg:pl-[3.75vw] 
+                          py-[4vh] w-full
+                          bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] 
+                          !text-[3vh] font-normal rounded-[1.5vh]
                         "
                     />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-[2.5vh]" />
                 </FormItem>
               )}
             />
@@ -253,10 +261,7 @@ const SignUp = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#000000] hover:shadow-xl hover:shadow-[#DCB968] cursor-pointer text-[#FFFFFF] font-bold rounded-md py-3 text-[0.8em]
-              sm:text-[0.9em] sm:py-4 
-              md:text-base md:py-5
-              lg:text-[1.1em] lg:py-6"
+              className="w-full bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[4vh] md:py-[4vh] lg:py-[4.5vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
             >
               {loading ? "Signing Up..." : "Sign Up"}
             </Button>
@@ -264,7 +269,7 @@ const SignUp = () => {
         </Form>
 
         {/* Sign In Link */}
-        <div className="text-center text-[#C4C4C4] font-normal mt-2 text-[0.75em] sm:text-[0.8em] md:text-[0.85em] lg:text-base">
+        <div className="text-center text-[#C4C4C4] font-normal text-[2.75vh]">
           Already have an account?{" "}
           <a
             href="/sign_in"

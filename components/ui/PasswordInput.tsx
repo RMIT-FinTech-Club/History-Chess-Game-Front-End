@@ -20,10 +20,8 @@ const PasswordInput = React.forwardRef<
       {/* Left-side Key Icon */}
       <FaKey
         className="
-        absolute top-2 left-2.5 text-black text-[1.3em] cursor-pointer
-        sm:top-2 sm:left-3 sm:text-[1.4em]
-        md:top-2.5 md:left-3.5 md:text-[l.5em]
-        lg:top-3 lg:left-4 lg:text-[1.6em]
+        absolute text-black cursor-pointer
+        top-[1.55vh] left-[0.95vw] text-[4.5vh]
         "
         onClick={() => document.getElementById("password-input")?.focus()}
       />
@@ -44,7 +42,7 @@ const PasswordInput = React.forwardRef<
       <Button
         type="button"
         variant="ghost"
-        size="sm"
+        size="default"
         className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer hover:bg-transparent p-1"
         onClick={() => setShowPassword((prev) => !prev)}
         disabled={disabled}
