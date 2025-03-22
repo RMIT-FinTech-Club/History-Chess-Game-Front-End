@@ -41,23 +41,23 @@ const Page = () => {
     if (!username) {
       setError("Please enter your username or email.");
       document
-      .getElementById("username-input")
-      ?.classList.add("border-red-500", "border-[0.3vh]");
+        .getElementById("username-input")
+        ?.classList.add("border-red-500", "border-[0.3vh]");
     } else {
       document
-      .getElementById("username-input")
-      ?.classList.remove("border-red-500", "border-[0.3vh]");
+        .getElementById("username-input")
+        ?.classList.remove("border-red-500", "border-[0.3vh]");
     }
 
     if (!password) {
       setError("Please enter your password.");
       document
-      .querySelector("input[type='password']")
-      ?.classList.add("border-red-500", "border-[0.3vh]");
+        .querySelector("input[type='password']")
+        ?.classList.add("border-red-500", "border-[0.3vh]");
     } else {
       document
-      .querySelector("input[type='password']")
-      ?.classList.remove("border-red-500", "border-[0.3vh]");
+        .querySelector("input[type='password']")
+        ?.classList.remove("border-red-500", "border-[0.3vh]");
     }
 
     if (!username || !password) {
@@ -67,31 +67,31 @@ const Page = () => {
     if (!user) {
       setError("The username or email you entered is not registered.");
       document
-      .getElementById("username-input")
-      ?.classList.add("border-red-500", "border-[0.3vh]");
+        .getElementById("username-input")
+        ?.classList.add("border-red-500", "border-[0.3vh]");
       return;
     } else {
       document
-      .getElementById("username-input")
-      ?.classList.remove("border-red-500", "border-[0.3vh]");
+        .getElementById("username-input")
+        ?.classList.remove("border-red-500", "border-[0.3vh]");
       document
-      .getElementById("username-input")
-      ?.classList.add("border-green-500", "border-[0.3vh]");
+        .getElementById("username-input")
+        ?.classList.add("border-green-500", "border-[0.3vh]");
     }
 
     if (user.password !== password) {
       setError("The password you entered is incorrect.");
       document
-      .querySelector("input[type='password']")
-      ?.classList.add("border-red-500", "border-[0.3vh]");
+        .querySelector("input[type='password']")
+        ?.classList.add("border-red-500", "border-[0.3vh]");
       return;
     } else {
       document
-      .querySelector("input[type='password']")
-      ?.classList.remove("border-red-500", "border-[0.3vh]");
+        .querySelector("input[type='password']")
+        ?.classList.remove("border-red-500", "border-[0.3vh]");
       document
-      .querySelector("input[type='password']")
-      ?.classList.add("border-green-500", "border-[0.3vh]");
+        .querySelector("input[type='password']")
+        ?.classList.add("border-green-500", "border-[0.3vh]");
     }
     document
       .getElementById("username-input")
@@ -100,11 +100,11 @@ const Page = () => {
       .querySelector("input[type='password']")
       ?.classList.add("border-green-500", "border-[0.3vh]");
     setError("");
-    
+
     // Ensure the border color changes are applied before showing the alert
     setTimeout(() => {
       alert(
-      `Sign in successful!\nUsername/Email: ${username}\nPassword: ${password}`
+        `Sign in successful!\nUsername/Email: ${username}\nPassword: ${password}`
       );
     }, 0);
   }

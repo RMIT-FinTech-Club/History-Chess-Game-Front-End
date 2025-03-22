@@ -197,10 +197,11 @@ const SignUp = () => {
                     Password
                   </FormLabel>
                   <FormControl>
-                    <PasswordInput
-                      placeholder="Enter your password"
-                      {...field}
-                      className="
+                    <div className="relative">
+                      <PasswordInput
+                        placeholder="Enter your password"
+                        {...field}
+                        className="
                           pl-[7.5vw]
                           sm:pl-[5.85vw]
                           md:pl-[4.5vw]
@@ -209,11 +210,12 @@ const SignUp = () => {
                           bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] 
                           !text-[3vh] font-normal rounded-[1.5vh]
                         "
-                      onChange={(e) => {
-                        field.onChange(e);
-                        setPassword(e.target.value);
-                      }}
-                    />
+                        onChange={(e) => {
+                          field.onChange(e);
+                          setPassword(e.target.value);
+                        }}
+                      />
+                    </div>
                   </FormControl>
 
                   {/* Dynamic Password Checklist */}
@@ -238,10 +240,11 @@ const SignUp = () => {
                     Confirm Password
                   </FormLabel>
                   <FormControl>
-                    <PasswordConfirm
-                      placeholder="Confirm your password"
-                      {...field}
-                      className="
+                    <div className="relative">
+                      <PasswordConfirm
+                        placeholder="Confirm your password"
+                        {...field}
+                        className="
                           pl-[7.5vw]
                           sm:pl-[5.85vw]
                           md:pl-[4.5vw]
@@ -250,7 +253,8 @@ const SignUp = () => {
                           bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] 
                           !text-[3vh] font-normal rounded-[1.5vh]
                         "
-                    />
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage className="text-[2.5vh] text-red-500" />
                 </FormItem>
@@ -269,11 +273,13 @@ const SignUp = () => {
         </Form>
 
         {/* Sign In Link */}
-        <div className="
+        <div
+          className="
           text-center text-[#C4C4C4]
           text-[3vh]
           font-normal
-        ">
+        "
+        >
           Already have an account?{" "}
           <a
             href="/sign_in"
