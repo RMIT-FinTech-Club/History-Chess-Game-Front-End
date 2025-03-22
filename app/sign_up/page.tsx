@@ -117,8 +117,8 @@ const SignUp = () => {
                       <MdEmail
                         className="
                         absolute text-black cursor-pointer
-                        top-[1.55vh] left-[0.95vw] text-[5vh]
-                      "
+                        top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
+                        "
                         onClick={() =>
                           document.getElementById("email-input")?.focus()
                         }
@@ -128,8 +128,8 @@ const SignUp = () => {
                         id="email-input"
                         placeholder="Enter your email"
                         className="
-                          pl-[7vw]
-                          sm:pl-[5.5vw]
+                          pl-[7.5vw]
+                          sm:pl-[5.85vw]
                           md:pl-[4.5vw]
                           lg:pl-[3.75vw] 
                           py-[4vh] w-full
@@ -159,7 +159,7 @@ const SignUp = () => {
                       <FaUser
                         className="
                         absolute text-black cursor-pointer
-                        top-[1.6vh] left-[1vw] text-[4.5vh]
+                        top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
                         "
                         onClick={() =>
                           document.getElementById("username-input")?.focus()
@@ -170,8 +170,8 @@ const SignUp = () => {
                         id="username-input"
                         placeholder="Enter your username"
                         className="
-                          pl-[7vw]
-                          sm:pl-[5.5vw]
+                          pl-[7.5vw]
+                          sm:pl-[5.85vw]
                           md:pl-[4.5vw]
                           lg:pl-[3.75vw] 
                           py-[4vh] w-full
@@ -201,8 +201,8 @@ const SignUp = () => {
                       placeholder="Enter your password"
                       {...field}
                       className="
-                          pl-[7vw]
-                          sm:pl-[5.5vw]
+                          pl-[7.5vw]
+                          sm:pl-[5.85vw]
                           md:pl-[4.5vw]
                           lg:pl-[3.75vw] 
                           py-[4vh] w-full
@@ -242,8 +242,8 @@ const SignUp = () => {
                       placeholder="Confirm your password"
                       {...field}
                       className="
-                          pl-[7vw]
-                          sm:pl-[5.5vw]
+                          pl-[7.5vw]
+                          sm:pl-[5.85vw]
                           md:pl-[4.5vw]
                           lg:pl-[3.75vw] 
                           py-[4vh] w-full

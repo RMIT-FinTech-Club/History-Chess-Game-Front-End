@@ -21,7 +21,7 @@ const PasswordInput = React.forwardRef<
       <FaKey
         className="
         absolute text-black cursor-pointer
-        top-[1.55vh] left-[0.95vw] text-[4.5vh]
+        top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
         "
         onClick={() => document.getElementById("password-input")?.focus()}
       />
