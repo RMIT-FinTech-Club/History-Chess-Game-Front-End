@@ -49,12 +49,12 @@ const PasswordConfirm = React.forwardRef<
       >
         {showPassword && !disabled ? (
           <EyeIcon
-            className="h-5 w-5 text-[#000000] cursor-pointer"
+            className="h-[2vh] w-[2vh] text-[#000000] cursor-pointer"
             aria-hidden="true"
           />
         ) : (
           <EyeOffIcon
-            className="h-5 w-5 text-[#000000] cursor-pointer"
+            className="h-[2vh] w-[2vh] text-[#000000] cursor-pointer"
             aria-hidden="true"
           />
         )}

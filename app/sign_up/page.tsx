@@ -140,7 +140,7 @@ const SignUp = () => {
                       />
                     </div>
                   </FormControl>
-                  <FormMessage className="text-[2.5vh]" />
+                  <FormMessage className="text-[2.5vh] text-red-500" />
                 </FormItem>
               )}
             />
@@ -182,7 +182,7 @@ const SignUp = () => {
                       />
                     </div>
                   </FormControl>
-                  <FormMessage className="text-[2.5vh]" />
+                  <FormMessage className="text-[2.5vh] text-red-500" />
                 </FormItem>
               )}
             />
@@ -223,7 +223,7 @@ const SignUp = () => {
                     {!hasNumber && <li>✔ At least 1 digit</li>}
                     {!hasSpecialChar && <li>✔ At least 1 special character</li>}
                   </ul>
-                  <FormMessage className="text-[2.5vh]" />
+                  <FormMessage className="text-[2.5vh] text-red-500" />
                 </FormItem>
               )}
             />
@@ -252,7 +252,7 @@ const SignUp = () => {
                         "
                     />
                   </FormControl>
-                  <FormMessage className="text-[2.5vh]" />
+                  <FormMessage className="text-[2.5vh] text-red-500" />
                 </FormItem>
               )}
             />
@@ -269,7 +269,11 @@ const SignUp = () => {
         </Form>
 
         {/* Sign In Link */}
-        <div className="text-center text-[#C4C4C4] font-normal text-[2.75vh]">
+        <div className="
+          text-center text-[#C4C4C4]
+          text-[3vh]
+          font-normal
+        ">
           Already have an account?{" "}
           <a
             href="/sign_in"
