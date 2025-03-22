@@ -1,0 +1,72 @@
+@keyframes moving {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(3vh);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@media(hover: hover) {
+    .logo {
+        transition: transform 0.5s;
+    }
+    
+    .logo:hover {
+        transform: translateX(5px);
+    }
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+.FTC_logo {
+    background-image: url('../public/footer/white_logo.svg');
+}
+
+.FB_logo {
+    background-image: url('../public/footer/fb_logo.svg');
+}
+
+.FM_logo {
+    background-image: url('../public/footer/fm_logo.svg');
+}
+
+.GH_logo {
+    background-image: url('../public/footer/gh_logo.svg');
+}
+
+.IT_logo {
+    background-image: url('../public/footer/it_logo.svg');
+}
+
+.TG_logo {
+    background-image: url('../public/footer/tg_logo.svg');
+}
+
+.TT_logo {
+    background-image: url('../public/footer/tt_logo.svg');
+}
+
+.YT_logo {
+    background-image: url('../public/footer/yt_logo.svg');
+}
+
+.lc_ic {
+    background-image: url('../public/footer/loc_icon.svg');
+}
+
+.em_ic {
+    background-image: url('../public/footer/eml_icon.svg');
+}
+
+.bear {
+    animation: moving infinite 5s;
+    background-image: url('../public//footer/footer_bear.svg');
+}
