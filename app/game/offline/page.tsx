@@ -1,5 +1,5 @@
 import React from 'react';
-import ChessboardComponent from '../../components/ChessboardComponent';
+import ChessboardComponent from '../../../components/ChessboardComponent';
 
 export default function GamePage() {
   return (
