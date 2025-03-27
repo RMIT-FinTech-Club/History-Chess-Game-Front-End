@@ -34,7 +34,7 @@ const ChessboardComponent = () => {
     setGameState,
     makeMove,
     undoMove,
-    
+
     // AI features
     isSinglePlayer,
     playerColor,
@@ -178,7 +178,6 @@ const ChessboardComponent = () => {
             animationDuration={300}
             customSquareStyles={{
               ...customSquareStyles,
-              ...(isThinking ? { a1: { boxShadow: '0 0 15px #ffcc00' } } : {})
             }}
           />
         </div>
