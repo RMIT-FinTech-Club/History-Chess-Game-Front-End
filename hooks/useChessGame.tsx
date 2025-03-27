@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Chess, Square } from "chess.js";
+import { useStockfish, type StockfishLevel } from "./useStockfish";
 
 export function useChessGame() {
   const [game] = useState(new Chess());
@@ -12,6 +13,17 @@ export function useChessGame() {
     isGameOver: false,
     title: "",
     message: ""
+  });
+  
+  // Add AI game mode state
+  const [isSinglePlayer, setIsSinglePlayer] = useState(false);
+  const [playerColor, setPlayerColor] = useState<"w" | "b">("w");
+  const [aiLevel, setAiLevel] = useState<StockfishLevel>(5);
+  
+  // Initialize Stockfish
+  const { isReady, isThinking, findBestMove, setLevel } = useStockfish({
+    level: aiLevel,
+    timeForMove: 1000,
   });
 
   // Helper function to calculate the path between two squares for sliding pieces
@@ -138,40 +150,52 @@ export function useChessGame() {
       };
     });
 
+    // Add AI thinking indication
+    if (isSinglePlayer && isThinking) {
+      styles["thinking"] = {
+        boxShadow: "0 0 15px #ffcc00",
+      };
+    }
+
     return styles;
-  }, [checkSquares, possibleMoves]);
+  }, [checkSquares, possibleMoves, isSinglePlayer, isThinking]);
 
   // Check game state after move
-  const checkGameState = () => {
+  const checkGameState = useCallback(() => {
     if (game.isCheckmate()) {
       setGameState({
         isGameOver: true,
         title: "Checkmate!",
         message: `${game.turn() === "w" ? "Black" : "White"} wins!`
       });
+      return true;
     } else if (game.isDraw()) {
       setGameState({
         isGameOver: true,
         title: "Draw!",
         message: "The game is a draw."
       });
+      return true;
     } else if (game.isStalemate()) {
       setGameState({
         isGameOver: true,
         title: "Stalemate!",
         message: "The game is a stalemate."
       });
+      return true;
     } else if (game.isThreefoldRepetition()) {
       setGameState({
         isGameOver: true,
         title: "Draw!",
         message: "The game is a draw due to threefold repetition."
       });
+      return true;
     }
-  };
+    return false;
+  }, [game]);
 
   // Handle piece movement
-  const makeMove = (sourceSquare: string, targetSquare: string) => {
+  const makeMove = useCallback((sourceSquare: string, targetSquare: string) => {
     try {
       const move = game.move({
         from: sourceSquare,
@@ -190,7 +214,22 @@ export function useChessGame() {
           }
         }
         setFen(game.fen());
-        checkGameState();
+        
+        const isGameOver = checkGameState();
+        
+        // If it's single player mode, not game over, and AI's turn, make AI move
+        if (isSinglePlayer && !isGameOver && game.turn() !== playerColor && isReady) {
+          requestAnimationFrame(() => {
+            findBestMove(game.fen(), (bestMove) => {
+              if (bestMove) {
+                const from = bestMove.substring(0, 2) as Square;
+                const to = bestMove.substring(2, 4) as Square;
+                makeMove(from, to);
+              }
+            });
+          });
+        }
+        
         return true;
       }
       return false;
@@ -198,10 +237,42 @@ export function useChessGame() {
     } catch (error) {
       return false;
     }
-  };
+  }, [game, isSinglePlayer, playerColor, isReady, findBestMove, checkGameState]);
 
+  // Effect to make AI's first move if AI plays as white
+  useEffect(() => {
+    if (isSinglePlayer && playerColor === "b" && game.turn() === "w" && isReady && history.length === 0) {
+      findBestMove(game.fen(), (bestMove) => {
+        if (bestMove) {
+          const from = bestMove.substring(0, 2) as Square;
+          const to = bestMove.substring(2, 4) as Square;
+          makeMove(from, to);
+        }
+      });
+    }
+  }, [isSinglePlayer, playerColor, isReady, game, history.length, findBestMove, makeMove]);
+  
   // Undo the last move
-  const undoMove = () => {
+  const undoMove = useCallback(() => {
+    // In single player mode, undo both player's and AI's moves
+    if (isSinglePlayer) {
+      // Undo AI's move first if it's player's turn
+      if (game.turn() === playerColor) {
+        const aiUndone = game.undo();
+        if (aiUndone) {
+          setHistory(prevHistory => prevHistory.slice(0, -1));
+          if (aiUndone.captured) {
+            if (aiUndone.color === "w") {
+              setCapturedBlack(prev => prev.slice(0, -1));
+            } else {
+              setCapturedWhite(prev => prev.slice(0, -1));
+            }
+          }
+        }
+      }
+    }
+    
+    // Undo player's move
     const undoneMove = game.undo();
     if (undoneMove) {
       setHistory(prevHistory => prevHistory.slice(0, -1));
@@ -214,17 +285,43 @@ export function useChessGame() {
       }
       setFen(game.fen());
     }
-  };
+  }, [game, isSinglePlayer, playerColor]);
 
   // Reset the game
-  const resetGame = () => {
+  const resetGame = useCallback(() => {
     game.reset();
     setHistory([]);
     setCapturedWhite([]);
     setCapturedBlack([]);
     setGameState({ isGameOver: false, title: "", message: "" });
     setFen(game.fen());
-  };
+  }, [game]);
+  
+  // Start a new game against AI
+  const startSinglePlayerGame = useCallback((color: "w" | "b", level: StockfishLevel = 5) => {
+    resetGame();
+    setIsSinglePlayer(true);
+    setPlayerColor(color);
+    setAiLevel(level);
+    setLevel(level);
+    
+    // If AI plays as white, make the first move
+    if (color === "b" && isReady) {
+      findBestMove(game.fen(), (bestMove) => {
+        if (bestMove) {
+          const from = bestMove.substring(0, 2) as Square;
+          const to = bestMove.substring(2, 4) as Square;
+          makeMove(from, to);
+        }
+      });
+    }
+  }, [game, isReady, findBestMove, makeMove, resetGame, setLevel]);
+  
+  // Start two player game
+  const startTwoPlayerGame = useCallback(() => {
+    resetGame();
+    setIsSinglePlayer(false);
+  }, [resetGame]);
 
   return {
     fen,
@@ -239,6 +336,14 @@ export function useChessGame() {
     setGameState,
     makeMove,
     undoMove,
-    resetGame
+    resetGame,
+    // AI-related features
+    isSinglePlayer,
+    playerColor,
+    isThinking,
+    startSinglePlayerGame,
+    startTwoPlayerGame,
+    aiLevel,
+    isAiReady: isReady
   };
 }

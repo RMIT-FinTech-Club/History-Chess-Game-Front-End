@@ -34,3 +34,28 @@
 [data-boardid="historyChessBoard"] [data-square-color="black"] {
   background-color: var(--black) !important;
 }
+
+/* AI thinking animation */
+@keyframes pulseBorder {
+  0% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 204, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); }
+}
+
+[data-boardid="historyChessBoard"].ai-thinking {
+  animation: pulseBorder 2s infinite;
+}
+
+/* Custom animation for thinking indicator */
+.thinking-indicator {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
