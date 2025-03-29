@@ -1,24 +1,57 @@
-@keyframes moving {
+/*
+* Prefixed by https://autoprefixer.github.io
+* PostCSS: v8.4.14,
+* Autoprefixer: v10.4.7
+* Browsers: last 4 version
+*/
+
+@-webkit-keyframes moving {
     0% {
-        transform: translateY(0);
+        -webkit-transform: translateY(0);
+                transform: translateY(0);
     }
 
     50% {
-        transform: translateY(3vh);
+        -webkit-transform: translateY(3vh);
+                transform: translateY(3vh);
     }
 
     100% {
-        transform: translateY(0);
+        -webkit-transform: translateY(0);
+                transform: translateY(0);
+    }
+}
+
+@keyframes moving {
+    0% {
+        -webkit-transform: translateY(0);
+                transform: translateY(0);
+    }
+
+    50% {
+        -webkit-transform: translateY(3vh);
+                transform: translateY(3vh);
+    }
+
+    100% {
+        -webkit-transform: translateY(0);
+                transform: translateY(0);
     }
 }
 
 @media(hover: hover) {
     .logo {
+        -webkit-transition: -webkit-transform 0.5s;
+        transition: -webkit-transform 0.5s;
+        -o-transition: transform 0.5s;
         transition: transform 0.5s;
+        transition: transform 0.5s, -webkit-transform 0.5s;
     }
     
     .logo:hover {
-        transform: translateX(5px);
+        -webkit-transform: translateX(5px);
+            -ms-transform: translateX(5px);
+                transform: translateX(5px);
     }
 }
 
@@ -67,6 +100,7 @@
 }
 
 .bear {
-    animation: moving infinite 5s;
+    -webkit-animation: moving infinite 5s;
+            animation: moving infinite 5s;
     background-image: url('../public//footer/footer_bear.svg');
 }

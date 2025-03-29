@@ -1,3 +1,10 @@
+/*
+* Prefixed by https://autoprefixer.github.io
+* PostCSS: v8.4.14,
+* Autoprefixer: v10.4.7
+* Browsers: last 4 version
+*/
+
 @media screen and (min-width: 768px) {
     html {
         font-size: 1vw;
@@ -12,6 +19,21 @@
 
 body {
     background-color: #151515;
+    background-image:
+        -o-repeating-linear-gradient(
+            bottom,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px,
+            transparent 10vw
+        ),
+        -o-repeating-linear-gradient(
+            left,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px,
+            transparent 10vw
+        );
     background-image:
         repeating-linear-gradient(
             0deg,

@@ -4,7 +4,7 @@ import styles from '@/css/online_list.module.css'
 
 export default function OnlineList() {
   return (
-    <div className="w-full min-h-screen flex flex-col justify-start items-center text-white">
+    <div className={`w-full min-h-screen flex flex-col justify-start items-center relative text-white ${styles.container}`}>
       <p className="text-[3rem] md:text-[3rem] font-extrabold text-center mx-auto my-[3vh] tracking-[0.2vw]">Online Players</p>
       <div className="w-[90vw] md:w-[70vw] flex flex-col justify-center items-start">
         {Array.from({ length: 10 }).map((_, index) => (
