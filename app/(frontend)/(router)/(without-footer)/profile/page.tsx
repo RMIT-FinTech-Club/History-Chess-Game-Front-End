@@ -92,6 +92,7 @@ export default function ProfilePage() {
     const [profileMenu, setProfileMenu] = useState(1)
 
     const handleToggleProfile = () => {
+        console.log('clicked')
         setIsProfileOpened(!isProfileOpened)
     }
 
@@ -108,7 +109,7 @@ export default function ProfilePage() {
                         >
                             <FontAwesomeIcon
                                 icon={faArrowUp}
-                                className={`${isProfileOpened ? 'rotate-none' : 'rotate-[180deg]'}`}
+                                className={`${isProfileOpened ? 'rotate-none' : 'rotate-[180deg]'} text-[1vw]`}
                             />
                         </div>
                     </TooltipTrigger>
@@ -131,59 +132,65 @@ export default function ProfilePage() {
                     </div>
                 </div>
                 <div className="w-[65vw] md:w-[48vw] flex justify-around items-center py-[2vw]">
-                    <div className="w-[10vw] md:w-[8vw] h-[11vw] md:h-[10vw] flex flex-col justify-center items-center bg-black rounded-[1vw] border border-solid border-[#77878B]">
-                        <div className={`w-[2.5vw] aspect-square bg-center bg-contain bg-no-repeat ${styles.profile_icon_1}`}></div>
-                        <p className="text-[1.2vw] md:text-[1vw] text-[#77878B] my-[0.5vh] md:my-[1vh]">Level</p>
-                        <p className="text-[1.5vw] leading-[1vw]">5</p>
-                    </div>
-                    <div className="w-[10vw] md:w-[8vw] h-[11vw] md:h-[10vw] flex flex-col justify-center items-center bg-black rounded-[1vw] border border-solid border-[#77878B]">
-                        <div className={`w-[2.5vw] aspect-square bg-center bg-contain bg-no-repeat ${styles.profile_icon_2}`}></div>
-                        <p className="text-[1.2vw] md:text-[1vw] text-[#77878B] my-[0.5vh] md:my-[1vh]">Game Mode</p>
-                        <p className="text-[1.5vw] leading-[1vw]">1vs1</p>
-                    </div>
-                    <div className="w-[10vw] md:w-[8vw] h-[11vw] md:h-[10vw] flex flex-col justify-center items-center bg-black rounded-[1vw] border border-solid border-[#77878B]">
-                        <div className={`w-[2.5vw] aspect-square bg-center bg-contain bg-no-repeat ${styles.profile_icon_3}`}></div>
-                        <p className="text-[1.2vw] md:text-[1vw] text-[#77878B] my-[0.5vh] md:my-[1vh]">Wallet</p>
-                        <p className="text-[1.5vw] leading-[1vw]">500K</p>
-                    </div>
-                    <div className="w-[10vw] md:w-[8vw] h-[11vw] md:h-[10vw] flex flex-col justify-center items-center bg-black rounded-[1vw] border border-solid border-[#77878B]">
-                        <div className={`w-[2.5vw] aspect-square bg-center bg-contain bg-no-repeat ${styles.profile_icon_4}`}></div>
-                        <p className="text-[1.2vw] md:text-[1vw] text-[#77878B] my-[0.5vh] md:my-[1vh]">Won Matches</p>
-                        <p className="text-[1.5vw] leading-[1vw]">120</p>
-                    </div>
+                    {[
+                        {   
+                            icon: styles.profile_icon_1,
+                            content: 'Level',
+                            number: '5'
+                        },
+                        {   
+                            icon: styles.profile_icon_2,
+                            content: 'Game Mode',
+                            number: '1vs1'
+                        },
+                        {   
+                            icon: styles.profile_icon_3,
+                            content: 'Wallet',
+                            number: '500K'
+                        },
+                        {   
+                            icon: styles.profile_icon_4,
+                            content: 'Won Matches',
+                            number: '120'
+                        },
+                    ].map((card, index) => (
+                        <div key={index} className="w-[10vw] md:w-[8vw] h-[11vw] md:h-[10vw] flex flex-col justify-center items-center bg-black rounded-[1vw] border border-solid border-[#77878B]">
+                            <div className={`w-[2.5vw] aspect-square bg-center bg-contain bg-no-repeat ${card.icon}`}></div>
+                            <p className="text-[1.2vw] md:text-[1vw] text-[#77878B] my-[0.5vh] md:my-[1vh]">{card.content}</p>
+                            <p className="text-[1.5vw] leading-[1vw]">{card.number}</p>
+                        </div>
+                    ))}
                 </div>
             </div>
             <div className={`w-full ${isProfileOpened ? 'md:mt-[calc(12vw+2px+3vh)]' : 'md:mt-0'} mt-0 ${isProfileOpened ? 'h-[calc(100vh-3vh-12vw-2px-6vh)]' : 'h-[calc(100vh-6vh)]'} transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}>
                 <div className="md:w-[30%] w-full flex flex-col">
                     <div className="px-0 md:px-[2vw] py-[1vw] md:py-[2vw] w-full flex flex-row md:flex-col bg-[#1D1D1D] rounded-[2vw] mb-[3vh] relative items-center justify-around">
                         <div className={`absolute ${profileMenu === 0 ? 'md:top-[2vw] md:left-0 top-0 left-0' : `${profileMenu === 1 ? 'md:top-[6vw] md:left-0 top-0 left-[30vw]' : 'md:top-[10vw] md:left-0 top-0 left-[60vw]'}`} left-0 md:h-[2vw] md:w-[calc(2vw/3)] w-1/3 h-[1vw] rounded-[0.5vw] md:rounded-[1vw] bg-[#DBB968] transition-all duration-200`}></div>
-                        <div
-                            className="flex justify-center mr-0 md:mr-auto w-1/3 md:w-[max-content] max-w-[100%] cursor-pointer group"
-                            onClick={() => setProfileMenu(0)}
-                        >
-                            <div className={`h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid border-white rounded-[50%]`}>
-                                <div className={`bg-center bg-contain bg-no-repeat ${styles.profile_menu_icon_1} h-[60%] aspect-square`}></div>
+                        {[
+                            {
+                                icon: styles.profile_menu_icon_1,
+                                content: 'Statistic'
+                            },
+                            {
+                                icon: styles.profile_menu_icon_2,
+                                content: 'Matches'
+                            },
+                            {
+                                icon: styles.profile_menu_icon_3,
+                                content: 'Account Settings'
+                            },
+                        ].map((menu, index) => (
+                            <div
+                                key={index}
+                                className={`flex justify-center mr-0 md:mr-auto w-1/3 md:w-[max-content] max-w-[100%] cursor-pointer group ${index % 2 === 1 ? 'my-[2vw]' : ''}`}
+                                onClick={() => setProfileMenu(index)}
+                            >
+                                <div className={`h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid border-white rounded-[50%]`}>
+                                    <div className={`bg-center bg-contain bg-no-repeat ${menu.icon} h-[60%] aspect-square`}></div>
+                                </div>
+                                <p className="text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:md:left-[0.3vw] transition-all duration-200">{menu.content}</p>
                             </div>
-                            <p className="text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:md:left-[0.3vw] transition-all duration-200">Statistic</p>
-                        </div>
-                        <div
-                            className="flex justify-center mr-0 md:mr-auto my-[2vw] w-1/3 md:w-[max-content] max-w-[100%] cursor-pointer group"
-                            onClick={() => setProfileMenu(1)}
-                        >
-                            <div className={`h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid border-white rounded-[50%]`}>
-                                <div className={`bg-center bg-contain bg-no-repeat ${styles.profile_menu_icon_2} h-[60%] aspect-square`}></div>
-                            </div>
-                            <p className="text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:md:left-[0.3vw] transition-all duration-200">Matches</p>
-                        </div>
-                        <div
-                            className="flex justify-center mr-0 md:mr-auto w-1/3 md:w-[max-content] max-w-[100%] cursor-pointer group"
-                            onClick={() => setProfileMenu(2)}
-                        >
-                            <div className={`h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid border-white rounded-[50%]`}>
-                                <div className={`bg-center bg-contain bg-no-repeat ${styles.profile_menu_icon_3} h-[60%] aspect-square`}></div>
-                            </div>
-                            <p className="text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:md:left-[0.3vw] transition-all duration-200">Account Settings</p>
-                        </div>
+                        ))}
                     </div>
                     <div className="p-[2vw] w-full h-[100%] hidden md:flex flex-col bg-[#1D1D1D] rounded-[2vw]">
                         <p className="text-[2vw] leading-[2vw] mb-[3vh]">Other Players</p>
