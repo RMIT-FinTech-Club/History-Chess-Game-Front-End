@@ -53,10 +53,10 @@
             -ms-transform: translateX(5px);
                 transform: translateX(5px);
     }
-}
 
-.link:hover {
-    text-decoration: underline;
+    .link:hover {
+        text-decoration: underline;
+    }
 }
 
 .FTC_logo {

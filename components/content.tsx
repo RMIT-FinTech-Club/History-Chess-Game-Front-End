@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
+import { ReactNode } from "react"
 
-type ContentProps = { children: ReactNode };
+type ContentProps = { children: ReactNode }
 
 function Content({ children }: ContentProps) {
 
@@ -11,4 +11,4 @@ function Content({ children }: ContentProps) {
     )
 }
 
-export default Content;
+export default Content

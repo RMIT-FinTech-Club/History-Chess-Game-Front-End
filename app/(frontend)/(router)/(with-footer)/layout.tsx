@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import "../globals.css"
+import "@/app/globals.css"
 import '@/css/styles.css'
 
 import Content from "@/components/content"

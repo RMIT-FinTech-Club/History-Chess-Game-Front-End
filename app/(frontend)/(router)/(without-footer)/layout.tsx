@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
 
-import "../globals.css"
+import "@/app/globals.css"
 import '@/css/styles.css'
 
+import { UserProvider } from "@/context/UserContext"
 import Content from "@/components/content"
 
 export const metadata: Metadata = {
@@ -16,12 +17,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`min-h-screen antialiased overflow-x-hidden`}
-      >
-        <Content>{children}</Content>
-      </body>
-    </html>
+    <UserProvider>
+      <html lang="en">
+        <body
+          className={`h-[100dvh] antialiased overflow-x-hidden`}
+        >
+          <Content>{children}</Content>
+        </body>
+      </html>
+    </UserProvider>
   )
 }
