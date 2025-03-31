@@ -98,7 +98,6 @@ export default function ProfilePage() {
 
     return (
         <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3vh] mx-[5vw] md:mx-[10vw] text-white relative h-[100dvh]">
-            <div className="absolute w-[100px] bg-amber-300"></div>
             <div className={`w-full relative md:absolute ${isProfileOpened ? 'md:top-[3vh]' : 'md:top-[calc(-12vw-2px)]'} top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3vh] transition-all duration-300`}>
                 <Tooltip disableHoverableContent>
                     <TooltipTrigger asChild>
@@ -188,7 +187,7 @@ export default function ProfilePage() {
                                 <div className={`h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid border-white rounded-[50%]`}>
                                     <div className={`bg-center bg-contain bg-no-repeat ${menu.icon} h-[60%] aspect-square`}></div>
                                 </div>
-                                <p className="text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:md:left-[0.3vw] transition-all duration-200">{menu.content}</p>
+                                <p className="text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:text-white md:group-hover:text-[#DBB968] group-hover:md:left-[0.3vw] transition-all duration-200">{menu.content}</p>
                             </div>
                         ))}
                     </div>
@@ -199,10 +198,10 @@ export default function ProfilePage() {
                                 <div key={index} className={`flex justify-start items-center ${index == 19 ? 'mb-0' : 'mb-[3vh]'}`}>
                                     <div
                                         style={{ backgroundImage: `url(https://i.imgur.com/RoRONDn.jpeg)` }}
-                                        className="w-[calc(3vw-2px)] bg-center bg-cover bg-no-repeat aspect-square rounded-[50%] border border-solid border-white bg-amber-200"
+                                        className="w-[calc(3vw-2px)] bg-center bg-cover bg-no-repeat aspect-square rounded-[50%] border border-solid border-white"
                                     ></div>
                                     <p className="w-full mx-[1vw] text-[1.2vw] whitespace-nowrap overflow-hidden text-ellipsis">{index == 19 ? 'Negic Legend Legend Legend' : 'Negic Legend'}</p>
-                                    <p className="text-[1.2vw] text-[#C4C4C4] hover:text-[#DBB968] cursor-pointer">Challenge</p>
+                                    <p className="text-[1.2vw] text-[#C4C4C4] md:hover:text-[#DBB968] hover:text-white cursor-pointer">Challenge</p>
                                 </div>
                             ))}
                         </div>
