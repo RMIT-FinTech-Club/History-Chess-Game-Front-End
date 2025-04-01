@@ -5,6 +5,11 @@ import { useRef, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowUp } from "@fortawesome/free-solid-svg-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import CountUp from "react-countup";
+
+import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
+import CupIcon from "@/public/profile/SVG/cupIcon"
+import SettingIcon from "@/public/profile/SVG/settingIcon"
 
 const matches = [
     {
@@ -91,10 +96,7 @@ export default function ProfilePage() {
     const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
     const [profileMenu, setProfileMenu] = useState(1)
 
-    const handleToggleProfile = () => {
-        console.log('clicked')
-        setIsProfileOpened(!isProfileOpened)
-    }
+    const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
 
     return (
         <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3vh] mx-[5vw] md:mx-[10vw] text-white relative h-[100dvh]">
@@ -132,31 +134,34 @@ export default function ProfilePage() {
                 </div>
                 <div className="w-[65vw] md:w-[48vw] flex justify-around items-center py-[2vw]">
                     {[
-                        {   
+                        {
                             icon: styles.profile_icon_1,
                             content: 'Level',
-                            number: '5'
+                            number: 5,
                         },
-                        {   
+                        {
                             icon: styles.profile_icon_2,
                             content: 'Game Mode',
                             number: '1vs1'
                         },
-                        {   
+                        {
                             icon: styles.profile_icon_3,
                             content: 'Wallet',
-                            number: '500K'
+                            number: 500,
+                            prefix: 'K'
                         },
-                        {   
+                        {
                             icon: styles.profile_icon_4,
                             content: 'Won Matches',
-                            number: '120'
+                            number: 120
                         },
                     ].map((card, index) => (
                         <div key={index} className="w-[10vw] md:w-[8vw] h-[11vw] md:h-[10vw] flex flex-col justify-center items-center bg-black rounded-[1vw] border border-solid border-[#77878B]">
                             <div className={`w-[2.5vw] aspect-square bg-center bg-contain bg-no-repeat ${card.icon}`}></div>
                             <p className="text-[1.2vw] md:text-[1vw] text-[#77878B] my-[0.5vh] md:my-[1vh]">{card.content}</p>
-                            <p className="text-[1.5vw] leading-[1vw]">{card.number}</p>
+                            <p className="text-[1.5vw] leading-[1vw]">
+                                {typeof(card.number) === 'number' ? <CountUp start={0} end={card.number} useEasing={false} duration={2} /> : `${card.number}`}
+                            </p>
                         </div>
                     ))}
                 </div>
@@ -167,35 +172,35 @@ export default function ProfilePage() {
                         <div className={`absolute ${profileMenu === 0 ? 'md:top-[2vw] md:left-0 top-0 left-0' : `${profileMenu === 1 ? 'md:top-[6vw] md:left-0 top-0 left-[30vw]' : 'md:top-[10vw] md:left-0 top-0 left-[60vw]'}`} left-0 md:h-[2vw] md:w-[calc(2vw/3)] w-1/3 h-[1vw] rounded-[0.5vw] md:rounded-[1vw] bg-[#DBB968] transition-all duration-200`}></div>
                         {[
                             {
-                                icon: styles.profile_menu_icon_1,
+                                icon: CupIcon,
                                 content: 'Statistic'
                             },
                             {
-                                icon: styles.profile_menu_icon_2,
+                                icon: GamePadIcon,
                                 content: 'Matches'
                             },
                             {
-                                icon: styles.profile_menu_icon_3,
+                                icon: SettingIcon,
                                 content: 'Account Settings'
                             },
                         ].map((menu, index) => (
                             <div
                                 key={index}
                                 className={`flex justify-center mr-0 md:mr-auto w-1/3 md:w-[max-content] max-w-[100%] cursor-pointer group ${index % 2 === 1 ? 'my-[2vw]' : ''}`}
-                                onClick={() => setProfileMenu(index)}
+                                onClick={() => { if(index !== profileMenu) setProfileMenu(index) }}
                             >
-                                <div className={`h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid border-white rounded-[50%]`}>
-                                    <div className={`bg-center bg-contain bg-no-repeat ${menu.icon} h-[60%] aspect-square`}></div>
+                                <div className={`${index === profileMenu ? `${styles.profile_menu_icon} border-[#DBB968]` : 'border-white'} h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid rounded-[50%]`}>
+                                    {<menu.icon width="60%" fill={`${index === profileMenu ? '#DBB968' : 'white'}`} />}
                                 </div>
-                                <p className="text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:text-white md:group-hover:text-[#DBB968] group-hover:md:left-[0.3vw] transition-all duration-200">{menu.content}</p>
+                                <p className={`${index === profileMenu ? `text-[#DBB968]` : 'text-white group-hover:md:left-[0.3vw]'} text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:text-[#DBB968] transition-all duration-200`}>{menu.content}</p>
                             </div>
                         ))}
                     </div>
                     <div className="p-[2vw] w-full h-[100%] hidden md:flex flex-col bg-[#1D1D1D] rounded-[2vw]">
                         <p className="text-[2vw] leading-[2vw] mb-[3vh]">Other Players</p>
-                        <div className={`flex flex-col w-full ${isProfileOpened ? 'h-[calc(100vh-12vw-3vh-2px-3vh-14vw-6vh-6vw-3vh)]' : 'h-[calc(100vh-3vh-3vh-14vw-6vh-6vw-3vh)]'} overflow-y-auto transition-all duration-300`}>
+                        <div className={`flex flex-col w-full ${isProfileOpened ? 'h-[calc(100vh-12vw-3vh-2px-3vh-14vw-6vh-6vw-3vh)]' : 'h-[calc(100vh-3vh-3vh-14vw-6vh-6vw-3vh)]'} overflow-y-auto overflow-x-hidden transition-all duration-300 ${styles.list_container}`}>
                             {Array.from({ length: 20 }).map((_, index) => (
-                                <div key={index} className={`flex justify-start items-center ${index == 19 ? 'mb-0' : 'mb-[3vh]'}`}>
+                                <div key={index} className={`flex relative ${styles.online_player} justify-start items-center ${index == 19 ? 'mb-0' : 'mb-[3vh]'}`}>
                                     <div
                                         style={{ backgroundImage: `url(https://i.imgur.com/RoRONDn.jpeg)` }}
                                         className="w-[calc(3vw-2px)] bg-center bg-cover bg-no-repeat aspect-square rounded-[50%] border border-solid border-white"
@@ -209,14 +214,14 @@ export default function ProfilePage() {
                 </div>
                 <div className="w-full md:w-[60%] flex flex-col">
                     <div className="flex items-center">
-                        <div className={`bg-center bg-contain bg-no-repeat h-[3vw] aspect-square ${styles.profile_menu_icon_2}`}></div>
+                        <GamePadIcon width="3vw" />
                         <p className="text-[3vw] leading-[3vw] ml-[1vw]">Matches</p>
                     </div>
-                    <div className="flex flex-col w-full h-[calc(100dvh-3vh-15vw-3vh-6vw-3vh-3vw-2vh+4px-6vh)] md:h-[100%] overflow-y-auto mt-[2vh]">
+                    <div className={`flex flex-col w-full h-[calc(100dvh-3vh-15vw-3vh-6vw-3vh-3vw-2vh+4px-6vh)] md:h-[100%] overflow-y-auto mt-[2vh] ${styles.list_container}`}>
                         {matches.map((match, index) => (
                             <div
                                 key={index}
-                                className={`${index !== matches.length - 1 ? 'mb-[3vh]' : 'mb-0'} w-full rounded-[1vw] bg-[rgba(0,0,0,0.5)] border border-solid ${match.victory ? `border-[#1CFF07] ${styles.victory}` : 'border-[#EA4335]'}`}
+                                className={`${index !== matches.length - 1 ? 'mb-[3vh]' : 'mb-0'} ${styles.match} w-full rounded-[1vw] bg-[rgba(0,0,0,0.5)] border border-solid ${match.victory ? `border-[#1CFF07] ${styles.victory}` : 'border-[#EA4335]'}`}
                             >
                                 <div className="w-full flex items-center justify-start px-[2vw] md:px-[1vw] rounded-[1vw] overflow-y-hidden">
                                     <div

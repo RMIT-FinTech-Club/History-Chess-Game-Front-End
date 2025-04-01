@@ -5,6 +5,8 @@
 * Browsers: last 4 version
 */
 
+@import "./animation.css";
+
 .container::before {
     content: '';
     position: fixed;
@@ -54,5 +56,13 @@
     
     .challenge:hover:before {
         opacity: 0.3;
+    }
+}
+
+@supports (animation-timeline: view()) {
+    .player {
+        scale: 0.8;
+        opacity: 0;
+        composes: fade-in-animation;
     }
 }

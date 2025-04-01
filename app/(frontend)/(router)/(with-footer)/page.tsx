@@ -10,9 +10,8 @@ import Button from "@/components/landing/Button"
 export default function LandingPage() {
   return (
     <>
-      <YellowLight top={'20vh'} left={'60vw'} />
       <YellowLight top={'140vh'} left={'-30vw'} />
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center relative">
         <Title />
         <Description />
         <Step1 />
