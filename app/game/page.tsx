@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react';
 import io, { Socket } from 'socket.io-client';
 import axios from 'axios';
@@ -191,7 +193,7 @@ const Home = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 p-6">
+        <div className="min-h-screen bg-black p-6">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold">Chess Game Tester</h1>
                 <div className="flex items-center">
@@ -203,7 +205,7 @@ const Home = () => {
                 </div>
             </div>
             <div className="max-w-2xl mx-auto space-y-6">
-                <div className="bg-white p-4 rounded shadow">
+                <div className="bg-black p-4 rounded shadow">
                     <h2 className="text-xl font-semibold mb-4">Authentication</h2>
                     <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full p-2 mb-2 border rounded" />
                     <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full p-2 mb-2 border rounded" />
@@ -214,7 +216,7 @@ const Home = () => {
                     </div>
                 </div>
 
-                <div className="bg-white p-4 rounded shadow">
+                <div className="bg-black p-4 rounded shadow">
                     <h2 className="text-xl font-semibold mb-4">Game Options</h2>
                     <div className="mb-2">
                         <label className="block text-sm font-medium">Play Mode:</label>
@@ -241,13 +243,13 @@ const Home = () => {
                     {gameLink && <p className="mt-2 text-blue-600">Game Link: <a href={gameLink} target="_blank" rel="noopener noreferrer">{gameLink}</a></p>}
                 </div>
 
-                <div className="bg-white p-4 rounded shadow">
+                <div className="bg-black p-4 rounded shadow">
                     <h2 className="text-xl font-semibold mb-4">Join Game</h2>
                     <input type="text" placeholder="Game ID" value={gameId} onChange={(e) => setGameId(e.target.value)} className="w-full p-2 mb-2 border rounded" />
                     <button onClick={() => joinGame(gameId)} className="bg-teal-500 text-white p-2 rounded hover:bg-teal-600">Join Game</button>
                 </div>
 
-                <div className="bg-white p-4 rounded shadow">
+                <div className="bg-black p-4 rounded shadow">
                     <h2 className="text-xl font-semibold mb-4">Make a Move</h2>
                     <input type="text" placeholder="Move (e.g., e4)" value={move} onChange={(e) => setMove(e.target.value)} className="w-full p-2 mb-2 border rounded" />
                     <button onClick={makeMove} className="bg-indigo-500 text-white p-2 rounded hover:bg-indigo-600">Send Move</button>
