@@ -135,84 +135,129 @@ const ChessboardComponent = () => {
   };
   
   const difficultyLevels: StockfishLevel[] = [1, 2, 3, 5, 8, 10, 15, 20];
+
+  // Function to format move history into pairs (white move, black move)
+  const formatMoveHistory = () => {
+    const formattedHistory = [];
+    for (let i = 0; i < history.length; i += 2) {
+      formattedHistory.push({
+        turn: Math.floor(i / 2) + 1,
+        whiteMove: history[i] || "",
+        blackMove: history[i + 1] || "",
+        whiteTime: "00:05", 
+        blackTime: history[i + 1] ? "00:07" : "", 
+      });
+    }
+    return formattedHistory;
+  };
+
+  const moveHistoryPairs = formatMoveHistory();
   
   return (
-    <div className="flex flex-col items-center">
-      <h1 className="text-4xl flex justify-center mb-4">History Chess Game</h1>
+    <div className="flex flex-col items-center max-h-screen overflow-hidden py-1 justify-between">
+      <h1 className="text-2xl mb-2">History Chess Game</h1>
       
-      {/* Game Mode Indicator */}
-      <div className="mb-4">
+      {/* Game Mode Indicator - more compact */}
+      <div className="mb-2">
         <div className="flex items-center space-x-2">
-          <span className="text-lg font-medium">
+          <span className="text-base font-medium">
             {isSinglePlayer 
               ? `Single Player (You: ${playerColor === 'w' ? 'White' : 'Black'}, AI Level: ${aiDifficulty})` 
               : 'Two Players'}
           </span>
           {isThinking && (
-            <span className="animate-pulse text-yellow-500 font-medium">AI is thinking...</span>
+            <span className="animate-pulse text-yellow-500 font-medium">AI thinking...</span>
           )}
           <Button 
             variant="outline" 
             size="sm"
             onClick={() => setShowGameModeDialog(true)}
           >
-            Change Mode
+            Change
           </Button>
         </div>
       </div>
       
-      <div className="flex space-x-6">
-        {/* Captured Pieces for Black */}
-        <CapturedPieces color="Black" pieces={capturedBlack} />
+      {/* Main content area with side-by-side layout */}
+      <div className="flex flex-row gap-3 flex-1 max-h-[calc(100vh - 150px)]">
+        {/* Left side: Chessboard and captured pieces */}
+        <div className="flex flex-col justify-between">
+          {/* Captured Pieces for Black */}
+          <div className="mb-0.5 flex justify-center">
+            <CapturedPieces color="Black" pieces={capturedBlack} />
+          </div>
 
-        {/* Main Chessboard */}
-        <div>
-          <Chessboard
-            id="historyChessBoard"
-            position={fen}
-            onPieceDrop={handleDrop}
-            onPieceClick={onPieceClick}
-            onSquareClick={onSquareClick}
-            onPieceDragBegin={onPieceDragBegin}
-            boardWidth={600}
-            animationDuration={300}
-            customSquareStyles={{
-              ...customSquareStyles,
-            }}
-          />
+          {/* Main Chessboard with slightly reduced size */}
+          <div>
+            <Chessboard
+              id="historyChessBoard"
+              position={fen}
+              onPieceDrop={handleDrop}
+              onPieceClick={onPieceClick}
+              onSquareClick={onSquareClick}
+              onPieceDragBegin={onPieceDragBegin}
+              boardWidth={580}
+              animationDuration={300}
+              customSquareStyles={{
+                ...customSquareStyles,
+              }}
+            />
+          </div>
+
+          {/* Captured Pieces for White */}
+          <div className="mt-0.5 flex justify-center">
+            <CapturedPieces color="White" pieces={capturedWhite} />
+          </div>
         </div>
-
-        {/* Captured Pieces for White */}
-        <CapturedPieces color="White" pieces={capturedWhite} />
-      </div>
-
-      {/* Control Buttons */}
-      <div className="flex space-x-4 mt-4">
-        <Button
-          onClick={undoMove}
-          disabled={history.length === 0}
-          variant="default"
-        >
-          Undo Move
-        </Button>
-        <Button
-          onClick={() => setShowGameModeDialog(true)}
-          variant="secondary"
-        >
-          New Game
-        </Button>
-      </div>
-
-      {/* Move History */}
-      <div className="mt-6">
-        <h2 className="text-2xl mb-2">Move History</h2>
-        <ol className="border p-4 rounded-md bg-gray-100">
-          {history.map((move, index) => (
-            <li key={index} className="text-lg text-black">
-              {index + 1}. {move}
-            </li>
-          ))}
-        </ol>
+        
+        {/* Right side: Move History */}
+        <div className="w-72 text-black flex flex-col">
+          <h2 className="text-lg mb-0.5 text-center">Move History</h2>
+          <div className="border rounded-md bg-white overflow-auto flex-1 max-h-[calc(100vh-150px)]">
+            <table className="w-full border-collapse">
+              <thead className="sticky top-0 bg-gray-100 z-10">
+                <tr>
+                  <th className="border-b p-1 text-left text-sm">Turn</th>
+                  <th className="border-b p-1 text-left text-sm">White</th>
+                  <th className="border-b p-1 text-left text-sm">Black</th>
+                  <th className="border-b p-1 text-left text-sm">Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {moveHistoryPairs.map((pair) => (
+                  <tr key={pair.turn} className="hover:bg-gray-50">
+                    <td className="border-b p-1 text-sm">{pair.turn}.</td>
+                    <td className="border-b p-1 text-sm">{pair.whiteMove}</td>
+                    <td className="border-b p-1 text-sm">{pair.blackMove}</td>
+                    <td className="border-b p-1 text-xs">
+                      {pair.whiteTime && <div>{pair.whiteTime}</div>}
+                      {pair.blackTime && <div>{pair.blackTime}</div>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Control Buttons - more compact */}
+          <div className="flex space-x-2 mt-1 justify-center">
+            <Button
+              onClick={undoMove}
+              disabled={history.length === 0}
+              variant="default"
+              size="sm"
+            >
+              Undo Move
+            </Button>
+            <Button
+              onClick={() => setShowGameModeDialog(true)}
+              variant="secondary"
+              size="sm"
+            >
+              New Game
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Game State Dialog */}
