@@ -1,0 +1,36 @@
+:root {
+    --black: #c0c0c0;
+  }
+
+[data-boardid="historyChessBoard"] {
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    background-image: linear-gradient(#E9B654, #363624);
+}
+
+[data-boardid="historyChessBoard"] .board-square {
+    transition: background-color 0.3s ease-in-out;
+}
+
+[title="Choose promotion piece"] [data-piece*="Q"], [title="Choose promotion piece"] [data-piece*="B"] {
+    background-image: linear-gradient(#E9B654, #83662F)  !important;
+}
+
+[title="Choose promotion piece"] [data-piece*="R"], [title="Choose promotion piece"] [data-piece*="N"] {
+    background-color: var(--black) !important;
+}
+
+/* Custom pieces fixed size */
+[data-boardid="historyChessBoard"] img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
+
+/* Change square colors */
+[data-boardid="historyChessBoard"] [data-square-color="white"] {
+  background: transparent !important;
+}
+
+[data-boardid="historyChessBoard"] [data-square-color="black"] {
+  background-color: var(--black) !important;
+}
