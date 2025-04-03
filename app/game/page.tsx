@@ -52,6 +52,7 @@ const Home = () => {
         setSocket(newSocket);
 
         newSocket.on('connect', () => {
+            console.log("Socket Connected");
             setIsConnected(true);
             if (gameId && userId) newSocket.emit('rejoinGame', { gameId, userId });
         });
@@ -141,16 +142,19 @@ const Home = () => {
         }
     };
 
-    const findMatch = async () => {
+    const findMatch = async () =>{
         if (!userId) {
-            setMessage('Please log in or register first.');
+            setMessage('Please provide a User ID.');
             return;
         }
         try {
             const res = await axios.post(`${BACKEND_URL}/game/find`, { userId, playMode, colorPreference });
-            setGameId(res.data.gameId);
-            setMessage(`Match found! Game ID: ${res.data.gameId}`);
-            joinGame(res.data.gameId);
+
+            // const res = await axios.post(`${BACKEND_URL}/game/find`, { userId});
+            // setGameId(res.data.gameId);
+            console.log("JAJAJJAAjj")
+            // setMessage(`Match found! Game ID: ${res.data.gameId}`);
+            // joinGame(res.data.gameId);
         } catch (err: any) {
             setMessage(`Find match failed: ${err.response?.data?.error || err.message}`);
         }
@@ -172,13 +176,18 @@ const Home = () => {
         }
     };
 
+    
     const joinGame = (id: string) => {
+        console.log(userId)
         if (!socket || !userId) {
             setMessage('Socket not initialized or user not logged in.');
             return;
         }
         setGameId(id);
-        socket.emit('joinGame', { gameId: id, userId });
+        socket.emit('joinGame', (data: { userId: string }) => {
+            setUserId(data.userId);
+            console.log(data.userId)
+        });
         setMessage(`Joined game: ${id}`);
     };
 
@@ -234,6 +243,13 @@ const Home = () => {
                             <option value="random">Random</option>
                         </select>
                     </div>
+                    <input 
+                        type="text" 
+                        placeholder="User ID (for finding match)" 
+                        value={userId} 
+                        onChange={(e) => setUserId(e.target.value)} 
+                        className="w-full p-2 mb-2 border rounded" 
+                    />
                     <input type="text" placeholder="Opponent ID (for challenge)" value={opponentId} onChange={(e) => setOpponentId(e.target.value)} className="w-full p-2 mb-2 border rounded" />
                     <div className="flex space-x-4">
                         <button onClick={createGame} className="bg-purple-500 text-white p-2 rounded hover:bg-purple-600">Create Game</button>
@@ -245,7 +261,20 @@ const Home = () => {
 
                 <div className="bg-black p-4 rounded shadow">
                     <h2 className="text-xl font-semibold mb-4">Join Game</h2>
-                    <input type="text" placeholder="Game ID" value={gameId} onChange={(e) => setGameId(e.target.value)} className="w-full p-2 mb-2 border rounded" />
+                    <input 
+                        type="text" 
+                        placeholder="User ID" 
+                        value={userId} 
+                        onChange={(e) => setUserId(e.target.value)} 
+                        className="w-full p-2 mb-2 border rounded" 
+                    />
+                    <input 
+                        type="text" 
+                        placeholder="Game ID" 
+                        value={gameId} 
+                        onChange={(e) => setGameId(e.target.value)} 
+                        className="w-full p-2 mb-2 border rounded" 
+                    />
                     <button onClick={() => joinGame(gameId)} className="bg-teal-500 text-white p-2 rounded hover:bg-teal-600">Join Game</button>
                 </div>
 
