@@ -1,9 +1,9 @@
-    import { ReactNode } from "react";
-    // https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces
-    // By en:User:Cburnett - Own work
-    // This W3C - unspecified vector image was created with Inkscape., CC BY - SA 3.0, https://commons.wikimedia.org/w/index.php?curid=1499810
+import { ReactNode } from "react";
+// https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces
+// By en:User:Cburnett - Own work
+// This W3C - unspecified vector image was created with Inkscape., CC BY - SA 3.0, https://commons.wikimedia.org/w/index.php?curid=1499810
 
-    export const defaultPieces: Record<string, ReactNode> = {
+export const defaultPieces: Record<string, ReactNode> = {
     wP: (
         <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -255,7 +255,7 @@
             fill: "#000000",
             fillOpacity: "1",
             fillRule: "nonzero",
-            stroke: "#000000",
+            stroke: "#ffffff",
             strokeWidth: "1.5",
             strokeLinecap: "round",
             strokeLinejoin: "miter",
@@ -279,7 +279,7 @@
             fill: "#000000",
             fillOpacity: "1",
             fillRule: "evenodd",
-            stroke: "#000000",
+            stroke: "#ffffff",
             strokeWidth: "1.5",
             strokeLinecap: "round",
             strokeLinejoin: "round",
@@ -373,7 +373,7 @@
             fill: "none",
             fillOpacity: "1",
             fillRule: "evenodd",
-            stroke: "#000000",
+            stroke: "#ffffff",
             strokeWidth: "1.5",
             strokeLinecap: "round",
             strokeLinejoin: "round",
@@ -384,11 +384,11 @@
         >
             <path
             d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18"
-            style={{ fill: "#000000", stroke: "#000000" }}
+            style={{ fill: "#000000", stroke: "#ffffff" }}
             />
             <path
             d="M 24,18 C 24.38,20.91 18.45,25.37 16,27 C 13,29 13.18,31.34 11,31 C 9.958,30.06 12.41,27.96 11,28 C 10,28 11.19,29.23 10,30 C 9,30 5.997,31 6,26 C 6,24 12,14 12,14 C 12,14 13.89,12.1 14,10.5 C 13.27,9.506 13.5,8.5 13.5,7.5 C 14.5,6.5 16.5,10 16.5,10 L 18.5,10 C 18.5,10 19.28,8.008 21,7 C 22,7 22,10 22,10"
-            style={{ fill: "#000000", stroke: "#000000" }}
+            style={{ fill: "#000000", stroke: "#ffffff" }}
             />
             <path
             d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z"
@@ -419,7 +419,7 @@
             fill: "none",
             fillRule: "evenodd",
             fillOpacity: "1",
-            stroke: "#000000",
+            stroke: "#ffffff",
             strokeWidth: "1.5",
             strokeLinecap: "round",
             strokeLinejoin: "round",
@@ -429,7 +429,7 @@
             }}
         >
             <g
-            style={{ fill: "#000000", stroke: "#000000", strokeLinecap: "butt" }}
+            style={{ fill: "#000000", stroke: "#ffffff", strokeLinecap: "butt" }}
             >
             <path d="M 9,36 C 12.39,35.03 19.11,36.43 22.5,34 C 25.89,36.43 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.65,38.99 6.68,38.97 6,38 C 7.35,36.54 9,36 9,36 z" />
             <path d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,30 30,30 C 30,27.5 27.5,26 27.5,26 C 33,24.5 33.5,14.5 22.5,10.5 C 11.5,14.5 12,24.5 17.5,26 C 17.5,26 15,27.5 15,30 C 15,30 14.5,30.5 15,32 z" />
@@ -452,7 +452,7 @@
         <g
             style={{
             fill: "#000000",
-            stroke: "#000000",
+            stroke: "#ffffff",
             strokeWidth: "1.5",
             strokeLinecap: "round",
             strokeLinejoin: "round",
@@ -472,7 +472,7 @@
             <circle cx="39" cy="12" r="2" />
             <path
             d="M 11,38.5 A 35,35 1 0 0 34,38.5"
-            style={{ fill: "none", stroke: "#000000", strokeLinecap: "butt" }}
+            style={{ fill: "none", stroke: "#ffffff", strokeLinecap: "butt" }}
             />
             <g style={{ fill: "none", stroke: "#ffffff" }}>
             <path d="M 11,29 A 35,35 1 0 1 34,29" />
@@ -495,7 +495,7 @@
             fill: "none",
             fillOpacity: "1",
             fillRule: "evenodd",
-            stroke: "#000000",
+            stroke: "#ffffff",
             strokeWidth: "1.5",
             strokeLinecap: "round",
             strokeLinejoin: "round",
@@ -506,7 +506,7 @@
         >
             <path
             d="M 22.5,11.63 L 22.5,6"
-            style={{ fill: "none", stroke: "#000000", strokeLinejoin: "miter" }}
+            style={{ fill: "none", stroke: "#ffffff", strokeLinejoin: "miter" }}
             id="path6570"
             />
             <path
@@ -520,11 +520,11 @@
             />
             <path
             d="M 12.5,37 C 18,40.5 27,40.5 32.5,37 L 32.5,30 C 32.5,30 41.5,25.5 38.5,19.5 C 34.5,13 25,16 22.5,23.5 L 22.5,27 L 22.5,23.5 C 20,16 10.5,13 6.5,19.5 C 3.5,25.5 12.5,30 12.5,30 L 12.5,37"
-            style={{ fill: "#000000", stroke: "#000000" }}
+            style={{ fill: "#000000", stroke: "#ffffff" }}
             />
             <path
             d="M 20,8 L 25,8"
-            style={{ fill: "none", stroke: "#000000", strokeLinejoin: "miter" }}
+            style={{ fill: "none", stroke: "#ffffff", strokeLinejoin: "miter" }}
             />
             <path
             d="M 32,29.5 C 32,29.5 40.5,25.5 38.03,19.85 C 34.15,14 25,18 22.5,24.5 L 22.5,26.6 L 22.5,24.5 C 20,18 10.85,14 6.97,19.85 C 4.5,25.5 13,29.5 13,29.5"
@@ -537,4 +537,4 @@
         </g>
         </svg>
     ),
-    };
+};
