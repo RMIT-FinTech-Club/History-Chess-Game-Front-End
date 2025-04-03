@@ -1,18 +1,21 @@
 "use client"
 
 import { useState, useContext, useEffect, useRef } from "react"
-import { useKeenSlider } from "keen-slider/react"
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
+
+import styles from '@/css/loadout.module.css'
 import user, { BalanceContext } from '@/context/UserContext'
-import "keen-slider/keen-slider.min.css"
 
 interface Skin {
     id: number;
+    description: string;
     name: string;
     img: string;
     rarity: string;
     owned: boolean;
     price: number;
     equiped: boolean;
+    color: string;
 }
 
 interface SkinDisplayerProps {
@@ -78,48 +81,51 @@ const SkinDisplayer: React.FC<SkinDisplayerProps> = ({ skinList }) => {
         }
     }
 
-    const [sliderRef] = useKeenSlider({
-        loop: true,
-        mode: "snap",
-        slides: { perView: 6, spacing: 100 },
-        drag: true,
-        rubberband: false,
-    })
-
     return (
         <>
             <div className="w-full h-[45vh] flex justify-around items-center">
-                <div className="w-[35%] h-4/5 flex justify-between items-center p-[1vw] flex-col">
-                    <div className="w-full h-[70%] flex flex-col bg-amber-300 p-[1vw]">
-                        <p>{skins[skins.findIndex(skin => skin.id === selected)].name}</p>
-                        <p>{skins[skins.findIndex(skin => skin.id === selected)].rarity}</p>
-                        <p>{skins[skins.findIndex(skin => skin.id === selected)].price}</p>
+                <div
+                    style={{ backgroundImage: `url(${skins[skins.findIndex(skin => skin.id === selected)].img})` }}
+                    className="h-4/5 aspect-square bg-center bg-contain bg-no-repeat"
+                ></div>
+                <div className="w-1/2 h-4/5 flex justify-between items-center p-[1vw] flex-col">
+                    <div className="w-full h-[70%] flex flex-col justify-start items-center p-[1vw]">
+                        <p className="mb-[1vh] text-[2vw] text-[#DCB968] font-bold">{skins[skins.findIndex(skin => skin.id === selected)].name}</p>
+                        <p className="text-[1.5vw] text-white leading-[2vw] text-justify">{skins[skins.findIndex(skin => skin.id === selected)].description}</p>
                     </div>
                     <div
                         onClick={handleSkinClick}
-                        className="w-full h-[20%] flex justify-center items-center bg-amber-300 cursor-pointer"
+                        className="px-[4vw] py-[2vw] h-[20%] flex justify-center items-center bg-[#F7D27F] cursor-pointer group rounded-[1vw] transition-all duration-200"
                     >
-                        <p>{skinStatus}</p>
+                        <p className="text-[2vw] leading-[2vw] font-bold text-black group-hover:text-white transition-all duration-200">{skinStatus}</p>
                     </div>
                 </div>
-                <div
-                    style={{ backgroundImage: `url(${skins[skins.findIndex(skin => skin.id === selected)].img})` }}
-                    className="w-[35%] h-4/5 flex justify-between items-start p-[1vw] flex-col bg-contain bg-center bg-no-repeat">
-                </div>
             </div>
-            <div ref={sliderRef} className="keen-slider w-full h-[20vh] bg-amber-700 flex justify-around items-center">
-                {skins.map((skin, index) => {
-                    return (
-                        <div
-                            key={index}
-                            className={`keen-slider__slide cursor-pointer transition-transform h-[15vh] aspect-square flex justify-center items-center bg-amber-50 ${selected === skin.id ? "scale-110 border-2 border-blue-500" : "opacity-70"}`}
-                            onClick={() => handleSelect(skin.id)}
-                        >
-                            <p className="text-center mt-2">{skin.name}</p>
-                        </div>
-                    )
-                })}
-            </div>
+            <Carousel
+                opts={{
+                    align: "start",
+                }}
+                className="w-full"
+            >
+                <CarouselContent className="w-[100vw] h-[30vh]">
+                    {skins.map((skin, index) => {
+                        return (
+                            <CarouselItem
+                                key={index}
+                                className={`cursor-pointer basis-1/6 flex justify-center items-center`}
+                                onClick={() => handleSelect(skin.id)}
+                            >
+                                <div className={`h-[18vh] w-4/5 bg-center bg-no-repeat transition-all duration-300 bg-contain ${skin.id === selected ? 'scale-[1.3] hover:scale-[1.3]' : 'scale-1'} hover:scale-[1.2] flex justify-center items-center ${styles.diamond}`}>
+                                    <div
+                                        style={{ backgroundImage: `url(${skin.img}})` }}
+                                        className="h-2/5 aspect-square bg-center bg-contain bg-no-repeat"
+                                    ></div>
+                                </div>
+                            </CarouselItem>
+                        )
+                    })}
+                </CarouselContent>
+            </Carousel>
         </>
     )
 }
