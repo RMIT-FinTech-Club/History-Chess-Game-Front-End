@@ -4,8 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Poppins", sans-serif;
+  --font-mono: "Roboto Mono", monospace;
 }
 
 :root {
@@ -121,5 +121,70 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+
+  a {
+    color: var(--primary);
+    &:hover {
+      color: var(--accent);
+    }
+  }
+}
+
+button {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: var(--radius);
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+button:hover {
+  background-color: var(--accent);
+  color: var(--card-foreground);
+}
+
+input, select {
+  background-color: var(--input);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+}
+
+input:focus, select:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.card {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border-radius: var(--radius);
+  padding: 1rem;
+  border: 1px solid var(--border);
+}
+
+.header {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+footer {
+  background-color: var(--secondary);
+  color: var(--foreground);
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+footer a {
+  color: var(--primary);
+  &:hover {
+    color: var(--accent);
   }
 }
