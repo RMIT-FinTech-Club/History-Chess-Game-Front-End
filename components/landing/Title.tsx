@@ -9,7 +9,7 @@ export default function Title() {
                 <Heading classes={`${styles.SVG} my-[3vh] md:w-[60vw] w-[90vw]`} width="60vw" />
                 <p className="md:text-[4rem] text-[5rem] font-light text-center">Powered by <span className="font-bold">RMIT Vietnam FinTech Club</span></p>
             </div>
-            <img src="https://premierchessacademy.com/wp-content/uploads/2025/01/bigstock-208614778-1024x683-1.jpg" alt="FinTech Chess" className={`${styles.bg} absolute grid-column-[1/-1] inset-0 w-full h-full object-cover z-[-1] brightness-50`} />
+            <img src="https://premierchessacademy.com/wp-content/uploads/2025/01/bigstock-208614778-1024x683-1.jpg" alt="FinTech Chess" className={`${styles.bg} absolute grid-column-[1/-1] inset-0 w-full h-full object-cover z-[-1] brightness-[0.2]`} />
         </div>
     )
 }
