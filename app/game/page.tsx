@@ -57,6 +57,14 @@ const Home = () => {
             if (gameId && userId) newSocket.emit('rejoinGame', { gameId, userId });
         });
 
+        // Add gameIdAssigned listener here
+
+        // newSocket.on('gameIdAssigned', (data) => {
+        //     console.log('Game created:', data.gameId);
+        //     setGameId(data.gameId);
+        //     setMessage(`Match found! Game ID: ${data.gameId}`);
+        // });
+
         newSocket.on('disconnect', () => {
             setIsConnected(false);
         });
@@ -90,6 +98,8 @@ const Home = () => {
         newSocket.on('error', (error) => {
             setMessage(`Error: ${error.message}`);
         });
+
+        
 
         return () => {
             newSocket.disconnect();
@@ -137,6 +147,9 @@ const Home = () => {
             setGameLink(res.data.gameLink);
             setMessage(`Game created! ID: ${res.data.gameId}`);
             joinGame(res.data.gameId);
+
+
+            
         } catch (err: any) {
             setMessage(`Create game failed: ${err.response?.data?.error || err.message}`);
         }
@@ -148,13 +161,13 @@ const Home = () => {
             return;
         }
         try {
-            const res = await axios.post(`${BACKEND_URL}/game/find`, { userId, playMode, colorPreference });
+            // const res = await axios.post(`${BACKEND_URL}/game/find`, { userId, playMode, colorPreference });
 
-            // const res = await axios.post(`${BACKEND_URL}/game/find`, { userId});
+            const res = await axios.post(`${BACKEND_URL}/game/find`, { userId});
             // setGameId(res.data.gameId);
-            console.log("JAJAJJAAjj")
+            // console.log("JAJAJJAAjj")
             // setMessage(`Match found! Game ID: ${res.data.gameId}`);
-            // joinGame(res.data.gameId);
+            findMatchSocket();
         } catch (err: any) {
             setMessage(`Find match failed: ${err.response?.data?.error || err.message}`);
         }
@@ -176,6 +189,15 @@ const Home = () => {
         }
     };
 
+    const findMatchSocket = async () => {
+        if (!socket || !userId) {
+            setMessage('Socket not initialized or user not logged in.');
+            return;
+        }
+
+        socket.emit('findMatch', { userId: userId });
+
+    }
     
     const joinGame = (id: string) => {
         console.log(userId)
@@ -183,12 +205,18 @@ const Home = () => {
             setMessage('Socket not initialized or user not logged in.');
             return;
         }
-        setGameId(id);
-        socket.emit('joinGame', (data: { userId: string }) => {
-            setUserId(data.userId);
-            console.log(data.userId)
-        });
+        // Add new listener for gameId
+        
+
+
+        // setGameId(id);
+        socket.emit('joinGame', { gameId: gameId });
         setMessage(`Joined game: ${id}`);
+        console.log("This is the game id:", id)
+
+
+
+
     };
 
     const makeMove = () => {
@@ -196,7 +224,9 @@ const Home = () => {
             setMessage('No active game or socket not initialized.');
             return;
         }
-        socket.emit('move', { gameId, move });
+        console.log("This is the game id:", gameId)
+        console.log("This is the move:", move)
+        socket.emit('move', gameId, move);
         setMove('');
         setMessage(`Move sent: ${move}`);
     };
