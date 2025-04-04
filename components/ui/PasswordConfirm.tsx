@@ -38,7 +38,7 @@ const PasswordConfirm = React.forwardRef<
         {...props}
       />
 
-      {/* Show/Hide Password Button */}
+      {/* Show/Hide Password Button
       <Button
         type="button"
         variant="ghost"
@@ -61,9 +61,9 @@ const PasswordConfirm = React.forwardRef<
         <span className="sr-only">
           {showPassword ? "Hide password" : "Show password"}
         </span>
-      </Button>
+      </Button> */}
 
-      {/* Hide browser's default password toggle */}
+      {/* Hide browser's default password toggle
       <style>{`
           .hide-password-toggle::-ms-reveal,
           .hide-password-toggle::-ms-clear {
@@ -71,7 +71,7 @@ const PasswordConfirm = React.forwardRef<
             pointer-events: none;
             display: none;
           }
-        `}</style>
+        `}</style> */}
     </div>
   );
 });
