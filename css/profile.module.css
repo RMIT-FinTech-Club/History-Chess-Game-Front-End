@@ -1,0 +1,94 @@
+@import "./animation.css";
+
+.profile_icon_1 {
+    background-image: url('../public/profile/profile_icon_1.svg');
+}
+
+.profile_icon_2 {
+    background-image: url('../public/profile/profile_icon_2.svg');
+}
+
+.profile_icon_3 {
+    background-image: url('../public/profile/profile_icon_3.svg');
+}
+
+.profile_icon_4 {
+    background-image: url('../public/profile/profile_icon_4.svg');
+}
+
+.result::before {
+    content: '';
+    position: absolute;
+    background-color: #EA4335;
+    z-index: -2;
+    opacity: 0.5;
+}
+
+.victory .result::before {
+    background-color: #1CFF07;
+}
+
+@media (width >=768px) {
+    .result::before {
+        top: -5vw;
+        left: 0;
+        width: 100%;
+        height: 10vw;
+        filter: blur(50px);
+    }
+}
+
+@media (width < 768px) {
+    .result::before {
+        top: -5vw;
+        left: 0;
+        width: 100%;
+        height: 20vw;
+        filter: blur(10px);
+    }
+}
+
+.list_container {
+    scrollbar-width: thin;
+    scrollbar-color: white transparent;
+}
+
+.list_container::-webkit-scrollbar {
+    width: 0.4vw;
+}
+
+.list_container::-webkit-scrollbar-thumb {
+    border-radius: 0.2vw;
+    background-color: #ccc;
+    transition: background-color 200ms;
+}
+
+.list_container::-webkit-scrollbar-thumb:hover {
+    background-color: white;
+}
+
+.list_container::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+.profile_menu_icon {
+    animation: rotating linear 300ms forwards;
+}
+
+@keyframes rotating {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@supports (animation-timeline: view()) {
+    .online_player,
+    .match {
+        scale: 0.8;
+        opacity: 0;
+        composes: fade-in-animation;
+    }
+}
