@@ -15,6 +15,7 @@ import CupIcon from "@/components/ui/cupIcon";
 import SettingIcon from "@/components/ui/settingIcon";
 import OtherPlayers from "@/components/ui/otherPlayers";
 import Matches from "@/components/ui/matches";
+import AccountSettings from "@/components/ui/account_settings";
 
 export default function ProfilePage() {
   const profileRef = useRef<HTMLDivElement | null>(null);
@@ -193,9 +194,8 @@ export default function ProfilePage() {
         </div>
         <div className="w-full md:w-[60%] flex flex-col">
           {profileMenu === 1 && <Matches />}
-        </div>
-        
-        
+          {profileMenu === 2 && <AccountSettings />}
+        </div>        
       </div>
     </div>
   );
