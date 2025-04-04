@@ -16,86 +16,6 @@ import SettingIcon from "@/components/ui/settingIcon";
 import OtherPlayers from "@/components/ui/otherPlayers";
 import Matches from "@/components/ui/matches";
 
-const matches = [
-  {
-    opponent: "Negic Legend",
-    avt: "https://i.imgur.com/RoRONDn.jpeg",
-    mode: "Rapid",
-    time: 683,
-    victory: true,
-  },
-  {
-    opponent: "Negic LegendLegendLegendLegendLegendLegendLegend",
-    avt: "https://i.imgur.com/RoRONDn.jpeg",
-    mode: "Rapid",
-    time: 683,
-    victory: false,
-  },
-  {
-    opponent: "Negic Legend",
-    avt: "https://i.imgur.com/RoRONDn.jpeg",
-    mode: "Rapid",
-    time: 683,
-    victory: true,
-  },
-  {
-    opponent: "Negic Legend",
-    avt: "https://i.imgur.com/RoRONDn.jpeg",
-    mode: "Rapid",
-    time: 683,
-    victory: true,
-  },
-  {
-    opponent: "Negic Legend",
-    avt: "https://i.imgur.com/RoRONDn.jpeg",
-    mode: "Rapid",
-    time: 683,
-    victory: true,
-  },
-  {
-    opponent: "Negic Legend",
-    avt: "https://i.imgur.com/RoRONDn.jpeg",
-    mode: "Rapid",
-    time: 683,
-    victory: true,
-  },
-  {
-    opponent: "Negic Legend",
-    avt: "https://i.imgur.com/RoRONDn.jpeg",
-    mode: "Rapid",
-    time: 683,
-    victory: true,
-  },
-  {
-    opponent: "Negic Legend",
-    avt: "https://i.imgur.com/RoRONDn.jpeg",
-    mode: "Rapid",
-    time: 683,
-    victory: true,
-  },
-  {
-    opponent: "Negic Legend",
-    avt: "https://i.imgur.com/RoRONDn.jpeg",
-    mode: "Rapid",
-    time: 683,
-    victory: true,
-  },
-  {
-    opponent: "Negic Legend",
-    avt: "https://i.imgur.com/RoRONDn.jpeg",
-    mode: "Rapid",
-    time: 683,
-    victory: true,
-  },
-  {
-    opponent: "Negic Legend",
-    avt: "https://i.imgur.com/RoRONDn.jpeg",
-    mode: "Rapid",
-    time: 683,
-    victory: true,
-  },
-];
-
 export default function ProfilePage() {
   const profileRef = useRef<HTMLDivElement | null>(null);
   const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true);
@@ -272,7 +192,7 @@ export default function ProfilePage() {
           {profileMenu === 1 && <OtherPlayers isOpen={isProfileOpened} />}
         </div>
         <div className="w-full md:w-[60%] flex flex-col">
-        {profileMenu === 1 && < Matches isOpen={isProfileOpened}/>}
+          {profileMenu === 1 && <Matches />}
         </div>
         
         
