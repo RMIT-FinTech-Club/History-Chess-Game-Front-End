@@ -30,3 +30,7 @@ body {
     background-size: 10vw 10vw;
     background-position: -5vw -5vw;
 }
+
+.blur {
+    filter: blur(200px);
+}

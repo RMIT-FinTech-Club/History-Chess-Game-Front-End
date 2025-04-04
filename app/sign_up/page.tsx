@@ -90,9 +90,9 @@ const SignUp = () => {
   return (
     <div className="min-h-screen flex items-center justify-center md:justify-start text-white font-poppins font-bold relative">
       <div className="w-[40vw] aspect-[1/1] ml-[5vw] mr-[3vw] relative md:block hidden">
-        <div className="w-full absolute aspect-[1/1] bg-[#DBB968] rounded-[50%] blur-[15vw] left-0 top-[50%] -translate-y-[50%]"></div>
+        <div className="w-full m-auto absolute aspect-[1/1] bg-[#DCB968] rounded-[50%] blur left-0 top-0"></div>
         <div
-          className="w-full absolute aspect-[1/1] bg-no-repeat bg-center bg-contain left-0 top-[50%] -translate-y-[50%]"
+          className="w-full absolute aspect-[1/1] bg-no-repeat bg-center bg-contain left-0 top-0"
           style={{ backgroundImage: "url('/FTC_Logo.png')" }}
         ></div>
       </div>
