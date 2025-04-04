@@ -83,14 +83,14 @@ const SkinDisplayer: React.FC<SkinDisplayerProps> = ({ skinList }) => {
 
     return (
         <>
-            <div className="w-full h-[45vh] flex justify-around items-center">
+            <div className="w-full h-[45dvh] flex justify-around items-center">
                 <div
                     style={{ backgroundImage: `url(${skins[skins.findIndex(skin => skin.id === selected)].img})` }}
                     className="h-4/5 aspect-square bg-center bg-contain bg-no-repeat"
                 ></div>
                 <div className="w-1/2 h-4/5 flex justify-between items-center p-[1vw] flex-col">
                     <div className="w-full h-[70%] flex flex-col justify-start items-center p-[1vw]">
-                        <p className="mb-[1vh] text-[2vw] text-[#DCB968] font-bold">{skins[skins.findIndex(skin => skin.id === selected)].name}</p>
+                        <p className="mb-[1dvh] text-[2vw] text-[#DCB968] font-bold">{skins[skins.findIndex(skin => skin.id === selected)].name}</p>
                         <p className="text-[1.5vw] text-white leading-[2vw] text-justify">{skins[skins.findIndex(skin => skin.id === selected)].description}</p>
                     </div>
                     <div
@@ -107,7 +107,7 @@ const SkinDisplayer: React.FC<SkinDisplayerProps> = ({ skinList }) => {
                 }}
                 className="w-full"
             >
-                <CarouselContent className="w-[100vw] h-[30vh]">
+                <CarouselContent className="w-[100vw] h-[30dvh]">
                     {skins.map((skin, index) => {
                         return (
                             <CarouselItem
@@ -115,7 +115,7 @@ const SkinDisplayer: React.FC<SkinDisplayerProps> = ({ skinList }) => {
                                 className={`cursor-pointer basis-1/6 flex justify-center items-center`}
                                 onClick={() => handleSelect(skin.id)}
                             >
-                                <div className={`h-[18vh] w-4/5 bg-center bg-no-repeat transition-all duration-300 bg-contain ${skin.id === selected ? 'scale-[1.3] hover:scale-[1.3]' : 'scale-1'} hover:scale-[1.2] flex justify-center items-center ${styles.diamond}`}>
+                                <div className={`h-[18dvh] w-4/5 bg-center bg-no-repeat transition-all duration-300 bg-contain ${skin.id === selected ? 'scale-[1.3] hover:scale-[1.3]' : 'scale-1'} hover:scale-[1.2] flex justify-center items-center ${styles.diamond}`}>
                                     <div
                                         style={{ backgroundImage: `url(${skin.img}})` }}
                                         className="h-2/5 aspect-square bg-center bg-contain bg-no-repeat"

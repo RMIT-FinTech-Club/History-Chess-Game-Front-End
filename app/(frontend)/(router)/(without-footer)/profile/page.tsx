@@ -99,8 +99,8 @@ export default function ProfilePage() {
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
 
     return (
-        <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3vh] mx-[5vw] md:mx-[10vw] text-white relative h-[100dvh]">
-            <div className={`w-full relative md:absolute ${isProfileOpened ? 'md:top-[3vh]' : 'md:top-[calc(-12vw-2px)]'} top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3vh] transition-all duration-300`}>
+        <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3dvh] mx-[5vw] md:mx-[10vw] text-white relative h-[100ddvh]">
+            <div className={`w-full relative md:absolute ${isProfileOpened ? 'md:top-[3dvh]' : 'md:top-[calc(-12vw-2px)]'} top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3dvh] transition-all duration-300`}>
                 <Tooltip disableHoverableContent>
                     <TooltipTrigger asChild>
                         <div
@@ -158,7 +158,7 @@ export default function ProfilePage() {
                     ].map((card, index) => (
                         <div key={index} className="w-[10vw] md:w-[8vw] h-[11vw] md:h-[10vw] flex flex-col justify-center items-center bg-black rounded-[1vw] border border-solid border-[#77878B]">
                             <div className={`w-[2.5vw] aspect-square bg-center bg-contain bg-no-repeat ${card.icon}`}></div>
-                            <p className="text-[1.2vw] md:text-[1vw] text-[#77878B] my-[0.5vh] md:my-[1vh]">{card.content}</p>
+                            <p className="text-[1.2vw] md:text-[1vw] text-[#77878B] my-[0.5dvh] md:my-[1dvh]">{card.content}</p>
                             <p className="text-[1.5vw] leading-[1vw]">
                                 {typeof(card.number) === 'number' ? <CountUp start={0} end={card.number} useEasing={false} duration={2} /> : `${card.number}`}
                             </p>
@@ -166,9 +166,9 @@ export default function ProfilePage() {
                     ))}
                 </div>
             </div>
-            <div className={`w-full ${isProfileOpened ? 'md:mt-[calc(12vw+2px+3vh)]' : 'md:mt-0'} mt-0 ${isProfileOpened ? 'h-[calc(100vh-3vh-12vw-2px-6vh)]' : 'h-[calc(100vh-6vh)]'} transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}>
+            <div className={`w-full ${isProfileOpened ? 'md:mt-[calc(12vw+2px+3dvh)]' : 'md:mt-0'} mt-0 ${isProfileOpened ? 'h-[calc(100dvh-3dvh-12vw-2px-6dvh)]' : 'h-[calc(100dvh-6dvh)]'} transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}>
                 <div className="md:w-[30%] w-full flex flex-col">
-                    <div className="px-0 md:px-[2vw] py-[1vw] md:py-[2vw] w-full flex flex-row md:flex-col bg-[#1D1D1D] rounded-[2vw] mb-[3vh] relative items-center justify-around">
+                    <div className="px-0 md:px-[2vw] py-[1vw] md:py-[2vw] w-full flex flex-row md:flex-col bg-[#1D1D1D] rounded-[2vw] mb-[3dvh] relative items-center justify-around">
                         <div className={`absolute ${profileMenu === 0 ? 'md:top-[2vw] md:left-0 top-0 left-0' : `${profileMenu === 1 ? 'md:top-[6vw] md:left-0 top-0 left-[30vw]' : 'md:top-[10vw] md:left-0 top-0 left-[60vw]'}`} left-0 md:h-[2vw] md:w-[calc(2vw/3)] w-1/3 h-[1vw] rounded-[0.5vw] md:rounded-[1vw] bg-[#DBB968] transition-all duration-200`}></div>
                         {[
                             {
@@ -197,10 +197,10 @@ export default function ProfilePage() {
                         ))}
                     </div>
                     <div className="p-[2vw] w-full h-[100%] hidden md:flex flex-col bg-[#1D1D1D] rounded-[2vw]">
-                        <p className="text-[2vw] leading-[2vw] mb-[3vh]">Other Players</p>
-                        <div className={`flex flex-col w-full ${isProfileOpened ? 'h-[calc(100vh-12vw-3vh-2px-3vh-14vw-6vh-6vw-3vh)]' : 'h-[calc(100vh-3vh-3vh-14vw-6vh-6vw-3vh)]'} overflow-y-auto overflow-x-hidden transition-all duration-300 ${styles.list_container}`}>
+                        <p className="text-[2vw] leading-[2vw] mb-[3dvh]">Other Players</p>
+                        <div className={`flex flex-col w-full ${isProfileOpened ? 'h-[calc(100dvh-12vw-3dvh-2px-3dvh-14vw-6dvh-6vw-3dvh)]' : 'h-[calc(100dvh-3dvh-3dvh-14vw-6dvh-6vw-3dvh)]'} overflow-y-auto overflow-x-hidden transition-all duration-300 ${styles.list_container}`}>
                             {Array.from({ length: 20 }).map((_, index) => (
-                                <div key={index} className={`flex relative ${styles.online_player} justify-start items-center ${index == 19 ? 'mb-0' : 'mb-[3vh]'}`}>
+                                <div key={index} className={`flex relative ${styles.online_player} justify-start items-center ${index == 19 ? 'mb-0' : 'mb-[3dvh]'}`}>
                                     <div
                                         style={{ backgroundImage: `url(https://i.imgur.com/RoRONDn.jpeg)` }}
                                         className="w-[calc(3vw-2px)] bg-center bg-cover bg-no-repeat aspect-square rounded-[50%] border border-solid border-white"
@@ -217,11 +217,11 @@ export default function ProfilePage() {
                         <GamePadIcon width="3vw" />
                         <p className="text-[3vw] leading-[3vw] ml-[1vw]">Matches</p>
                     </div>
-                    <div className={`flex flex-col w-full h-[calc(100dvh-3vh-15vw-3vh-6vw-3vh-3vw-2vh+4px-6vh)] md:h-[100%] overflow-y-auto mt-[2vh] ${styles.list_container}`}>
+                    <div className={`flex flex-col w-full h-[calc(100ddvh-3dvh-15vw-3dvh-6vw-3dvh-3vw-2dvh+4px-6dvh)] md:h-[100%] overflow-y-auto mt-[2dvh] ${styles.list_container}`}>
                         {matches.map((match, index) => (
                             <div
                                 key={index}
-                                className={`${index !== matches.length - 1 ? 'mb-[3vh]' : 'mb-0'} ${styles.match} w-full rounded-[1vw] bg-[rgba(0,0,0,0.5)] border border-solid ${match.victory ? `border-[#1CFF07] ${styles.victory}` : 'border-[#EA4335]'}`}
+                                className={`${index !== matches.length - 1 ? 'mb-[3dvh]' : 'mb-0'} ${styles.match} w-full rounded-[1vw] bg-[rgba(0,0,0,0.5)] border border-solid ${match.victory ? `border-[#1CFF07] ${styles.victory}` : 'border-[#EA4335]'}`}
                             >
                                 <div className="w-full flex items-center justify-start px-[2vw] md:px-[1vw] rounded-[1vw] overflow-y-hidden">
                                     <div

@@ -43,9 +43,9 @@ export default function SkinCarousel() {
   ])
 
   return (
-    <div className="w-full h-[100vh] flex justify-start items-center flex-col">
+    <div className="w-full h-[100dvh] flex justify-start items-center flex-col">
       <BalanceDisplayer />
-      <div className="w-full h-[20vh] flex justify-around items-center">
+      <div className="w-full h-[20dvh] flex justify-around items-center">
         {piecesRef.current.map((piece, index) => (
           <div
             key={index}
@@ -57,7 +57,7 @@ export default function SkinCarousel() {
             }}
           >
             <piece.img
-              height="15vh"
+              height="15dvh"
               fill={`${index === pieces ? '#DBB968' : '#fff'}`}
             />
           </div>
