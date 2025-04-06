@@ -1,162 +1,238 @@
 "use client";
-
 import React, { useState } from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import styles from "@/css/profile.module.css";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
+import { PasswordConfirm } from "@/components/ui/PasswordConfirm";
+import { MdEmail } from "react-icons/md";
+import { FaUser } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import { Label } from "@radix-ui/react-label";
+
+const formSchema = z
+  .object({
+    email: z.string(),
+    username: z.string(),
+    password: z
+      .string()
+      .min(1, { message: "Please enter your password." })
+      .min(8, { message: "Password must be at least 8 characters." })
+      .refine((value) => /[A-Z]/.test(value), {
+        message: "Password must contain at least one uppercase letter.",
+      })
+      .refine((value) => /[0-9]/.test(value), {
+        message: "Password must contain at least one number.",
+      })
+      .refine((value) => /[^A-Za-z0-9]/.test(value), {
+        message: "Password must contain at least one special character.",
+      }),
+    confirmPassword: z
+      .string()
+      .min(1, { message: "Please confirm your password." }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
 
 const AccountSettings = () => {
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm();
-  const [successMessage, setSuccessMessage] = useState("");
+  const router = useRouter();
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      username: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
-  const onSubmit = (data: any) => {
-    console.log("Updated User Data:", data);
-    setSuccessMessage("Settings updated successfully!");
-    setTimeout(() => setSuccessMessage(""), 3000);
+  const mockUsers = [
+    { username: "test", email: "test@example.com" },
+    { username: "user", email: "user@example.com" },
+  ];
+
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Password validation tracking
+  const isMinLength = password.length >= 8;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    setLoading(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      alert(
+        `Sign up successful!\n\nEmail: ${data.email}\nUsername: ${data.username}\nPassword: ${data.password}`
+      );
+      router.push("/sign_in");
+    } catch (error) {
+      alert("Sign up failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return ( 
-      <div>
-          <div className="flex items-center">
-            <img
-              src="/Settings.svg"
-              alt="Settings icon"
-              className="w-[2.5vw] mb-[1vh]"
-            />
-            <h3 className="text-[2.5vw] leading-[3vw] ml-[1vw]">
-              Settings
-            </h3>
-          </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className={`flex flex-col w-full h-[calc(100dvh-3vh-15vw-3vh-6vw-3vh-3vw-2vh+4px-6vh)] md:h-[100%] overflow-y-auto mt-[2vh] ${styles.list_container}`}>
-            <div className="flex flex-col md:flex-row gap-[3vh]">
-              <div className="flex items-center justify-center w-full md:w-auto">
-                <label className="cursor-pointer flex items-center justify-center border border-dashed border-[#77878B] rounded-[1vh] h-[19vh] aspect-square">
-                  <img
-                    src="/Upload.svg"
-                    alt="Upload Icon"
-                    className="h-[6vh] aspect-square"
-                  />
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    {...register("profilePicture")}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-
-              <div className="flex flex-col gap-[2vh] w-full h-full justify-center">
-                <div>
-                  <label className="block text-[#EBEBEB] text-[2.8vh] font-normal">
-                    User Information
-                  </label>
-                  <Input
-                    {...register("username")}
-                    placeholder="Enter your new username"
-                    autoComplete="off"
-                    className="w-full h-[6vh] mt-[1vh] bg-[#F9F9F9] border-[1px] border-[#B7B7B7] rounded-[1vh] placeholder-[#8C8C8C] placeholder:text-[2.5vh] text-black"
-                  />
-                  <Input
-                    {...register("email")}
-                    placeholder="Your email"
-                    autoComplete="off"
-                    className="w-full h-[6vh] mt-[2vh] bg-[#F9F9F9] border-[1px] border-[#B7B7B7] rounded-[1vh] placeholder-[#8C8C8C] placeholder:text-[2.5vh] text-black"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[#FFFFFF] text-[2.8vh]">
-                New password <span className="text-[#BB2649]">*</span>
-              </label>
-              <Input
-                type="password"
-                {...register("password")}
-                className="w-full p-[1.5vh] mt-[1vh] border-[1.34px] border-[#DBB968] rounded-[1vh]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[#FFFFFF] text-[2.8vh]">
-                Confirm new password <span className="text-[#BB2649]">*</span>
-              </label>
-              <Input
-                type="password"
-                {...register("confirmPassword")}
-                className="w-full p-[1.5vh] mt-[1vh] border-[1.34px] border-[#DBB968] rounded-[1vh]"
-              />
-            </div>
-
-            <div className="space-y-[1vh]">
-              <label className="block text-[#FFFFFF] text-[2.8vh]">
-                Language <span className="text-[#BB2649]">*</span>
-              </label>
-              <Select
-                {...register("language")}
-                defaultValue="English"
-                onValueChange={(value) => {
-                  setValue("language", value);
-                  console.log(`Language changed to: ${value}`);
-                }}
-              >
-                <SelectTrigger className="w-full p-[1.5vh] mt-[1vh] border-[1.34px] border-[#DBB968] rounded-[1vh] text-[#DBB968]">
-                  <SelectValue placeholder="Select your language" />
-                </SelectTrigger>
-                <SelectContent className="w-full bg-black text-[#FFFFFF] z-50 border border-[#DBB968] rounded-[1vh]">
-                  <SelectItem
-                    value="English"
-                    className="hover:bg-[#E5C27B] data-[state=checked]:bg-[#B8933C]"
-                  >
-                    English
-                  </SelectItem>
-                  <SelectItem
-                    value="Vietnamese"
-                    className="hover:bg-[#E5C27B] data-[state=checked]:bg-[#B8933C]"
-                  >
-                    Vietnamese
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {successMessage && (
-              <p className="text-[#4CAF50] text-[2vh]">{successMessage}</p>
-            )}
-
-            <div className="flex justify-end gap-[2vh]">
-              <Button
-                type="button"
-                className="px-[2vh] py-[1.5vh] border w-[10vw] h-[6vh] border-[#DBB968] rounded-[1vh] text-[#EBEBEB] font-normal text-[2.5vh] 
-  cursor-pointer hover:bg-[#E57373] hover:text-black transition duration-200"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="bg-[#DCB968] px-[2vh] py-[1.5vh] w-[10vw] h-[6vh] rounded-[1vh] text-[#000000] font-normal text-[2.5vh] 
-  cursor-pointer hover:bg-[#BFA55D] transition duration-200"
-              >
-                Save
-              </Button>
-            </div>
-          </form>
+  return (
+    <div>
+      <div className="flex items-center">
+        <img
+          src="/Settings.svg"
+          alt="Settings icon"
+          className="w-[2.5vw] mb-[1vh]"
+        />
+        <h3 className="text-[2.5vw] leading-[3vw] ml-[1vw]">Settings</h3>
       </div>
+
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-3 w-[80vw] md:w-[42vw]"
+        >
+          {/* User Information Field */}
+          
+          <>
+          <Label className="font-normal text-[3vh] rounded-md">
+            User Information
+          </Label>
+          <FormItem>
+            <div className="relative w-full">
+              <FaUser
+                className="absolute top-1/2 left-4 transform -translate-y-1/2 
+                        text-[#2F2F2F] text-[3vh] pointer-events-none"
+              />
+              <Input
+                disabled
+                className="pl-12 py-[4vh] w-full 
+                          rounded-[1.5vh] bg-[#F9F9F9] border-[#B7B7B7] text-[#8C8C8C] 
+                          !text-[3vh] font-normal
+                          disabled:opacity-100
+                          disabled:cursor-not-allowed"
+                autoComplete="off"
+                defaultValue={mockUsers[0].username}
+              />
+            </div>
+          </FormItem>
+          
+          <FormItem>
+            <div className="relative w-full">
+              <MdEmail
+                className="absolute top-1/2 left-4 transform -translate-y-1/2 
+                        text-[#2F2F2F] text-[3vh] pointer-events-none"
+              />
+              <Input
+                disabled
+                className="pl-12 py-[4vh] w-full 
+                          rounded-[1.5vh] bg-[#F9F9F9] border-[#B7B7B7] text-[#8C8C8C] 
+                          !text-[3vh] font-normal
+                          disabled:opacity-100
+                          disabled:cursor-not-allowed"
+                autoComplete="off"
+                defaultValue={mockUsers[0].email}
+              />
+            </div>
+          </FormItem>
+          </>
+
+          {/* Password Field */}
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold text-[3vh] rounded-md">
+                  Password
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <PasswordInput
+                      placeholder="Enter your password"
+                      {...field}
+                      className="
+                                    pl-[7.5vw]
+                                    sm:pl-[5.85vw]
+                                    md:pl-[4.5vw]
+                                    lg:pl-[3.75vw] 
+                                    py-[4vh] w-full
+                                    bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] 
+                                    !text-[3vh] font-normal rounded-[1.5vh]
+                                  "
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setPassword(e.target.value);
+                      }}
+                    />
+                  </div>
+                </FormControl>
+
+                {/* Dynamic Password Checklist */}
+                <ul className="font-normal text-[2.5vh] rounded-md">
+                  {!isMinLength && <li>✔ 8 characters minimum</li>}
+                  {!hasUppercase && <li>✔ At least 1 capital letter</li>}
+                  {!hasNumber && <li>✔ At least 1 digit</li>}
+                  {!hasSpecialChar && <li>✔ At least 1 special character</li>}
+                </ul>
+                <FormMessage className="text-[2.5vh] text-red-500" />
+              </FormItem>
+            )}
+          />
+
+          {/* Confirm Password Field */}
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-bold text-[3vh] rounded-md">
+                  Confirm Password
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <PasswordConfirm
+                      placeholder="Confirm your password"
+                      {...field}
+                      className="
+                                    pl-[7.5vw]
+                                    sm:pl-[5.85vw]
+                                    md:pl-[4.5vw]
+                                    lg:pl-[3.75vw] 
+                                    py-[4vh] w-full
+                                    bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] 
+                                    !text-[3vh] font-normal rounded-[1.5vh]
+                                  "
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage className="text-[2.5vh] text-red-500" />
+              </FormItem>
+            )}
+          />
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[4vh] md:py-[4vh] lg:py-[4.5vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+          >
+            {loading ? "Signing Up..." : "Sign Up"}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 };
 
