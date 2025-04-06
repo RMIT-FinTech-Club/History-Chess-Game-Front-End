@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`min-h-screen antialiased overflow-x-hidden`}
+        className={`min-h-[100dvh] antialiased overflow-x-hidden`}
       >
         <Content>{children}</Content>
         <Footer />
