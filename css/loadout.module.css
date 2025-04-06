@@ -1,3 +1,15 @@
 .diamond {
     background-image: url(../public/loadout/diamond.svg);
 }
+
+.shadow {
+    filter: blur(1vh);
+    transform: translate(-50%, 1.5vh);
+    animation: showUp linear 0.2s forwards;
+}
+
+@keyframes showUp {
+    to {
+        transform: translate(-50%, 0);
+    }
+}

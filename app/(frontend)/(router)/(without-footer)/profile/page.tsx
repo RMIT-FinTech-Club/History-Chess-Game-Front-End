@@ -196,7 +196,7 @@ export default function ProfilePage() {
                             </div>
                         ))}
                     </div>
-                    <div className="p-[2vw] w-full h-[100%] hidden md:flex flex-col bg-[#1D1D1D] rounded-[2vw]">
+                    {profileMenu === 1 && <div className="p-[2vw] w-full h-[100%] hidden md:flex flex-col bg-[#1D1D1D] rounded-[2vw]">
                         <p className="text-[2vw] leading-[2vw] mb-[3vh]">Other Players</p>
                         <div className={`flex flex-col w-full ${isProfileOpened ? 'h-[calc(100vh-12vw-3vh-2px-3vh-14vw-6vh-6vw-3vh)]' : 'h-[calc(100vh-3vh-3vh-14vw-6vh-6vw-3vh)]'} overflow-y-auto overflow-x-hidden transition-all duration-300 ${styles.list_container}`}>
                             {Array.from({ length: 20 }).map((_, index) => (
@@ -210,7 +210,7 @@ export default function ProfilePage() {
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </div>}
                 </div>
                 <div className="w-full md:w-[60%] flex flex-col">
                     <div className="flex items-center">

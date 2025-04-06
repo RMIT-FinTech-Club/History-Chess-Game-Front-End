@@ -112,7 +112,7 @@ const SkinDisplayer: React.FC<SkinDisplayerProps> = ({ skinList }) => {
                         return (
                             <CarouselItem
                                 key={index}
-                                className={`cursor-pointer basis-1/6 flex justify-center items-center`}
+                                className={`cursor-pointer basis-1/6 flex justify-center items-center relative`}
                                 onClick={() => handleSelect(skin.id)}
                             >
                                 <div className={`h-[18vh] w-4/5 bg-center bg-no-repeat transition-all duration-300 bg-contain ${skin.id === selected ? 'scale-[1.3] hover:scale-[1.3]' : 'scale-1'} hover:scale-[1.2] flex justify-center items-center ${styles.diamond}`}>
@@ -121,6 +121,7 @@ const SkinDisplayer: React.FC<SkinDisplayerProps> = ({ skinList }) => {
                                         className="h-2/5 aspect-square bg-center bg-contain bg-no-repeat"
                                     ></div>
                                 </div>
+                                {skin.id == selected && <div className={`absolute bottom-0 left-[50%] w-3/5 h-[1vh] bg-[#DBB968] rounded-[0.5vw] ${styles.shadow}`}></div>}
                             </CarouselItem>
                         )
                     })}
