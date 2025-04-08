@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -15,10 +15,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { PasswordConfirm } from "@/components/ui/PasswordConfirm";
+import { NewPassword } from "@/components/ui/NewPassword";
 import { MdEmail } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { Label } from "@radix-ui/react-label";
+import { MdOutlineFileUpload } from "react-icons/md";
 
 const formSchema = z
   .object({
@@ -46,22 +48,36 @@ const formSchema = z
     path: ["confirmPassword"],
   });
 
+const mockUsers = [
+  { username: "test", email: "test@example.com" },
+  { username: "user", email: "user@example.com" },
+];
+
 const AccountSettings = () => {
   const router = useRouter();
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-      username: "",
+      email: mockUsers[0].email,
+      username: mockUsers[0].username,
       password: "",
       confirmPassword: "",
     },
   });
 
-  const mockUsers = [
-    { username: "test", email: "test@example.com" },
-    { username: "user", email: "user@example.com" },
-  ];
+  const [imagePreview, setImagePreview] = useState<string | null>(null); // Moved inside the component
+  const fileInputRef = useRef<HTMLInputElement | null>(null); // Moved inside the component
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -77,7 +93,7 @@ const AccountSettings = () => {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       alert(
-        `Sign up successful!\n\nEmail: ${data.email}\nUsername: ${data.username}\nPassword: ${data.password}`
+        `Sign up successful!\n\nEmail: ${data.email}\nUsername: ${data.username}\nNew Password: ${data.password}`
       );
       router.push("/sign_in");
     } catch (error) {
@@ -93,60 +109,89 @@ const AccountSettings = () => {
         <img
           src="/Settings.svg"
           alt="Settings icon"
-          className="w-[2.5vw] mb-[1vh]"
+          className="w-[3.5vw] md:w-[2.5vw] mb-[1vh]"
         />
-        <h3 className="text-[2.5vw] leading-[3vw] ml-[1vw]">Settings</h3>
+        <h3 className="text-[3.5vw] md:text-[2.5vw] leading-[3vw] ml-[1vw]">Settings</h3>
       </div>
 
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-3 w-[80vw] md:w-[42vw]"
+          className="space-y-3 mt-[0] md:mt-[2vh]"
         >
-          {/* User Information Field */}
-          
-          <>
-          <Label className="font-normal text-[3vh] rounded-md">
-            User Information
-          </Label>
-          <FormItem>
-            <div className="relative w-full">
-              <FaUser
-                className="absolute top-1/2 left-4 transform -translate-y-1/2 
-                        text-[#2F2F2F] text-[3vh] pointer-events-none"
+          {/* User Information and Avatar Field */}
+          <div
+            className="w-full flex flex-row items-center justify-between"
+          >
+            {/* Image Upload */}
+            <div
+              className="md:w-[10vw] md:aspect-square w-[16vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {imagePreview ? (
+              <img
+              src={imagePreview}
+              alt="Uploaded"
+              className="object-cover w-full h-full rounded-md"
               />
-              <Input
-                disabled
-                className="pl-12 py-[4vh] w-full 
-                          rounded-[1.5vh] bg-[#F9F9F9] border-[#B7B7B7] text-[#8C8C8C] 
-                          !text-[3vh] font-normal
-                          disabled:opacity-100
-                          disabled:cursor-not-allowed"
-                autoComplete="off"
-                defaultValue={mockUsers[0].username}
-              />
-            </div>
-          </FormItem>
-          
-          <FormItem>
-            <div className="relative w-full">
-              <MdEmail
-                className="absolute top-1/2 left-4 transform -translate-y-1/2 
-                        text-[#2F2F2F] text-[3vh] pointer-events-none"
-              />
-              <Input
-                disabled
-                className="pl-12 py-[4vh] w-full 
-                          rounded-[1.5vh] bg-[#F9F9F9] border-[#B7B7B7] text-[#8C8C8C] 
-                          !text-[3vh] font-normal
-                          disabled:opacity-100
-                          disabled:cursor-not-allowed"
-                autoComplete="off"
-                defaultValue={mockUsers[0].email}
+              ) : (
+              <div className="flex items-center justify-center bg-[#DCB968] rounded-full w-[3vw] h-[3vw] min-w-[4vh] min-h-[4vh] p-[1vh]">
+              <MdOutlineFileUpload className="text-white text-[3vw] min-text-[3vh]" />
+              </div>
+              )}
+              <input
+              type="file"
+              accept=".jpg,.png,.webp,.svg"
+              ref={fileInputRef}
+              onChange={handleImageChange}
+              className="hidden"
               />
             </div>
-          </FormItem>
-          </>
+
+            {/* User Information Field */}
+            <div>
+              <Label className="text-[2.5vw] md:text-[1.5vw]">
+                User Information
+              </Label>
+              <FormItem>
+                <div className="relative w-[70vw] md:w-[35vw]">
+                  <FaUser
+                    className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 
+                        text-[#2F2F2F] text-[3vh] pointer-events-none"
+                  />
+                  <Input
+                    disabled
+                    className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
+                          rounded-[1.5vh] bg-[#F9F9F9] border-[#B7B7B7] text-[#8C8C8C] 
+                          !text-[2.5vh] md:!text-[3vh] font-normal
+                          disabled:opacity-100
+                          disabled:cursor-not-allowed"
+                    autoComplete="off"
+                    defaultValue={mockUsers[0].username}
+                  />
+                </div>
+              </FormItem>
+
+              <FormItem>
+                <div className="relative w-[70vw] md:w-[35vw] mt-[2vh]">
+                  <MdEmail
+                    className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 
+                        text-[#2F2F2F] text-[3vh] pointer-events-none"
+                  />
+                  <Input
+                    disabled
+                    className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
+                    rounded-[1.5vh] bg-[#F9F9F9] border-[#B7B7B7] text-[#8C8C8C] 
+                    !text-[2.5vh] md:!text-[3vh] font-normal
+                    disabled:opacity-100
+                    disabled:cursor-not-allowed"
+                    autoComplete="off"
+                    defaultValue={mockUsers[0].email}
+                  />
+                </div>
+              </FormItem>
+            </div>
+          </div>
 
           {/* Password Field */}
           <FormField
@@ -154,23 +199,17 @@ const AccountSettings = () => {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-bold text-[3vh] rounded-md">
-                  Password
+                <FormLabel className="text-[2.5vw] md:text-[1.5vw]">
+                  New Password<span className="text-[#BB2649]">*</span>
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <PasswordInput
-                      placeholder="Enter your password"
+                    <NewPassword
+                      placeholder="Enter your new password"
                       {...field}
-                      className="
-                                    pl-[7.5vw]
-                                    sm:pl-[5.85vw]
-                                    md:pl-[4.5vw]
-                                    lg:pl-[3.75vw] 
-                                    py-[4vh] w-full
-                                    bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] 
-                                    !text-[3vh] font-normal rounded-[1.5vh]
-                                  "
+                      className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
+                          rounded-[1.5vh]
+                          !text-[2.5vh] md:!text-[3vh] font-normal"
                       onChange={(e) => {
                         field.onChange(e);
                         setPassword(e.target.value);
@@ -197,23 +236,17 @@ const AccountSettings = () => {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="font-bold text-[3vh] rounded-md">
-                  Confirm Password
+                <FormLabel className="text-[2.5vw] md:text-[1.5vw]">
+                  Confirm New Password<span className="text-[#BB2649]">*</span>
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <PasswordConfirm
-                      placeholder="Confirm your password"
+                      placeholder="Confirm your new password"
                       {...field}
-                      className="
-                                    pl-[7.5vw]
-                                    sm:pl-[5.85vw]
-                                    md:pl-[4.5vw]
-                                    lg:pl-[3.75vw] 
-                                    py-[4vh] w-full
-                                    bg-[#C4C4C4] border-gray-600 text-[#2F2F2F] 
-                                    !text-[3vh] font-normal rounded-[1.5vh]
-                                  "
+                      className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
+                          rounded-[1.5vh]
+                          !text-[2.5vh] md:!text-[3vh] font-normal"
                     />
                   </div>
                 </FormControl>
