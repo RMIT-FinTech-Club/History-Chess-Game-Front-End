@@ -162,7 +162,7 @@ const ChessboardComponent = () => {
   // Function to format move history into pairs (white move, black move)
   const formatMoveHistory = () => {
     // Maximum time per move for scaling the progress bars (seconds)
-    const maxTimePerMove = 600; 
+    const maxTimePerMove = 60; 
     
     // Function to format time in seconds with one decimal place
     const formatTimeInSeconds = (time: string) => {
@@ -259,26 +259,26 @@ const ChessboardComponent = () => {
             
               {/* Move History - with flex-grow to fill available space */}
               <div className="flex flex-col flex-grow my-3 overflow-hidden">
-                <div className="border rounded-lg shadow-md bg-[#3B3433] overflow-auto flex-1">
-                  <table className="w-full border-collapse text-white">
+                <div className=" rounded-lg shadow-md bg-[#3B3433] overflow-auto flex-1">
+                  <table className="w-full -collapse text-white">
                     <thead className="sticky top-0 z-10">
                       <tr>
-                        <th className="border-b border-gray-600 py-2 px-5 text-left text-sm font-semibold">Turn</th>
-                        <th className="border-b border-gray-600 py-2 px-5 text-left text-sm font-semibold">White</th>
-                        <th className="border-b border-gray-600 py-2 px-5 text-left text-sm font-semibold">Black</th>
-                        <th className="border-b border-gray-600 py-2 px-5 text-right text-sm font-semibold">Time</th>
+                        <th className="py-2 px-5 text-left text-sm font-semibold">Turn</th>
+                        <th className="py-2 px-5 text-left text-sm font-semibold">White</th>
+                        <th className="py-2 px-5 text-left text-sm font-semibold">Black</th>
+                        <th className="py-2 px-5 text-right text-sm font-semibold">Time</th>
                       </tr>
                     </thead>
                     <tbody>
                       {moveHistoryPairs.map((pair) => (
                         <tr key={pair.turn} className="hover:bg-[#4A4443] transition-colors duration-200">
-                          <td className="border-b border-gray-700 py-2 px-5 text-sm">{pair.turn}.</td>
-                          <td className="border-b border-gray-700 py-2 px-5 text-sm">{pair.whiteMove}</td>
-                          <td className="border-b border-gray-700 py-2 px-5 text-sm">{pair.blackMove}</td>
-                          <td className="border-b border-gray-700 py-2 px-5 text-xs">
+                          <td className=" py-2 px-5 text-sm">{pair.turn}.</td>
+                          <td className=" py-2 px-5 text-sm">{pair.whiteMove}</td>
+                          <td className=" py-2 px-5 text-sm">{pair.blackMove}</td>
+                          <td className=" py-2 px-5 text-xs">
                             {pair.whiteTime !== "-" && (
                               <div className="mb-1.5 flex items-center justify-between gap-2">
-                                <div className="w-16 h-1.5 overflow-hidden">
+                                <div className="flex justify-end w-16 h-1.5 overflow-hidden">
                                   <div 
                                     className="h-full bg-white"
                                     style={{ 
@@ -291,7 +291,7 @@ const ChessboardComponent = () => {
                             )}
                             {pair.blackTime && (
                               <div className="flex items-center justify-between gap-2">
-                                <div className="flex w-16 h-1.5 overflow-hidden">
+                                <div className="flex justify-end w-16 h-1.5 overflow-hidden">
                                   <div 
                                     className="h-full bg-black"
                                     style={{ 
