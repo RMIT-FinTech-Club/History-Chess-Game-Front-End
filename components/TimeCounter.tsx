@@ -18,7 +18,7 @@ export interface TimeCounterHandle {
   undoTime: (lastTurn: "w" | "b") => void;
 }
 
-export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps>(({
+export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps> (({
   initialTimeInSeconds = 600, // 10 minutes default
   currentTurn,
   gameActive,
@@ -34,6 +34,12 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps>(({
   const lastMoveTimeRef = useRef<{[key: string]: number}>({
     w: initialTimeInSeconds,
     b: initialTimeInSeconds
+  });
+
+  // Store move history times to properly restore on undo
+  const moveTimesRef = useRef<{white: number[], black: number[]}>({
+    white: [initialTimeInSeconds],
+    black: [initialTimeInSeconds]
   });
   
   // Game clock state - start paused when a new game begins
@@ -62,6 +68,11 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps>(({
       w: initialTimeInSeconds,
       b: initialTimeInSeconds
     };
+    // Reset move history times
+    moveTimesRef.current = {
+      white: [initialTimeInSeconds],
+      black: [initialTimeInSeconds]
+    };
     if (onTimerReset) {
       onTimerReset();
     }
@@ -75,16 +86,44 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps>(({
       lastMoveTimeRef.current.w = whiteTimeInSeconds;
     }
   }, [whiteTimeInSeconds, blackTimeInSeconds, currentTurn]);
+
+  // Save current time at each move
+  useEffect(() => {
+    if (history && history.length > 0) {
+      // Save current time state when a move is made
+      if (currentTurn === "w") {
+        // Black just moved, record black's remaining time
+        moveTimesRef.current.black.push(blackTimeInSeconds);
+        lastMoveTimeRef.current.b = blackTimeInSeconds;
+      } else {
+        // White just moved, record white's remaining time
+        moveTimesRef.current.white.push(whiteTimeInSeconds);
+        lastMoveTimeRef.current.w = whiteTimeInSeconds;
+      }
+    }
+  }, [history, currentTurn, whiteTimeInSeconds, blackTimeInSeconds]);
   
   // Expose functions to parent component
   useImperativeHandle(ref, () => ({
     reset: resetTimers,
     undoTime: (lastTurn: "w" | "b") => {
-      // When undoing a move, restore the previous time value from before the move
+      // When undoing a move, restore the time from before that move was made
       if (lastTurn === "w") {
-        setWhiteTimeInSeconds(lastMoveTimeRef.current.w);
+        // Last move was by white, restore white's time from history
+        if (moveTimesRef.current.white.length > 1) {
+          const previousTime = moveTimesRef.current.white[moveTimesRef.current.white.length - 2];
+          setWhiteTimeInSeconds(previousTime);
+          // Remove the most recent time entry
+          moveTimesRef.current.white.pop();
+        }
       } else {
-        setBlackTimeInSeconds(lastMoveTimeRef.current.b);
+        // Last move was by black, restore black's time from history
+        if (moveTimesRef.current.black.length > 1) {
+          const previousTime = moveTimesRef.current.black[moveTimesRef.current.black.length - 2];
+          setBlackTimeInSeconds(previousTime);
+          // Remove the most recent time entry
+          moveTimesRef.current.black.pop();
+        }
       }
     }
   }));
@@ -116,46 +155,46 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps>(({
   }, [whiteTimeInSeconds, blackTimeInSeconds]);
 
   return (
-    <div className="flex flex-col space-y-2 w-full bg-[#3B3433] p-4 rounded-md text-white">
+    <div className="flex flex-col w-full bg-[#3B3433] py-2 px-5 rounded-lg text-white shadow-sm">
       <div className="flex justify-between items-center">
-        <div className="flex flex-col">
-          <div className={`flex items-center gap-2 ${currentTurn === "w" && !isPaused && gameActive ? "text-[#F7D27F] font-bold" : ""}`}>
-            <span className="w-20">White:</span>
-            <span className={`font-mono ${whiteTimeInSeconds < 60 ? "text-red-500" : ""}`}>
+        <div className="flex flex-col space-y-2">
+          <div className={`flex items-center gap-3 ${currentTurn === "w" && !isPaused && gameActive ? "text-[#F7D27F] font-bold" : ""}`}>
+            <span className="w-24 text-sm">White:</span>
+            <span className={`font-mono text-base ${whiteTimeInSeconds < 60 ? "text-red-500" : ""}`}>
               {formatTime(whiteTimeInSeconds)}
             </span>
             {currentTurn === "w" && !isPaused && gameActive && (
-              <span className="animate-pulse">●</span>
+              <span className="animate-pulse ml-1">●</span>
             )}
           </div>
-          <div className={`flex items-center gap-2 ${currentTurn === "b" && !isPaused && gameActive ? "text-[#F7D27F] font-bold" : ""}`}>
-            <span className="w-20">Black:</span>
-            <span className={`font-mono ${blackTimeInSeconds < 60 ? "text-red-500" : ""}`}>
+          <div className={`flex items-center gap-3 ${currentTurn === "b" && !isPaused && gameActive ? "text-[#F7D27F] font-bold" : ""}`}>
+            <span className="w-24 text-sm">Black:</span>
+            <span className={`font-mono text-base ${blackTimeInSeconds < 60 ? "text-red-500" : ""}`}>
               {formatTime(blackTimeInSeconds)}
             </span>
             {currentTurn === "b" && !isPaused && gameActive && (
-              <span className="animate-pulse">●</span>
+              <span className="animate-pulse ml-1">●</span>
             )}
           </div>
         </div>
         
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <Button 
             variant="outline" 
             size="sm"
             onClick={() => setIsPaused(!isPaused)}
             disabled={isGameOver || !gameActive}
-            className="hover:text-[#F7D27F] text-white border-white"
+            className="hover:text-[#F7D27F] text-white border-white px-3 py-1"
           >
-            {isPaused ? <PlayIcon size={16} /> : <PauseIcon size={16} />}
+            {isPaused ? <PlayIcon size={18} /> : <PauseIcon size={18} />}
           </Button>
           <Button 
             variant="outline" 
             size="sm"
             onClick={resetTimers}
-            className="hover:text-[#F7D27F] text-white border-white"
+            className="hover:text-[#F7D27F] text-white border-white px-3 py-1"
           >
-            <SkipBackIcon size={16} />
+            <SkipBackIcon size={18} />
           </Button>
         </div>
       </div>

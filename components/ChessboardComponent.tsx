@@ -180,24 +180,27 @@ const ChessboardComponent = () => {
     <div className="flex flex-col items-center max-h-screen overflow-hidden py-1 justify-between">
       <h1 className="text-2xl mb-2">History Chess Game</h1>
       
-      {/* Game Mode Indicator - more compact */}
-      <div className="mb-2">
-        <div className="flex items-center space-x-2">
-          <span className="text-base font-medium">
+      {/* Game Mode Indicator - improved styling */}
+      <div className="mb-4 rounded-lg shadow-md">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-base font-medium text-white">
             {isSinglePlayer 
               ? `Single Player (You: ${playerColor === 'w' ? 'White' : 'Black'}, AI Level: ${aiDifficulty})` 
               : 'Two Players'}
           </span>
-          {isThinking && (
-            <span className="animate-pulse text-yellow-500 font-medium">AI thinking...</span>
-          )}
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowGameModeDialog(true)}
-          >
-            Change
-          </Button>
+          <div className="flex items-center gap-3">
+            {isThinking && (
+              <span className="animate-pulse text-[#F7D27F] font-medium">AI thinking...</span>
+            )}
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowGameModeDialog(true)}
+              className="text-white border-white hover:text-[#F7D27F]"
+            >
+              Change
+            </Button>
+          </div>
         </div>
       </div>
       
@@ -206,105 +209,105 @@ const ChessboardComponent = () => {
         {/* Left side: Chessboard and captured pieces */}
         <div className="flex flex-col justify-between">
           {/* Captured Pieces for Black */}
-          <div className="mb-0.5 flex justify-center">
+          <div className="mb-0.5 flex justify-start">
             <CapturedPieces color="Black" pieces={capturedBlack} />
           </div>
 
-          {/* Main Chessboard with slightly reduced size */}
-          <div>
-            <Chessboard
-              id="historyChessBoard"
-              position={fen}
-              onPieceDrop={handleDrop}
-              onPieceClick={onPieceClick}
-              onSquareClick={onSquareClick}
-              onPieceDragBegin={onPieceDragBegin}
-              boardWidth={580}
-              animationDuration={300}
-              customSquareStyles={{
-                ...customSquareStyles,
-              }}
-            />
+          <div className="flex">
+            {/* Main Chessboard with slightly reduced size */}
+            <div>
+              <Chessboard
+                id="historyChessBoard"
+                position={fen}
+                onPieceDrop={handleDrop}
+                onPieceClick={onPieceClick}
+                onSquareClick={onSquareClick}
+                onPieceDragBegin={onPieceDragBegin}
+                boardWidth={580}
+                animationDuration={300}
+                customSquareStyles={{
+                  ...customSquareStyles,
+                }}
+              />
+            </div>
+            
+            <div className="w-[406px] text-black flex flex-col justify-between ml-3">
+              {/* Time Counter */}
+              <div className="rounded-lg overflow-hidden shadow-md bg-[#3B3433]">
+                <TimeCounter 
+                  ref={timerRef}
+                  initialTimeInSeconds={600} 
+                  currentTurn={currentTurn} 
+                  gameActive={gameActive}
+                  isGameOver={gameState.isGameOver}
+                  history={history}
+                />
+              </div>
+            
+              {/* Move History - with flex-grow to fill available space */}
+              <div className="flex flex-col flex-grow my-3 overflow-hidden">
+                <div className="border rounded-lg shadow-md bg-[#3B3433] overflow-auto flex-1">
+                  <table className="w-full border-collapse text-white">
+                    <thead className="sticky top-0 bg-[#2A2625] z-10">
+                      <tr>
+                        <th className="border-b border-gray-600 py-2 px-5 text-left text-sm font-semibold">Turn</th>
+                        <th className="border-b border-gray-600 py-2 px-5 text-left text-sm font-semibold">White</th>
+                        <th className="border-b border-gray-600 py-2 px-5 text-left text-sm font-semibold">Black</th>
+                        <th className="border-b border-gray-600 py-2 px-5 text-left text-sm font-semibold">Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {moveHistoryPairs.map((pair) => (
+                        <tr key={pair.turn} className="hover:bg-[#4A4443] transition-colors duration-200">
+                          <td className="border-b border-gray-700 py-2 px-5 text-sm">{pair.turn}.</td>
+                          <td className="border-b border-gray-700 py-2 px-5 text-sm">{pair.whiteMove}</td>
+                          <td className="border-b border-gray-700 py-2 px-5 text-sm">{pair.blackMove}</td>
+                          <td className="border-b border-gray-700 py-2 px-5 text-xs">
+                            {pair.whiteTime && <div className="mb-0.5">{pair.whiteTime}</div>}
+                            {pair.blackTime && <div>{pair.blackTime}</div>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              {/* Control Buttons - at the bottom */}
+              <div className="flex flex-col gap-2 justify-between">
+                  <Button
+                    onClick={() => {
+                      // Determine the last player's turn before undoing
+                      const lastTurn = fen.split(' ')[1] === 'w' ? 'b' : 'w';
+                      undoMove();
+                      // Adjust timer when undoing a move
+                      timerRef.current?.undoTime(lastTurn);
+                    }}
+                    disabled={history.length === 0}
+                    variant="default"
+                    size="sm"
+                    className="px-4 py-6 text-lg"
+                  >
+                    Undo Move
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowGameModeDialog(true);
+                      // Also reset timer when showing the new game dialog
+                      timerRef.current?.reset();
+                    }}
+                    size="sm"
+                    className="px-4 py-6 bg-[#DBB968] text-lg text-black hover:bg-[#C7A95D]" 
+                  >
+                    New Game
+                  </Button>
+              </div>
+            </div>
           </div>
 
           {/* Captured Pieces for White */}
-          <div className="mt-0.5 flex justify-center">
+          <div className="mt-0.5 flex justify-start">
             <CapturedPieces color="White" pieces={capturedWhite} />
-          </div>
-        </div>
-        
-        {/* Right side: Move History */}
-        <div className="w-72 text-black flex flex-col">
-          {/* Time Counter */}
-          <div className="mb-3 border rounded-md bg-[#3B3433] p-2">
-            <TimeCounter 
-              ref={timerRef}
-              initialTimeInSeconds={600} 
-              currentTurn={currentTurn} 
-              gameActive={gameActive}
-              isGameOver={gameState.isGameOver}
-              history={history}
-              onTimerReset={() => {
-                // Optional: Add callback logic for when timer is reset
-                // For example, you could notify players
-              }}
-            />
-          </div>
-        
-          <h2 className="text-lg mb-0.5 text-center">Move History</h2>
-          <div className="border rounded-md bg-[#3B3433] overflow-auto flex-1 max-h-[calc(100vh-250px)]">
-            <table className="w-full border-collapse text-white">
-              <thead className="sticky top-0 bg-[#2A2625] z-10">
-                <tr>
-                  <th className="border-b border-gray-600 p-1 text-left text-sm">Turn</th>
-                  <th className="border-b border-gray-600 p-1 text-left text-sm">White</th>
-                  <th className="border-b border-gray-600 p-1 text-left text-sm">Black</th>
-                  <th className="border-b border-gray-600 p-1 text-left text-sm">Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {moveHistoryPairs.map((pair) => (
-                  <tr key={pair.turn} className="hover:bg-[#4A4443]">
-                    <td className="border-b border-gray-700 p-1 text-sm">{pair.turn}.</td>
-                    <td className="border-b border-gray-700 p-1 text-sm">{pair.whiteMove}</td>
-                    <td className="border-b border-gray-700 p-1 text-sm">{pair.blackMove}</td>
-                    <td className="border-b border-gray-700 p-1 text-xs">
-                      {pair.whiteTime && <div>{pair.whiteTime}</div>}
-                      {pair.blackTime && <div>{pair.blackTime}</div>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Control Buttons - more compact */}
-          <div className="flex space-x-2 mt-1 justify-center">
-            <Button
-              onClick={() => {
-                // Determine the last player's turn before undoing
-                const lastTurn = fen.split(' ')[1] === 'w' ? 'b' : 'w';
-                undoMove();
-                // Adjust timer when undoing a move
-                timerRef.current?.undoTime(lastTurn);
-              }}
-              disabled={history.length === 0}
-              variant="default"
-              size="sm"
-            >
-              Undo Move
-            </Button>
-            <Button
-              onClick={() => {
-                setShowGameModeDialog(true);
-                // Also reset timer when showing the new game dialog
-                timerRef.current?.reset();
-              }}
-              variant="secondary"
-              size="sm"
-            >
-              New Game
-            </Button>
           </div>
         </div>
       </div>
