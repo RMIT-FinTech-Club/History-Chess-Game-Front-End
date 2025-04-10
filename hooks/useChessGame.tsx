@@ -5,6 +5,8 @@ import { useStockfish, type StockfishLevel } from "./useStockfish";
 export function useChessGame() {
   const [game] = useState(new Chess());
   const [history, setHistory] = useState<string[]>([]);
+  const [moveTimings, setMoveTimings] = useState<string[]>([]);
+  const [lastMoveTime, setLastMoveTime] = useState<number>(Date.now());
   const [fen, setFen] = useState(game.fen());
   const [capturedWhite, setCapturedWhite] = useState<string[]>([]);
   const [capturedBlack, setCapturedBlack] = useState<string[]>([]);
@@ -204,6 +206,8 @@ export function useChessGame() {
 
       if (move) {
         setHistory(prevHistory => [...prevHistory, move.san]);
+        setMoveTimings(prevTimings => [...prevTimings, `${(Date.now() - lastMoveTime) / 1000}s`]);
+        setLastMoveTime(Date.now());
         if (move.captured) {
           const capturedColor = move.color === "w" ? "b" : "w";
           const capturedPieceKey = `${capturedColor}${move.captured.toUpperCase()}`;
@@ -237,7 +241,7 @@ export function useChessGame() {
     } catch (error) {
       return false;
     }
-  }, [game, isSinglePlayer, playerColor, isReady, findBestMove, checkGameState]);
+  }, [game, isSinglePlayer, playerColor, isReady, findBestMove, checkGameState, lastMoveTime]);
 
   // Effect to make AI's first move if AI plays as white
   useEffect(() => {
@@ -261,6 +265,7 @@ export function useChessGame() {
         const aiUndone = game.undo();
         if (aiUndone) {
           setHistory(prevHistory => prevHistory.slice(0, -1));
+          setMoveTimings(prevTimings => prevTimings.slice(0, -1));
           if (aiUndone.captured) {
             if (aiUndone.color === "w") {
               setCapturedBlack(prev => prev.slice(0, -1));
@@ -276,6 +281,7 @@ export function useChessGame() {
     const undoneMove = game.undo();
     if (undoneMove) {
       setHistory(prevHistory => prevHistory.slice(0, -1));
+      setMoveTimings(prevTimings => prevTimings.slice(0, -1));
       if (undoneMove.captured) {
         if (undoneMove.color === "w") {
           setCapturedBlack(prev => prev.slice(0, -1));
@@ -291,6 +297,7 @@ export function useChessGame() {
   const resetGame = useCallback(() => {
     game.reset();
     setHistory([]);
+    setMoveTimings([]);
     setCapturedWhite([]);
     setCapturedBlack([]);
     setGameState({ isGameOver: false, title: "", message: "" });
@@ -327,6 +334,7 @@ export function useChessGame() {
     fen,
     game,
     history,
+    moveTimings,
     capturedWhite,
     capturedBlack,
     selectedPiece,

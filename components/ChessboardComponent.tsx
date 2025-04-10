@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Chessboard } from "react-chessboard";
 import { Square } from "chess.js";
 import "../css/chessboard.css";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useChessGame } from "../hooks/useChessGame";
 import { CapturedPieces } from "./CapturedPieces";
 import type { StockfishLevel } from "../hooks/useStockfish";
+import { TimeCounter, TimeCounterHandle } from "./TimeCounter";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface PieceProps {
@@ -21,10 +22,14 @@ const ChessboardComponent = () => {
   const [mounted, setMounted] = useState(false);
   const [showGameModeDialog, setShowGameModeDialog] = useState(false);
   const [aiDifficulty, setAiDifficulty] = useState<StockfishLevel>(5);
+  const [currentTurn, setCurrentTurn] = useState<"w" | "b">("w");
+  const [gameActive, setGameActive] = useState(false);
+  const timerRef = useRef<TimeCounterHandle>(null);
   
   const { 
     fen, 
     history, 
+    moveTimings,
     capturedWhite, 
     capturedBlack,
     selectedPiece,
@@ -44,11 +49,25 @@ const ChessboardComponent = () => {
     isAiReady
   } = useChessGame();
 
+  // Update current turn when the fen changes
+  useEffect(() => {
+    // Extract turn from FEN string (FEN format has turn as the 2nd field)
+    const turnPart = fen.split(' ')[1];
+    if (turnPart === 'w' || turnPart === 'b') {
+      setCurrentTurn(turnPart);
+    }
+  }, [fen]);
+
   useEffect(() => {
     setMounted(true);
     // Show game mode selection on initial load
     setShowGameModeDialog(true);
   }, []);
+
+  // Update game active state
+  useEffect(() => {
+    setGameActive(!gameState.isGameOver && history.length > 0);
+  }, [gameState.isGameOver, history.length]);
 
   if (!mounted) return <p>Loading Chessboard...</p>;
 
@@ -127,11 +146,15 @@ const ChessboardComponent = () => {
   const handleStartSinglePlayer = (color: 'w' | 'b') => {
     startSinglePlayerGame(color, aiDifficulty);
     setShowGameModeDialog(false);
+    // Reset the timer when starting a new game
+    timerRef.current?.reset();
   };
 
   const handleStartTwoPlayer = () => {
     startTwoPlayerGame();
     setShowGameModeDialog(false);
+    // Reset the timer when starting a new game
+    timerRef.current?.reset();
   };
   
   const difficultyLevels: StockfishLevel[] = [1, 2, 3, 5, 8, 10, 15, 20];
@@ -144,8 +167,8 @@ const ChessboardComponent = () => {
         turn: Math.floor(i / 2) + 1,
         whiteMove: history[i] || "",
         blackMove: history[i + 1] || "",
-        whiteTime: "00:05", 
-        blackTime: history[i + 1] ? "00:07" : "", 
+        whiteTime: moveTimings[i] ? moveTimings[i] : "-", 
+        blackTime: moveTimings[i + 1] ? moveTimings[i + 1] : "", 
       });
     }
     return formattedHistory;
@@ -212,24 +235,40 @@ const ChessboardComponent = () => {
         
         {/* Right side: Move History */}
         <div className="w-72 text-black flex flex-col">
+          {/* Time Counter */}
+          <div className="mb-3 border rounded-md bg-[#3B3433] p-2">
+            <TimeCounter 
+              ref={timerRef}
+              initialTimeInSeconds={600} 
+              currentTurn={currentTurn} 
+              gameActive={gameActive}
+              isGameOver={gameState.isGameOver}
+              history={history}
+              onTimerReset={() => {
+                // Optional: Add callback logic for when timer is reset
+                // For example, you could notify players
+              }}
+            />
+          </div>
+        
           <h2 className="text-lg mb-0.5 text-center">Move History</h2>
-          <div className="border rounded-md bg-white overflow-auto flex-1 max-h-[calc(100vh-150px)]">
-            <table className="w-full border-collapse">
-              <thead className="sticky top-0 bg-gray-100 z-10">
+          <div className="border rounded-md bg-[#3B3433] overflow-auto flex-1 max-h-[calc(100vh-250px)]">
+            <table className="w-full border-collapse text-white">
+              <thead className="sticky top-0 bg-[#2A2625] z-10">
                 <tr>
-                  <th className="border-b p-1 text-left text-sm">Turn</th>
-                  <th className="border-b p-1 text-left text-sm">White</th>
-                  <th className="border-b p-1 text-left text-sm">Black</th>
-                  <th className="border-b p-1 text-left text-sm">Time</th>
+                  <th className="border-b border-gray-600 p-1 text-left text-sm">Turn</th>
+                  <th className="border-b border-gray-600 p-1 text-left text-sm">White</th>
+                  <th className="border-b border-gray-600 p-1 text-left text-sm">Black</th>
+                  <th className="border-b border-gray-600 p-1 text-left text-sm">Time</th>
                 </tr>
               </thead>
               <tbody>
                 {moveHistoryPairs.map((pair) => (
-                  <tr key={pair.turn} className="hover:bg-gray-50">
-                    <td className="border-b p-1 text-sm">{pair.turn}.</td>
-                    <td className="border-b p-1 text-sm">{pair.whiteMove}</td>
-                    <td className="border-b p-1 text-sm">{pair.blackMove}</td>
-                    <td className="border-b p-1 text-xs">
+                  <tr key={pair.turn} className="hover:bg-[#4A4443]">
+                    <td className="border-b border-gray-700 p-1 text-sm">{pair.turn}.</td>
+                    <td className="border-b border-gray-700 p-1 text-sm">{pair.whiteMove}</td>
+                    <td className="border-b border-gray-700 p-1 text-sm">{pair.blackMove}</td>
+                    <td className="border-b border-gray-700 p-1 text-xs">
                       {pair.whiteTime && <div>{pair.whiteTime}</div>}
                       {pair.blackTime && <div>{pair.blackTime}</div>}
                     </td>
@@ -242,7 +281,13 @@ const ChessboardComponent = () => {
           {/* Control Buttons - more compact */}
           <div className="flex space-x-2 mt-1 justify-center">
             <Button
-              onClick={undoMove}
+              onClick={() => {
+                // Determine the last player's turn before undoing
+                const lastTurn = fen.split(' ')[1] === 'w' ? 'b' : 'w';
+                undoMove();
+                // Adjust timer when undoing a move
+                timerRef.current?.undoTime(lastTurn);
+              }}
               disabled={history.length === 0}
               variant="default"
               size="sm"
@@ -250,7 +295,11 @@ const ChessboardComponent = () => {
               Undo Move
             </Button>
             <Button
-              onClick={() => setShowGameModeDialog(true)}
+              onClick={() => {
+                setShowGameModeDialog(true);
+                // Also reset timer when showing the new game dialog
+                timerRef.current?.reset();
+              }}
               variant="secondary"
               size="sm"
             >
