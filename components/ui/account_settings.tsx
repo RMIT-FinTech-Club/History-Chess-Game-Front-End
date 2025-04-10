@@ -23,9 +23,7 @@ import { MdOutlineFileUpload } from "react-icons/md";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -76,6 +74,7 @@ const AccountSettings = () => {
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null); // Moved inside the component
+  const [imagePath, setImagePath] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null); // Moved inside the component
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,6 +83,7 @@ const AccountSettings = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
+        setImagePath(file.name);
       };
       reader.readAsDataURL(file);
     }
@@ -101,13 +101,21 @@ const AccountSettings = () => {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
+      // Include the imagePath in the form data
+      const formData = {
+        ...data,
+        avatar: imagePath, // Add the image path to the form data
+      };
+
+      console.log("Saving data:", formData);
+
       await new Promise((resolve) => setTimeout(resolve, 1000));
       alert(
-        `Sign up successful!\n\nEmail: ${data.email}\nUsername: ${data.username}\nNew Password: ${data.password}\nLanguage: ${data.language}`
+        `Profile updated successfully!\n\nEmail: ${data.email}\nUsername: ${data.username}\nNew Password: ${data.password}\nLanguage: ${data.language}\nAvatar: ${formData.avatar}`
       );
       router.push("/sign_in");
     } catch (error) {
-      alert("Sign up failed");
+      alert("Failed to update profile. Please try again.");
     } finally {
       setLoading(false);
     }
