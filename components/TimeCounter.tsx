@@ -44,10 +44,12 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps> (({
   
   // Game clock state - start paused when a new game begins
   const [isPaused, setIsPaused] = useState(true);
+  // Track if pause was done manually by user
+  const manuallyPaused = useRef(false);
   
   // Start timer automatically after the first move
   useEffect(() => {
-    if (gameActive && history && history.length > 0 && isPaused) {
+    if (gameActive && history && history.length > 0 && isPaused && !manuallyPaused.current) {
       setIsPaused(false);
     }
   }, [gameActive, history, isPaused]);
@@ -64,6 +66,7 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps> (({
     setWhiteTimeInSeconds(initialTimeInSeconds);
     setBlackTimeInSeconds(initialTimeInSeconds);
     setIsPaused(true); // Start paused when resetting
+    manuallyPaused.current = false; // Reset manual pause flag
     lastMoveTimeRef.current = {
       w: initialTimeInSeconds,
       b: initialTimeInSeconds
@@ -78,19 +81,10 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps> (({
     }
   };
   
-  // Save current time whenever it changes
-  useEffect(() => {
-    if (currentTurn === "w") {
-      lastMoveTimeRef.current.b = blackTimeInSeconds;
-    } else {
-      lastMoveTimeRef.current.w = whiteTimeInSeconds;
-    }
-  }, [whiteTimeInSeconds, blackTimeInSeconds, currentTurn]);
-
-  // Save current time at each move
+  // Store time state when a move is made (separate from time updates)
   useEffect(() => {
     if (history && history.length > 0) {
-      // Save current time state when a move is made
+      // Only update the move times array when history changes
       if (currentTurn === "w") {
         // Black just moved, record black's remaining time
         moveTimesRef.current.black.push(blackTimeInSeconds);
@@ -101,8 +95,9 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps> (({
         lastMoveTimeRef.current.w = whiteTimeInSeconds;
       }
     }
-  }, [history, currentTurn, whiteTimeInSeconds, blackTimeInSeconds]);
-  
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [history?.length, currentTurn]);
+
   // Expose functions to parent component
   useImperativeHandle(ref, () => ({
     reset: resetTimers,
@@ -182,7 +177,10 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps> (({
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => setIsPaused(!isPaused)}
+            onClick={() => {
+              setIsPaused(!isPaused);
+              manuallyPaused.current = !isPaused; // Set flag when manually pausing
+            }}
             disabled={isGameOver || !gameActive}
             className="hover:text-[#F7D27F] text-white border-white px-3 py-1"
           >
