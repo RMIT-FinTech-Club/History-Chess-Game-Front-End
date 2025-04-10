@@ -161,14 +161,27 @@ const ChessboardComponent = () => {
 
   // Function to format move history into pairs (white move, black move)
   const formatMoveHistory = () => {
+    // Maximum time per move for scaling the progress bars (seconds)
+    const maxTimePerMove = 600; 
+    
+    // Function to format time in seconds with one decimal place
+    const formatTimeInSeconds = (time: string) => {
+      if (!time || time === "-") return "-";
+      const timeNum = parseFloat(time);
+      return timeNum.toFixed(1);
+    };
+    
     const formattedHistory = [];
     for (let i = 0; i < history.length; i += 2) {
       formattedHistory.push({
         turn: Math.floor(i / 2) + 1,
         whiteMove: history[i] || "",
         blackMove: history[i + 1] || "",
-        whiteTime: moveTimings[i] ? moveTimings[i] : "-", 
-        blackTime: moveTimings[i + 1] ? moveTimings[i + 1] : "", 
+        whiteTime: moveTimings[i] ? formatTimeInSeconds(moveTimings[i]) : "-", 
+        blackTime: moveTimings[i + 1] ? formatTimeInSeconds(moveTimings[i + 1]) : "",
+        whiteTimeRaw: moveTimings[i] ? parseFloat(moveTimings[i]) : 0,
+        blackTimeRaw: moveTimings[i + 1] ? parseFloat(moveTimings[i + 1]) : 0,
+        maxTime: maxTimePerMove
       });
     }
     return formattedHistory;
@@ -253,7 +266,7 @@ const ChessboardComponent = () => {
                         <th className="border-b border-gray-600 py-2 px-5 text-left text-sm font-semibold">Turn</th>
                         <th className="border-b border-gray-600 py-2 px-5 text-left text-sm font-semibold">White</th>
                         <th className="border-b border-gray-600 py-2 px-5 text-left text-sm font-semibold">Black</th>
-                        <th className="border-b border-gray-600 py-2 px-5 text-left text-sm font-semibold">Time</th>
+                        <th className="border-b border-gray-600 py-2 px-5 text-right text-sm font-semibold">Time</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -263,8 +276,32 @@ const ChessboardComponent = () => {
                           <td className="border-b border-gray-700 py-2 px-5 text-sm">{pair.whiteMove}</td>
                           <td className="border-b border-gray-700 py-2 px-5 text-sm">{pair.blackMove}</td>
                           <td className="border-b border-gray-700 py-2 px-5 text-xs">
-                            {pair.whiteTime && <div className="mb-0.5">{pair.whiteTime}</div>}
-                            {pair.blackTime && <div>{pair.blackTime}</div>}
+                            {pair.whiteTime !== "-" && (
+                              <div className="mb-1.5 flex items-center justify-between gap-2">
+                                <div className="w-16 h-1.5 overflow-hidden">
+                                  <div 
+                                    className="h-full bg-white"
+                                    style={{ 
+                                      width: `${Math.min(100, (pair.whiteTimeRaw / pair.maxTime) * 100)}%` 
+                                    }}
+                                  />
+                                </div>
+                                <span className="min-w-[30px]">{pair.whiteTime}s</span>
+                              </div>
+                            )}
+                            {pair.blackTime && (
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex w-16 h-1.5 overflow-hidden">
+                                  <div 
+                                    className="h-full bg-black"
+                                    style={{ 
+                                      width: `${Math.min(100, (pair.blackTimeRaw / pair.maxTime) * 100)}%` 
+                                    }}
+                                  />
+                                </div>
+                                <span className="min-w-[30px]">{pair.blackTime}s</span>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ))}
