@@ -248,7 +248,7 @@ const ChessboardComponent = () => {
               <div className="flex flex-col flex-grow my-3 overflow-hidden">
                 <div className="border rounded-lg shadow-md bg-[#3B3433] overflow-auto flex-1">
                   <table className="w-full border-collapse text-white">
-                    <thead className="sticky top-0 bg-[#2A2625] z-10">
+                    <thead className="sticky top-0 z-10">
                       <tr>
                         <th className="border-b border-gray-600 py-2 px-5 text-left text-sm font-semibold">Turn</th>
                         <th className="border-b border-gray-600 py-2 px-5 text-left text-sm font-semibold">White</th>
