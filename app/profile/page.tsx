@@ -17,6 +17,7 @@ import OtherPlayers from "@/components/ui/otherPlayers";
 import Matches from "@/components/ui/matches";
 import AccountSettings from "@/components/ui/account_settings";
 
+
 export default function ProfilePage() {
   const profileRef = useRef<HTMLDivElement | null>(null);
   const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true);
@@ -219,10 +220,14 @@ export default function ProfilePage() {
           </div>
           {profileMenu === 1 && <OtherPlayers isOpen={isProfileOpened} />}
         </div>
-        <div className="w-full md:w-[60%] flex flex-col">
-          {profileMenu === 1 && <Matches />}
-          {profileMenu === 2 && <AccountSettings />}
-        </div>
+        <div
+  className={`w-full md:w-[60%] flex flex-col ${
+    profileMenu === 2 ? `overflow-y-auto ${styles.list_container} h-[calc(100vh-6vh)]` : ""
+  }`}
+>
+  {profileMenu === 1 && <Matches />}
+  {profileMenu === 2 && <AccountSettings />}
+</div>
       </div>
     </div>
   );
