@@ -280,8 +280,8 @@ const ChessboardComponent = () => {
                       // Determine the last player's turn before undoing
                       const lastTurn = fen.split(' ')[1] === 'w' ? 'b' : 'w';
                       undoMove();
-                      // Adjust timer when undoing a move
-                      timerRef.current?.undoTime(lastTurn);
+                      // Adjust timer when undoing a move, pass isSinglePlayer to handle AI moves
+                      timerRef.current?.undoTime(lastTurn, isSinglePlayer);
                     }}
                     disabled={history.length === 0}
                     variant="default"

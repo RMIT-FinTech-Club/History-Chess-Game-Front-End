@@ -15,7 +15,7 @@ interface TimeCounterProps {
 
 export interface TimeCounterHandle {
   reset: () => void;
-  undoTime: (lastTurn: "w" | "b") => void;
+  undoTime: (lastTurn: "w" | "b", isAiOpponent?: boolean) => void;
 }
 
 export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps> (({
@@ -30,22 +30,18 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps> (({
   const [whiteTimeInSeconds, setWhiteTimeInSeconds] = useState(initialTimeInSeconds);
   const [blackTimeInSeconds, setBlackTimeInSeconds] = useState(initialTimeInSeconds);
   
-  // Track last move timestamps for accurate undo
-  const lastMoveTimeRef = useRef<{[key: string]: number}>({
-    w: initialTimeInSeconds,
-    b: initialTimeInSeconds
-  });
-
-  // Store move history times to properly restore on undo
-  const moveTimesRef = useRef<{white: number[], black: number[]}>({
-    white: [initialTimeInSeconds],
-    black: [initialTimeInSeconds]
-  });
+  // Track time history for every move with move index
+  const timeHistoryRef = useRef<{moveIndex: number, white: number, black: number}[]>([
+    { moveIndex: 0, white: initialTimeInSeconds, black: initialTimeInSeconds }
+  ]);
   
   // Game clock state - start paused when a new game begins
   const [isPaused, setIsPaused] = useState(true);
   // Track if pause was done manually by user
   const manuallyPaused = useRef(false);
+  
+  // Track the last history length we've seen
+  const lastHistoryLengthRef = useRef(0);
   
   // Start timer automatically after the first move
   useEffect(() => {
@@ -67,58 +63,82 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps> (({
     setBlackTimeInSeconds(initialTimeInSeconds);
     setIsPaused(true); // Start paused when resetting
     manuallyPaused.current = false; // Reset manual pause flag
-    lastMoveTimeRef.current = {
-      w: initialTimeInSeconds,
-      b: initialTimeInSeconds
-    };
-    // Reset move history times
-    moveTimesRef.current = {
-      white: [initialTimeInSeconds],
-      black: [initialTimeInSeconds]
-    };
+    
+    // Reset time history
+    timeHistoryRef.current = [
+      { moveIndex: 0, white: initialTimeInSeconds, black: initialTimeInSeconds }
+    ];
+    lastHistoryLengthRef.current = 0;
+    
     if (onTimerReset) {
       onTimerReset();
     }
   };
   
-  // Store time state when a move is made (separate from time updates)
+  // Store time state when a move is made
   useEffect(() => {
-    if (history && history.length > 0) {
-      // Only update the move times array when history changes
-      if (currentTurn === "w") {
-        // Black just moved, record black's remaining time
-        moveTimesRef.current.black.push(blackTimeInSeconds);
-        lastMoveTimeRef.current.b = blackTimeInSeconds;
-      } else {
-        // White just moved, record white's remaining time
-        moveTimesRef.current.white.push(whiteTimeInSeconds);
-        lastMoveTimeRef.current.w = whiteTimeInSeconds;
-      }
+    if (!history) return;
+    
+    const currentHistoryLength = history.length;
+    
+    // Only update time history when a new move is made
+    if (currentHistoryLength > lastHistoryLengthRef.current) {
+      // Save current time state when a move is made
+      timeHistoryRef.current.push({
+        moveIndex: currentHistoryLength,
+        white: whiteTimeInSeconds,
+        black: blackTimeInSeconds
+      });
+      
+      lastHistoryLengthRef.current = currentHistoryLength;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [history?.length, currentTurn]);
+  }, [history?.length, whiteTimeInSeconds, blackTimeInSeconds]);
 
   // Expose functions to parent component
   useImperativeHandle(ref, () => ({
     reset: resetTimers,
-    undoTime: (lastTurn: "w" | "b") => {
-      // When undoing a move, restore the time from before that move was made
-      if (lastTurn === "w") {
-        // Last move was by white, restore white's time from history
-        if (moveTimesRef.current.white.length > 1) {
-          const previousTime = moveTimesRef.current.white[moveTimesRef.current.white.length - 2];
-          setWhiteTimeInSeconds(previousTime);
-          // Remove the most recent time entry
-          moveTimesRef.current.white.pop();
-        }
+    undoTime: (lastTurn: "w" | "b", isAiOpponent = false) => {
+      if (!history) return;
+      
+      // Get the current history length
+      const currentHistoryLength = history.length;
+      
+      if (currentHistoryLength === 0) return;
+      
+      // Find the time state from before the last move
+      let entryToRestore;
+      
+      if (isAiOpponent) {
+        // In single player mode, go back 2 moves if possible (player move + AI response)
+        // or just 1 if we're at the beginning
+        const targetIndex = Math.max(0, currentHistoryLength - 2);
+        
+        // Find the entry with that move index
+        entryToRestore = timeHistoryRef.current.find(entry => 
+          entry.moveIndex === targetIndex
+        );
       } else {
-        // Last move was by black, restore black's time from history
-        if (moveTimesRef.current.black.length > 1) {
-          const previousTime = moveTimesRef.current.black[moveTimesRef.current.black.length - 2];
-          setBlackTimeInSeconds(previousTime);
-          // Remove the most recent time entry
-          moveTimesRef.current.black.pop();
-        }
+        // In two player mode, just go back 1 move
+        const targetIndex = currentHistoryLength - 1;
+        
+        // Find the entry with that move index
+        entryToRestore = timeHistoryRef.current.find(entry => 
+          entry.moveIndex === targetIndex
+        );
+      }
+      
+      // If we found a valid entry, restore the times
+      if (entryToRestore) {
+        setWhiteTimeInSeconds(entryToRestore.white);
+        setBlackTimeInSeconds(entryToRestore.black);
+        
+        // Remove all entries after the one we restored
+        timeHistoryRef.current = timeHistoryRef.current.filter(
+          entry => entry.moveIndex <= entryToRestore!.moveIndex
+        );
+        
+        // Update the last history length
+        lastHistoryLengthRef.current = entryToRestore.moveIndex;
       }
     }
   }));
