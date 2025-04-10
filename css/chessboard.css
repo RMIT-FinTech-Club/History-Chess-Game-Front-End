@@ -2,6 +2,42 @@
     --black: #c0c0c0;
   }
 
+  body {
+    background-color: #151515;
+    background-image:
+        -o-repeating-linear-gradient(
+            bottom,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px,
+            transparent 10vw
+        ),
+        -o-repeating-linear-gradient(
+            left,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px,
+            transparent 10vw
+        );
+    background-image:
+        repeating-linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px,
+            transparent 10vw
+        ),
+        repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px,
+            transparent 10vw
+        );
+    background-size: 10vw 10vw;
+    background-position: -5vw -5vw;
+}
+
 [data-boardid="historyChessBoard"] {
     border-radius: 5px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
