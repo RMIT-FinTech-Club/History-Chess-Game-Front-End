@@ -13,14 +13,22 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/PasswordInput";
-import { PasswordConfirm } from "@/components/ui/PasswordConfirm";
 import { NewPassword } from "@/components/ui/NewPassword";
+import { NewPasswordConfirm } from "@/components/ui/NewPasswordConfirm";
 import { MdEmail } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { Label } from "@radix-ui/react-label";
 import { MdOutlineFileUpload } from "react-icons/md";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const formSchema = z
   .object({
@@ -42,6 +50,7 @@ const formSchema = z
     confirmPassword: z
       .string()
       .min(1, { message: "Please confirm your password." }),
+    language: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match.",
@@ -62,6 +71,7 @@ const AccountSettings = () => {
       username: mockUsers[0].username,
       password: "",
       confirmPassword: "",
+      language: "English",
     },
   });
 
@@ -93,7 +103,7 @@ const AccountSettings = () => {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       alert(
-        `Sign up successful!\n\nEmail: ${data.email}\nUsername: ${data.username}\nNew Password: ${data.password}`
+        `Sign up successful!\n\nEmail: ${data.email}\nUsername: ${data.username}\nNew Password: ${data.password}\nLanguage: ${data.language}`
       );
       router.push("/sign_in");
     } catch (error) {
@@ -111,7 +121,9 @@ const AccountSettings = () => {
           alt="Settings icon"
           className="w-[3.5vw] md:w-[2.5vw] mb-[1vh]"
         />
-        <h3 className="text-[3.5vw] md:text-[2.5vw] leading-[3vw] ml-[1vw]">Settings</h3>
+        <h3 className="text-[3.5vw] md:text-[2.5vw] leading-[3vw] ml-[1vw]">
+          Settings
+        </h3>
       </div>
 
       <Form {...form}>
@@ -120,31 +132,29 @@ const AccountSettings = () => {
           className="space-y-3 mt-[0] md:mt-[2vh]"
         >
           {/* User Information and Avatar Field */}
-          <div
-            className="w-full flex flex-row items-center justify-between"
-          >
+          <div className="w-full flex flex-row items-center justify-between">
             {/* Image Upload */}
             <div
               className="md:w-[10vw] md:aspect-square w-[16vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
               {imagePreview ? (
-              <img
-              src={imagePreview}
-              alt="Uploaded"
-              className="object-cover w-full h-full rounded-md"
-              />
+                <img
+                  src={imagePreview}
+                  alt="Uploaded"
+                  className="object-cover w-full h-full rounded-md"
+                />
               ) : (
-              <div className="flex items-center justify-center bg-[#DCB968] rounded-full w-[3vw] h-[3vw] min-w-[4vh] min-h-[4vh] p-[1vh]">
-              <MdOutlineFileUpload className="text-white text-[3vw] min-text-[3vh]" />
-              </div>
+                <div className="flex items-center justify-center bg-[#DCB968] rounded-full w-[3vw] h-[3vw] min-w-[4vh] min-h-[4vh] p-[1vh]">
+                  <MdOutlineFileUpload className="text-white text-[3vw] min-text-[3vh]" />
+                </div>
               )}
               <input
-              type="file"
-              accept=".jpg,.png,.webp,.svg"
-              ref={fileInputRef}
-              onChange={handleImageChange}
-              className="hidden"
+                type="file"
+                accept=".jpg,.png,.webp,.svg"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                className="hidden"
               />
             </div>
 
@@ -241,7 +251,7 @@ const AccountSettings = () => {
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <PasswordConfirm
+                    <NewPasswordConfirm
                       placeholder="Confirm your new password"
                       {...field}
                       className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
@@ -255,14 +265,58 @@ const AccountSettings = () => {
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="language"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-[2.5vw] md:text-[1.5vw]">
+                  Language<span className="text-[#BB2649]">*</span>
+                </FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="py-[3vh] md:py-[3.5vh] rounded-[1.5vh] w-full font-normal border-gray-600 text-[#000000] bg-[#C4C4C4] text-[2.5vh] md:text-[3vh] cursor-pointer">
+                      <SelectValue defaultValue="English" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="font-normal border-gray-600 text-[#000000] bg-[#C4C4C4]">
+                    <SelectItem
+                      value="English"
+                      className="hover:bg-[#FFD700] hover:text-[#00008B] data-[state=checked]:bg-[#00008B] data-[state=checked]:text-[#FFD700] text-[2.5vh] md:text-[3vh] cursor-pointer"
+                    >
+                      English
+                    </SelectItem>
+                    <SelectItem
+                      value="Vietnamese"
+                      className="hover:bg-[#FFD700] hover:text-[#00008B] data-[state=checked]:bg-[#00008B] data-[state=checked]:text-[#FFD700] text-[2.5vh] md:text-[3vh] cursor-pointer"
+                    >
+                      Tiếng Việt
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
           {/* Submit Button */}
+          <div className="flex items-center justify-end gap-[1vw]">
+          <Button
+            type="button"
+            className="w-[15vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-normal text-[3.5vh] py-[4vh] md:py-[4vh]  mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+          >
+            Cancel
+          </Button>
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[4vh] md:py-[4vh] lg:py-[4.5vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+            className="w-[15vw] bg-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#000000] font-normal text-[3.5vh] py-[4vh] md:py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
           >
-            {loading ? "Signing Up..." : "Sign Up"}
+            {loading ? "Saving..." : "Save"}
           </Button>
+          </div>
         </form>
       </Form>
     </div>
