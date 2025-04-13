@@ -4,7 +4,7 @@ import "./globals.css";
 import "../css/styles.css";
 import { ThemeProvider } from "@/src/components/ThemeProvider";
 import { Toaster } from "sonner";
-import { useEffect, useState } from "react";
+import ClientWrapper from "@/components/ui/ClientWrapper"; // Import the client component
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,13 +26,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-  if (!mounted) {
-    return <>{children}</>;
-  }
   return (
     <html lang="en">
       <body
@@ -45,7 +38,7 @@ export default function RootLayout({
           disableTransitionOnChange={true}
         >
           <Toaster richColors position="top-center" />
-          {children}
+          <ClientWrapper>{children}</ClientWrapper> {/* Use the client component */}
         </ThemeProvider>
       </body>
     </html>
