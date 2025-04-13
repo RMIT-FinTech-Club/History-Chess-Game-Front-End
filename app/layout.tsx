@@ -4,6 +4,7 @@ import "./globals.css";
 import "../css/styles.css";
 import { ThemeProvider } from "@/src/components/ThemeProvider";
 import { Toaster } from "sonner";
+import { useEffect, useState } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,6 +26,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  if (!mounted) {
+    return <>{children}</>;
+  }
   return (
     <html lang="en">
       <body
