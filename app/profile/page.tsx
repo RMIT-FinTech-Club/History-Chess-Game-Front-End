@@ -136,27 +136,6 @@ export default function ProfilePage() {
         } transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}
       >
         <div className="md:w-[30%] w-full flex flex-col">
-          {profileMenu === 2 && (
-            <div
-              className={`w-full top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3vh]`}
-            >
-              <div
-                style={{
-                  backgroundImage: `url(https://i.imgur.com/RoRONDn.jpeg)`,
-                }}
-                className="w-[10vw] md:w-[8vw] m-[2vw] aspect-square rounded-[50%] bg-center bg-cover bg-no-repeat border border-white border-solid"
-              ></div>
-              <div className="w-[23vw] md:w-[24vw] flex flex-col justify-between items-start">
-                <p className="text-[2vw] font-bold w-full whitespace-nowrap overflow-hidden text-ellipsis">
-                  Negic Legend
-                </p>
-                <p className="text-[1.2vw] font-thin my-[0.5vw] md:my-0">
-                  Global Ranking: #100
-                </p>
-                <p className="text-[1.2vw] font-thin">Player ID: 31082007</p>
-              </div>
-            </div>
-          )}
           <div className="px-0 md:px-[2vw] py-[1vw] md:py-[2vw] w-full flex flex-row md:flex-col bg-[#1D1D1D] rounded-[2vw] mb-[3vh] relative items-center justify-around">
             <div
               className={`absolute ${
