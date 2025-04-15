@@ -11,83 +11,84 @@ import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
 import CupIcon from "@/public/profile/SVG/cupIcon"
 import SettingIcon from "@/public/profile/SVG/settingIcon"
 
+// Còn trường hợp Draw chưa có design
 const matches = [
     {
         opponent: 'Negic Legend',
         avt: 'https://i.imgur.com/RoRONDn.jpeg',
         mode: 'Rapid',
         time: 683,
-        victory: true
+        result: 'Victory'
     },
     {
         opponent: 'Negic LegendLegendLegendLegendLegendLegendLegend',
         avt: 'https://i.imgur.com/RoRONDn.jpeg',
         mode: 'Rapid',
         time: 683,
-        victory: false
+        result: 'Defeat'
     },
     {
         opponent: 'Negic Legend',
         avt: 'https://i.imgur.com/RoRONDn.jpeg',
         mode: 'Rapid',
         time: 683,
-        victory: true
+        result: 'Victory'
     },
     {
         opponent: 'Negic Legend',
         avt: 'https://i.imgur.com/RoRONDn.jpeg',
         mode: 'Rapid',
         time: 683,
-        victory: true
+        result: 'Victory'
     },
     {
         opponent: 'Negic Legend',
         avt: 'https://i.imgur.com/RoRONDn.jpeg',
         mode: 'Rapid',
         time: 683,
-        victory: true
+        result: 'Victory'
     },
     {
         opponent: 'Negic Legend',
         avt: 'https://i.imgur.com/RoRONDn.jpeg',
         mode: 'Rapid',
         time: 683,
-        victory: true
+        result: 'Victory'
     },
     {
         opponent: 'Negic Legend',
         avt: 'https://i.imgur.com/RoRONDn.jpeg',
         mode: 'Rapid',
         time: 683,
-        victory: true
+        result: 'Victory'
     },
     {
         opponent: 'Negic Legend',
         avt: 'https://i.imgur.com/RoRONDn.jpeg',
         mode: 'Rapid',
         time: 683,
-        victory: true
+        result: 'Victory'
     },
     {
         opponent: 'Negic Legend',
         avt: 'https://i.imgur.com/RoRONDn.jpeg',
         mode: 'Rapid',
         time: 683,
-        victory: true
+        result: 'Victory'
     },
     {
         opponent: 'Negic Legend',
         avt: 'https://i.imgur.com/RoRONDn.jpeg',
         mode: 'Rapid',
         time: 683,
-        victory: true
+        result: 'Victory'
     },
     {
         opponent: 'Negic Legend',
         avt: 'https://i.imgur.com/RoRONDn.jpeg',
         mode: 'Rapid',
         time: 683,
-        victory: true
+        result: 'Victory'
     },
 ]
 
@@ -221,7 +222,7 @@ export default function ProfilePage() {
                         {matches.map((match, index) => (
                             <div
                                 key={index}
-                                className={`${index !== matches.length - 1 ? 'mb-[3dvh]' : 'mb-0'} ${styles.match} w-full rounded-[1vw] bg-[rgba(0,0,0,0.5)] border border-solid ${match.victory ? `border-[#1CFF07] ${styles.victory}` : 'border-[#EA4335]'}`}
+                                className={`${index !== matches.length - 1 ? 'mb-[3dvh]' : 'mb-0'} ${styles.match} w-full rounded-[1vw] bg-[rgba(0,0,0,0.5)] border border-solid ${match.result == 'Victory' && `border-[#1CFF07] ${styles.victory}` } ${match.result == 'Defeat' && 'border-[#EA4335]'}`}
                             >
                                 <div className="w-full flex items-center justify-start px-[2vw] md:px-[1vw] rounded-[1vw] overflow-y-hidden">
                                     <div
@@ -245,7 +246,7 @@ export default function ProfilePage() {
                                         </div>
                                     </div>
                                     <div className="w-[22vw] md:w-[16vw] flex justify-center items-center">
-                                        <p className={`text-[1.5vw] px-[2vw] mr-[1vw] relative ${match.victory ? 'text-[#1CFF07]' : 'text-[#EA4335]'} font-bold ${styles.result}`}>{match.victory ? 'Victory' : 'Defeat'}</p>
+                                        <p className={`text-[1.5vw] px-[2vw] mr-[1vw] relative ${match.result == 'Victory' && 'text-[#1CFF07]'} ${match.result == 'Defeat' && 'text-[#EA4335]'} font-bold ${styles.result}`}>{match.result}</p>
                                     </div>
                                 </div>
                             </div>
