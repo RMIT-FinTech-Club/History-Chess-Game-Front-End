@@ -57,15 +57,8 @@ const Home = () => {
             if (gameId && userId) newSocket.emit('rejoinGame', { gameId, userId });
         });
 
-        // Add gameIdAssigned listener here
-
-        // newSocket.on('gameIdAssigned', (data) => {
-        //     console.log('Game created:', data.gameId);
-        //     setGameId(data.gameId);
-        //     setMessage(`Match found! Game ID: ${data.gameId}`);
-        // });
-
         newSocket.on('disconnect', () => {
+            console.log("Socket Disconnected");
             setIsConnected(false);
         });
 
@@ -99,16 +92,16 @@ const Home = () => {
             setMessage(`Error: ${error.message}`);
         });
 
-        
-
         return () => {
             newSocket.disconnect();
         };
     }, [gameId, userId]);
 
     useEffect(() => {
+
         let interval: NodeJS.Timeout;
         if (gameState?.status === 'active') {
+            console.log("Starting timer...");
             interval = setInterval(() => {
                 setMatchDuration(prev => prev + 1000);
             }, 1000);
@@ -143,34 +136,33 @@ const Home = () => {
         }
         try {
             const res = await axios.post(`${BACKEND_URL}/game/new`, { userId, playMode, colorPreference });
-            setGameId(res.data.gameId);
+            const newGameId = res.data.gameId;
+            setGameId(newGameId);
             setGameLink(res.data.gameLink);
-            setMessage(`Game created! ID: ${res.data.gameId}`);
-            joinGame(res.data.gameId);
-
-
-            
+            setMessage(`Game created! ID: ${newGameId}`);
+            // Pass the actual gameId value directly instead of using state
+            joinGame(newGameId);
         } catch (err: any) {
             setMessage(`Create game failed: ${err.response?.data?.error || err.message}`);
         }
     };
 
-    const findMatch = async () =>{
+    const findMatch = async () => {
         if (!userId) {
             setMessage('Please provide a User ID.');
             return;
         }
-        try {
-            // const res = await axios.post(`${BACKEND_URL}/game/find`, { userId, playMode, colorPreference });
+        console.log("Finding match...");
 
-            const res = await axios.post(`${BACKEND_URL}/game/find`, { userId});
-            // setGameId(res.data.gameId);
-            // console.log("JAJAJJAAjj")
-            // setMessage(`Match found! Game ID: ${res.data.gameId}`);
-            findMatchSocket();
-        } catch (err: any) {
-            setMessage(`Find match failed: ${err.response?.data?.error || err.message}`);
-        }
+
+        const res = await axios.post(`${BACKEND_URL}/game/find`, { userId, playMode, colorPreference });
+        console.log(`Match found! Game ID: ${res.data.gameId}`);
+
+        const newGameId = res.data.gameId;
+        // // setGameId(newGameId);
+        // // Pass the actual gameId value directly
+        joinGame(newGameId);
+        
     };
 
     const challengeUser = async () => {
@@ -180,53 +172,58 @@ const Home = () => {
         }
         try {
             const res = await axios.post(`${BACKEND_URL}/game/challenge`, { userId, opponentId, playMode, colorPreference });
-            setGameId(res.data.gameId);
+            const newGameId = res.data.gameId;
+            setGameId(newGameId);
             setGameLink(res.data.gameLink);
-            setMessage(`Challenge sent! Game ID: ${res.data.gameId}`);
-            joinGame(res.data.gameId);
+            setMessage(`Challenge sent! Game ID: ${newGameId}`);
+            // Pass the actual gameId value directly
+            joinGame(newGameId);
         } catch (err: any) {
             setMessage(`Challenge failed: ${err.response?.data?.error || err.message}`);
         }
     };
 
-    const findMatchSocket = async () => {
-        if (!socket || !userId) {
-            setMessage('Socket not initialized or user not logged in.');
-            return;
-        }
 
-        socket.emit('findMatch', { userId: userId });
-
-    }
-    
     const joinGame = (id: string) => {
-        console.log(userId)
-        if (!socket || !userId) {
-            setMessage('Socket not initialized or user not logged in.');
+        if (!socket) {
+            setMessage('Socket not initialized. Trying to reconnect...');
+            const newSocket = io(BACKEND_URL, { reconnection: true });
+            setSocket(newSocket);
+            
+            // Set up a small delay to ensure socket is ready
+            setTimeout(() => {
+                if (newSocket.connected && userId) {
+                    newSocket.emit('joinGame', { gameId: id, userId });
+                    setMessage(`Joining game: ${id}`);
+                } else {
+                    setMessage('Failed to connect socket. Please try again.');
+                }
+            }, 1000);
             return;
         }
-        // Add new listener for gameId
         
+        if (!userId) {
+            setMessage('User not logged in. Please log in first.');
+            return;
+        }
+        console.log("JOINING GAME PLS");
 
-
-        // setGameId(id);
-        socket.emit('joinGame', { gameId: gameId });
-        setMessage(`Joined game: ${id}`);
-        console.log("This is the game id:", id)
-
-
-
-
+        setGameId(id);
+        socket.emit('joinGame', { gameId: id, userId });
+        // setMessage(`Joining game: ${id}`);
+        // console.log("This is the game id:", id);
     };
 
     const makeMove = () => {
+
         if (!socket || !gameId) {
             setMessage('No active game or socket not initialized.');
             return;
         }
-        console.log("This is the game id:", gameId)
-        console.log("This is the move:", move)
-        socket.emit('move', gameId, move);
+        console.log("This is the move:", move);
+
+        // Include userId in the emit
+        socket.emit('move', { gameId, move, userId });
         setMove('');
         setMessage(`Move sent: ${move}`);
     };
@@ -273,12 +270,12 @@ const Home = () => {
                             <option value="random">Random</option>
                         </select>
                     </div>
-                    <input 
-                        type="text" 
-                        placeholder="User ID (for finding match)" 
-                        value={userId} 
-                        onChange={(e) => setUserId(e.target.value)} 
-                        className="w-full p-2 mb-2 border rounded" 
+                    <input
+                        type="text"
+                        placeholder="User ID (for finding match)"
+                        value={userId}
+                        onChange={(e) => setUserId(e.target.value)}
+                        className="w-full p-2 mb-2 border rounded"
                     />
                     <input type="text" placeholder="Opponent ID (for challenge)" value={opponentId} onChange={(e) => setOpponentId(e.target.value)} className="w-full p-2 mb-2 border rounded" />
                     <div className="flex space-x-4">
@@ -291,19 +288,19 @@ const Home = () => {
 
                 <div className="bg-black p-4 rounded shadow">
                     <h2 className="text-xl font-semibold mb-4">Join Game</h2>
-                    <input 
-                        type="text" 
-                        placeholder="User ID" 
-                        value={userId} 
-                        onChange={(e) => setUserId(e.target.value)} 
-                        className="w-full p-2 mb-2 border rounded" 
+                    <input
+                        type="text"
+                        placeholder="User ID"
+                        value={userId}
+                        onChange={(e) => setUserId(e.target.value)}
+                        className="w-full p-2 mb-2 border rounded"
                     />
-                    <input 
-                        type="text" 
-                        placeholder="Game ID" 
-                        value={gameId} 
-                        onChange={(e) => setGameId(e.target.value)} 
-                        className="w-full p-2 mb-2 border rounded" 
+                    <input
+                        type="text"
+                        placeholder="Game ID"
+                        value={gameId}
+                        onChange={(e) => setGameId(e.target.value)}
+                        className="w-full p-2 mb-2 border rounded"
                     />
                     <button onClick={() => joinGame(gameId)} className="bg-teal-500 text-white p-2 rounded hover:bg-teal-600">Join Game</button>
                 </div>
