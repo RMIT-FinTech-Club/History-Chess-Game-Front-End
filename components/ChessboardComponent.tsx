@@ -316,9 +316,8 @@ const ChessboardComponent = () => {
   };
   
   return (
-    <div className="flex flex-col items-center w-full overflow-hidden py-1 px-2 md:px-4 justify-between">
+    <div className="flex flex-col items-center w-full py-1 px-2 md:px-4 justify-between">
       <h1 className="text-xl sm:text-2xl mb-2">History Chess Game</h1>
-      
       {/* Game Mode Indicator - improved styling */}
       <div className="w-full max-w-7xl mb-2 md:mb-4 rounded shadow-md">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 p-2">
@@ -364,9 +363,9 @@ const ChessboardComponent = () => {
             <CapturedPieces color="Black" pieces={capturedBlack} />
           </div>
 
-          <div className="flex flex-col md:flex-row">
+          <div className="flex flex-col md:flex-row gap-3">
             {/* Main Chessboard with responsive size - centered on mobile */}
-            <div className="flex justify-center items-center mx-auto">
+            <div className="flex justify-center items-center">
               <Chessboard
                 id="historyChessBoard"
                 position={fen}
@@ -384,8 +383,9 @@ const ChessboardComponent = () => {
             </div>
             
             {/* Controls section - stacked on mobile, side by side on desktop */}
-            <div className="w-full text-black flex flex-col justify-between mt-3 md:mt-0 md:ml-3">
+            <div className="w-full text-black flex flex-col flex-wrap justify-between">
               {/* Time Counter */}
+              <h2 className="text-white text-sm font-semibold mb-1 px-2">Time Remaining </h2>
               <div className="rounded shadow-md bg-[#3B3433]">
                 <TimeCounter 
                   ref={timerRef}
@@ -400,7 +400,7 @@ const ChessboardComponent = () => {
               {/* Move History - with fixed height */}
               <div className="flex flex-col flex-grow my-3 overflow-hidden">
                 <h3 className="text-white text-sm font-semibold mb-1 px-2">Move History</h3>
-                <div className="rounded shadow-md bg-[#3B3433] h-100 w-full">
+                <div className="rounded shadow-md bg-[#3B3433] h-96 w-full">
                   <ScrollArea className="h-full w-full">
                     <table className="w-full text-white">
                       <thead className="sticky top-0 z-10 bg-[#3B3433]">

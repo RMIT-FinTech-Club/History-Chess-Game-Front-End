@@ -92,6 +92,7 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps> (({
       
       lastHistoryLengthRef.current = currentHistoryLength;
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [history?.length, whiteTimeInSeconds, blackTimeInSeconds]);
 
   // Expose functions to parent component
