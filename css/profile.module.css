@@ -28,6 +28,10 @@
     background-color: #1CFF07;
 }
 
+.draw .result::before {
+    background-color: #FFF700;
+}
+
 @media (width >=768px) {
     .result::before {
         top: -5vw;

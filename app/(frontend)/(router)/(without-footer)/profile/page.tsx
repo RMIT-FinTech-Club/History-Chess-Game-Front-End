@@ -1,104 +1,64 @@
 "use client"
 
 import styles from "@/css/profile.module.css"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowUp } from "@fortawesome/free-solid-svg-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import CountUp from "react-countup";
-
+import CountUp from "react-countup"
 import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
 import CupIcon from "@/public/profile/SVG/cupIcon"
 import SettingIcon from "@/public/profile/SVG/settingIcon"
+import axios from "axios"
 
-// Còn trường hợp Draw chưa có design
-const matches = [
-    {
-        opponent: 'Negic Legend',
-        avt: 'https://i.imgur.com/RoRONDn.jpeg',
-        mode: 'Rapid',
-        time: 683,
-        result: 'Victory'
-    },
-    {
-        opponent: 'Negic LegendLegendLegendLegendLegendLegendLegend',
-        avt: 'https://i.imgur.com/RoRONDn.jpeg',
-        mode: 'Rapid',
-        time: 683,
-        result: 'Defeat'
-    },
-    {
-        opponent: 'Negic Legend',
-        avt: 'https://i.imgur.com/RoRONDn.jpeg',
-        mode: 'Rapid',
-        time: 683,
-        result: 'Victory'
-    },
-    {
-        opponent: 'Negic Legend',
-        avt: 'https://i.imgur.com/RoRONDn.jpeg',
-        mode: 'Rapid',
-        time: 683,
-        result: 'Victory'
-    },
-    {
-        opponent: 'Negic Legend',
-        avt: 'https://i.imgur.com/RoRONDn.jpeg',
-        mode: 'Rapid',
-        time: 683,
-        result: 'Victory'
-    },
-    {
-        opponent: 'Negic Legend',
-        avt: 'https://i.imgur.com/RoRONDn.jpeg',
-        mode: 'Rapid',
-        time: 683,
-        result: 'Victory'
-    },
-    {
-        opponent: 'Negic Legend',
-        avt: 'https://i.imgur.com/RoRONDn.jpeg',
-        mode: 'Rapid',
-        time: 683,
-        result: 'Victory'
-    },
-    {
-        opponent: 'Negic Legend',
-        avt: 'https://i.imgur.com/RoRONDn.jpeg',
-        mode: 'Rapid',
-        time: 683,
-        result: 'Victory'
-    },
-    {
-        opponent: 'Negic Legend',
-        avt: 'https://i.imgur.com/RoRONDn.jpeg',
-        mode: 'Rapid',
-        time: 683,
-        result: 'Victory'
-    },
-    {
-        opponent: 'Negic Legend',
-        avt: 'https://i.imgur.com/RoRONDn.jpeg',
-        mode: 'Rapid',
-        time: 683,
-        result: 'Victory'
-    },
-    {
-        opponent: 'Negic Legend',
-        avt: 'https://i.imgur.com/RoRONDn.jpeg',
-        mode: 'Rapid',
-        time: 683,
-        result: 'Victory'
-    },
-]
+interface Match {
+    opponent: string;
+    avt: string;
+    playMode: string;
+    totalTime: number;
+    result: string;
+}
 
 export default function ProfilePage() {
     const profileRef = useRef<HTMLDivElement | null>(null)
     const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
     const [profileMenu, setProfileMenu] = useState(1)
+    const [matches, setMatches] = useState<Match[]>([])
+    // const [isLoading, setIsLoading] = useState<boolean>(true)
+    const [error, setError] = useState<string | null>(null)
 
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
 
+    useEffect(() => {
+        const fetchMatchHistory = async () => {
+            try {
+                // Replace with actual userId - e.g., from auth context, localStorage, or route params
+                const userId = '64ca2824-056b-4f52-b75e-9924fee71eef';
+                const response = await axios.get(`http://localhost:8000/api/v1/game/history/${userId}`);
+
+                const formattedMatches = response.data.map((match: any) => {
+                    return {
+                        opponent: match.opponentName || 'Unknown',
+                        avt: match.opponentAvatar || 'https://i.imgur.com/RoRONDn.jpeg',
+                        playMode: match.gameMode,
+                        // Use the computed duration as your 'time' field
+                        totalTime: match.totalTime,
+                        // Use the derived gameResult
+                        result: match.result,
+                    };
+                });
+
+                setMatches(formattedMatches);
+                setError(null);
+            } catch (err) {
+                console.error('Error fetching match history:', err);
+                setError('Failed to load match history');
+                setMatches([]);
+            }
+        };
+
+        fetchMatchHistory();
+    }, []);
     return (
         <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3dvh] mx-[5vw] md:mx-[10vw] text-white relative h-[100ddvh]">
             <div className={`w-full relative md:absolute ${isProfileOpened ? 'md:top-[3dvh]' : 'md:top-[calc(-12vw-2px)]'} top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3dvh] transition-all duration-300`}>
@@ -161,7 +121,7 @@ export default function ProfilePage() {
                             <div className={`w-[2.5vw] aspect-square bg-center bg-contain bg-no-repeat ${card.icon}`}></div>
                             <p className="text-[1.2vw] md:text-[1vw] text-[#77878B] my-[0.5dvh] md:my-[1dvh]">{card.content}</p>
                             <p className="text-[1.5vw] leading-[1vw]">
-                                {typeof(card.number) === 'number' ? <CountUp start={0} end={card.number} useEasing={false} duration={2} /> : `${card.number}`}
+                                {typeof (card.number) === 'number' ? <CountUp start={0} end={card.number} useEasing={false} duration={2} /> : `${card.number}`}
                             </p>
                         </div>
                     ))}
@@ -188,7 +148,7 @@ export default function ProfilePage() {
                             <div
                                 key={index}
                                 className={`flex justify-center mr-0 md:mr-auto w-1/3 md:w-[max-content] max-w-[100%] cursor-pointer group ${index % 2 === 1 ? 'my-[2vw]' : ''}`}
-                                onClick={() => { if(index !== profileMenu) setProfileMenu(index) }}
+                                onClick={() => { if (index !== profileMenu) setProfileMenu(index) }}
                             >
                                 <div className={`${index === profileMenu ? `${styles.profile_menu_icon} border-[#DBB968]` : 'border-white'} h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid rounded-[50%]`}>
                                     {<menu.icon width="60%" fill={`${index === profileMenu ? '#DBB968' : 'white'}`} />}
@@ -219,38 +179,48 @@ export default function ProfilePage() {
                         <p className="text-[3vw] leading-[3vw] ml-[1vw]">Matches</p>
                     </div>
                     <div className={`flex flex-col w-full h-[calc(100ddvh-3dvh-15vw-3dvh-6vw-3dvh-3vw-2dvh+4px-6dvh)] md:h-[100%] overflow-y-auto mt-[2dvh] ${styles.list_container}`}>
-                        {matches.map((match, index) => (
-                            <div
-                                key={index}
-                                className={`${index !== matches.length - 1 ? 'mb-[3dvh]' : 'mb-0'} ${styles.match} w-full rounded-[1vw] bg-[rgba(0,0,0,0.5)] border border-solid ${match.result == 'Victory' && `border-[#1CFF07] ${styles.victory}` } ${match.result == 'Defeat' && 'border-[#EA4335]'}`}
-                            >
-                                <div className="w-full flex items-center justify-start px-[2vw] md:px-[1vw] rounded-[1vw] overflow-y-hidden">
-                                    <div
-                                        style={{ backgroundImage: `url(${match.avt})` }}
-                                        className="w-[calc(8vw-2px)] md:w-[calc(4vw-2px)] my-[2vw] md:my-[1vw] aspect-square rounded-[50%] bg-center bg-cover bg-no-repeat border border-white border-solid mr-[2vw] md:mr-[1vw]"
-                                    ></div>
-                                    <div className="w-[100%] flex justify-between items-center mr-[3vw]">
-                                        <div className="flex flex-col justify-center items-start mr-[2vw]">
-                                            <p className="text-[1.8vw] md:text-[1vw] text-[#C4C4C4]">Opponent</p>
-                                            <p className="text-[1.8vw] md:text-[1vw] font-bold w-[30vw] md:w-[15vw] whitespace-nowrap overflow-hidden text-ellipsis">{match.opponent}</p>
-                                        </div>
-                                        <div className="flex justify-between items-center w-[100%]">
-                                            <div className="flex flex-col justify-center items-start">
-                                                <p className="text-[1.8vw] md:text-[1vw] text-[#C4C4C4]">Game Mode</p>
-                                                <p className="text-[1.8vw] md:text-[1vw] font-bold">{match.mode}</p>
+                        {error ? (
+                            <div className="w-full flex justify-center items-center py-5 text-[#EA4335]">
+                                <p>{error}</p>
+                            </div>
+                        ) : matches.length === 0 ? (
+                            <div className="w-full flex justify-center items-center py-5">
+                                <p>No match history found</p>
+                            </div>
+                        ) : (
+                            matches.map((match, index) => (
+                                <div
+                                    key={index}
+                                    className={`${index !== matches.length - 1 ? 'mb-[3dvh]' : 'mb-0'} ${styles.match} w-full rounded-[1vw] bg-[rgba(0,0,0,0.5)] border border-solid ${match.result == 'Victory' && `border-[#1CFF07] ${styles.victory}`} ${match.result == 'Draw' && `border-[#FFF700] ${styles.draw}`} ${match.result == 'Defeat' && 'border-[#EA4335]'}`}
+                                >
+                                    <div className="w-full flex items-center justify-start px-[2vw] md:px-[1vw] rounded-[1vw] overflow-y-hidden">
+                                        <div
+                                            style={{ backgroundImage: `url(${match.avt})` }}
+                                            className="w-[calc(8vw-2px)] md:w-[calc(4vw-2px)] my-[2vw] md:my-[1vw] aspect-square rounded-[50%] bg-center bg-cover bg-no-repeat border border-white border-solid mr-[2vw] md:mr-[1vw]"
+                                        ></div>
+                                        <div className="w-[100%] flex justify-between items-center mr-[3vw]">
+                                            <div className="flex flex-col justify-center items-start mr-[2vw]">
+                                                <p className="text-[1.8vw] md:text-[1vw] text-[#C4C4C4]">Opponent</p>
+                                                <p className="text-[1.8vw] md:text-[1vw] font-bold w-[30vw] md:w-[15vw] whitespace-nowrap overflow-hidden text-ellipsis">{match.opponent}</p>
                                             </div>
-                                            <div className="flex flex-col justify-center items-start">
-                                                <p className="text-[1.8vw] md:text-[1vw] text-[#C4C4C4]">Time</p>
-                                                <p className="text-[1.8vw] md:text-[1vw] font-bold">{`${Math.floor(match.time / 60)}:${match.time % 60}`}</p>
+                                            <div className="flex justify-between items-center w-[100%]">
+                                                <div className="flex flex-col justify-center items-start">
+                                                    <p className="text-[1.8vw] md:text-[1vw] text-[#C4C4C4]">Game Mode</p>
+                                                    <p className="text-[1.8vw] md:text-[1vw] font-bold">{match.playMode}</p>
+                                                </div>
+                                                <div className="flex flex-col justify-center items-start">
+                                                    <p className="text-[1.8vw] md:text-[1vw] text-[#C4C4C4]">Time</p>
+                                                    <p className="text-[1.8vw] md:text-[1vw] font-bold">{`${Math.floor(match.totalTime / 60)}:${match.totalTime % 60 > 9 ? match.totalTime % 60 : '0' + match.totalTime % 60}`}</p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="w-[22vw] md:w-[16vw] flex justify-center items-center">
-                                        <p className={`text-[1.5vw] px-[2vw] mr-[1vw] relative ${match.result == 'Victory' && 'text-[#1CFF07]'} ${match.result == 'Defeat' && 'text-[#EA4335]'} font-bold ${styles.result}`}>{match.result}</p>
+                                        <div className="w-[22vw] md:w-[16vw] flex justify-center items-center">
+                                            <p className={`text-[1.5vw] px-[2vw] mr-[1vw] relative ${match.result == 'Victory' && 'text-[#1CFF07]'} ${match.result == 'Defeat' && 'text-[#EA4335]'} ${match.result == 'Draw' && 'text-[#FFF700]'} font-bold ${styles.result}`}>{match.result}</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
