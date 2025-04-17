@@ -170,21 +170,21 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps> (({
   }, [whiteTimeInSeconds, blackTimeInSeconds]);
 
   return (
-    <div className="flex flex-col w-full bg-[#3B3433] py-2 px-5 rounded-lg text-white shadow-sm">
+    <div className="flex flex-col w-full bg-[#3B3433] py-2 px-3 sm:px-5 rounded-lg text-white shadow-sm">
       <div className="flex justify-between items-center">
         <div className="flex flex-col space-y-2">
-          <div className={`flex items-center gap-3 ${currentTurn === "w" && !isPaused && gameActive ? "text-[#F7D27F] font-bold" : ""}`}>
-            <span className="w-24 text-sm">White:</span>
-            <span className={`font-mono text-base ${whiteTimeInSeconds < 60 ? "text-red-500" : ""}`}>
+          <div className={`flex items-center gap-2 sm:gap-3 ${currentTurn === "w" && !isPaused && gameActive ? "text-[#F7D27F] font-bold" : ""}`}>
+            <span className="w-16 sm:w-24 text-xs sm:text-sm">White:</span>
+            <span className={`font-mono text-sm sm:text-base ${whiteTimeInSeconds < 60 ? "text-red-500" : ""}`}>
               {formatTime(whiteTimeInSeconds)}
             </span>
             {currentTurn === "w" && !isPaused && gameActive && (
               <span className="animate-pulse ml-1">●</span>
             )}
           </div>
-          <div className={`flex items-center gap-3 ${currentTurn === "b" && !isPaused && gameActive ? "text-[#F7D27F] font-bold" : ""}`}>
-            <span className="w-24 text-sm">Black:</span>
-            <span className={`font-mono text-base ${blackTimeInSeconds < 60 ? "text-red-500" : ""}`}>
+          <div className={`flex items-center gap-2 sm:gap-3 ${currentTurn === "b" && !isPaused && gameActive ? "text-[#F7D27F] font-bold" : ""}`}>
+            <span className="w-16 sm:w-24 text-xs sm:text-sm">Black:</span>
+            <span className={`font-mono text-sm sm:text-base ${blackTimeInSeconds < 60 ? "text-red-500" : ""}`}>
               {formatTime(blackTimeInSeconds)}
             </span>
             {currentTurn === "b" && !isPaused && gameActive && (
@@ -202,17 +202,17 @@ export const TimeCounter = forwardRef<TimeCounterHandle, TimeCounterProps> (({
               manuallyPaused.current = !isPaused; // Set flag when manually pausing
             }}
             disabled={isGameOver || !gameActive}
-            className="hover:text-[#F7D27F] text-white border-white px-3 py-1"
+            className="hover:text-[#F7D27F] text-white border-white px-2 py-1 sm:px-3 sm:py-1 h-auto"
           >
-            {isPaused ? <PlayIcon size={18} /> : <PauseIcon size={18} />}
+            {isPaused ? <PlayIcon size={16} className="sm:size-[18px]" /> : <PauseIcon size={16} className="sm:size-[18px]" />}
           </Button>
           <Button 
             variant="outline" 
             size="sm"
             onClick={resetTimers}
-            className="hover:text-[#F7D27F] text-white border-white px-3 py-1"
+            className="hover:text-[#F7D27F] text-white border-white px-2 py-1 sm:px-3 sm:py-1 h-auto"
           >
-            <SkipBackIcon size={18} />
+            <SkipBackIcon size={16} className="sm:size-[18px]" />
           </Button>
         </div>
       </div>

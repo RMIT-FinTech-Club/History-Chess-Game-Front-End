@@ -2,7 +2,7 @@ import { defaultPieces } from "./Pieces";
 import { useState } from "react";
 
 interface CapturedPiecesProps {
-  color: "White" | "Black";
+  color: string;
   pieces: string[];
 }
 
@@ -18,9 +18,9 @@ export const CapturedPieces = ({ color, pieces }: CapturedPiecesProps) => {
                         truncatedCount > 0 ? pieces.slice(-displayLimit) : pieces;
 
   return (
-    <div className="w-[600px] p-1 rounded-md flex items-center">
+    <div className="w-full lg:w-[580px] p-1 rounded-md flex flex-wrap items-center">
       {/* Title now on the same row as pieces */}
-      <h2 className="text-lg font-bold mr-2 min-w-[120px]">
+      <h2 className="text-sm sm:text-lg font-bold mr-2 min-w-[80px] sm:min-w-[120px]">
         {color} Captured:
       </h2>
       
@@ -39,7 +39,7 @@ export const CapturedPieces = ({ color, pieces }: CapturedPiecesProps) => {
                 transform: !isHovered && index > 0 ? `translateX(${-80 * index}%)` : 'translateX(0)',
                 zIndex: !isHovered ? index : 0,
                 position: 'relative',
-                transition: 'transform 0.3s ease-in-out'
+                transition: 'transform 0.3s ease-in-out',
               }}
             >
               {defaultPieces[piece] || <span>?</span>}
@@ -49,11 +49,11 @@ export const CapturedPieces = ({ color, pieces }: CapturedPiecesProps) => {
           {/* Display truncation indicator after the last piece */}
           {truncatedCount > 0 && !isHovered && (
             <div 
-              className="w-5 h-5 flex items-center justify-center bg-gray-200 rounded-full text-sm text-black font-bold ml-1"
+              className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center bg-gray-200 rounded-full text-xs sm:text-sm text-black font-bold ml-1"
               style={{ 
-                transform: displayPieces.length > 0 ? `translateX(${-80 * (displayPieces.length + 1)}%)` : 'translateX(0)',
+                transform: displayPieces.length > 0 ? `translateX(${-80 * (displayPieces.length + 3)}%)` : 'translateX(0)',
                 position: 'relative',
-                zIndex: displayPieces.length
+                zIndex: displayPieces.length,
               }}
             >
               +{truncatedCount}

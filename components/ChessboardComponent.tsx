@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { Chessboard } from "react-chessboard";
 import { Square } from "chess.js";
 import "../css/chessboard.css";
@@ -11,6 +11,7 @@ import { useChessGame } from "../hooks/useChessGame";
 import { CapturedPieces } from "./CapturedPieces";
 import type { StockfishLevel } from "../hooks/useStockfish";
 import { TimeCounter, TimeCounterHandle } from "./TimeCounter";
+import { ScrollArea } from "./ui/scroll-area";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface PieceProps {
@@ -27,6 +28,41 @@ const ChessboardComponent = () => {
   const timerRef = useRef<TimeCounterHandle>(null);
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
   const [autoRotateBoard, setAutoRotateBoard] = useState(false);
+  const [boardWidth, setBoardWidth] = useState(580);
+  
+  // Function to calculate responsive board size
+  const calculateBoardSize = () => {
+    if (typeof window === 'undefined') return 580;
+    
+    const width = window.innerWidth;
+    if (width < 480) {
+      return Math.min(width - 32, 480); // Smaller margin on very small screens
+    } else if (width < 768) {
+      return Math.min(width - 48, 580);
+    } else {
+      return 580; // Default size for desktop
+    }
+  };
+  
+  // Update board size on mount and window resize
+  useLayoutEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleResize = () => {
+        setBoardWidth(calculateBoardSize());
+      };
+      
+      // Set initial size
+      handleResize();
+      
+      // Add resize listener
+      window.addEventListener('resize', handleResize);
+      
+      // Cleanup
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, []);
   
   const { 
     fen, 
@@ -280,27 +316,27 @@ const ChessboardComponent = () => {
   };
   
   return (
-    <div className="flex flex-col items-center max-h-screen overflow-hidden py-1 justify-between">
-      <h1 className="text-2xl mb-2">History Chess Game</h1>
+    <div className="flex flex-col items-center w-full overflow-hidden py-1 px-2 md:px-4 justify-between">
+      <h1 className="text-xl sm:text-2xl mb-2">History Chess Game</h1>
       
       {/* Game Mode Indicator - improved styling */}
-      <div className="mb-4 rounded-lg shadow-md">
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-base font-medium text-white">
+      <div className="w-full max-w-7xl mb-2 md:mb-4 rounded shadow-md">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 p-2">
+          <span className="text-sm sm:text-base font-medium text-white">
             {isSinglePlayer 
               ? `Single Player (You: ${playerColor === 'w' ? 'White' : 'Black'}, AI Level: ${aiDifficulty})` 
               : 'Two Players'}
           </span>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
             {isThinking && (
-              <span className="animate-pulse text-[#F7D27F] font-medium">AI thinking...</span>
+              <span className="animate-pulse text-[#F7D27F] text-sm sm:text-base font-medium">AI thinking...</span>
             )}
             {!isSinglePlayer && (
               <Button 
                 variant={autoRotateBoard ? "default" : "outline"} 
                 size="sm"
                 onClick={toggleAutoRotate}
-                className={`${autoRotateBoard 
+                className={`text-xs sm:text-sm ${autoRotateBoard 
                   ? "bg-[#F7D27F] text-black hover:bg-[#E6C26E]" 
                   : "text-white border-white hover:text-[#F7D27F]"}`}
               >
@@ -311,7 +347,7 @@ const ChessboardComponent = () => {
               variant="outline" 
               size="sm"
               onClick={() => setShowGameModeDialog(true)}
-              className="text-white border-white hover:text-[#F7D27F]"
+              className="text-xs sm:text-sm text-white border-white hover:text-[#F7D27F]"
             >
               Change
             </Button>
@@ -319,18 +355,18 @@ const ChessboardComponent = () => {
         </div>
       </div>
       
-      {/* Main content area with side-by-side layout */}
-      <div className="flex flex-row gap-3 flex-1 max-h-[calc(100vh - 150px)]">
-        {/* Left side: Chessboard and captured pieces */}
-        <div className="flex flex-col justify-between">
+      {/* Main content area with responsive layout */}
+      <div className="flex flex-col lg:flex-row gap-3 w-full max-w-7xl flex-1 max-h-[calc(100vh-150px)]">
+        {/* Chessboard and captured pieces */}
+        <div className="flex flex-col justify-between w-full">
           {/* Captured Pieces for Black */}
-          <div className="mb-0.5 flex justify-start">
+          <div className="mb-0.5 flex justify-center md:justify-start">
             <CapturedPieces color="Black" pieces={capturedBlack} />
           </div>
 
-          <div className="flex">
-            {/* Main Chessboard with slightly reduced size */}
-            <div>
+          <div className="flex flex-col md:flex-row">
+            {/* Main Chessboard with responsive size - centered on mobile */}
+            <div className="flex justify-center items-center mx-auto">
               <Chessboard
                 id="historyChessBoard"
                 position={fen}
@@ -338,7 +374,7 @@ const ChessboardComponent = () => {
                 onPieceClick={onPieceClick}
                 onSquareClick={onSquareClick}
                 onPieceDragBegin={onPieceDragBegin}
-                boardWidth={580}
+                boardWidth={boardWidth}
                 animationDuration={300}
                 customSquareStyles={{
                   ...customSquareStyles,
@@ -347,9 +383,10 @@ const ChessboardComponent = () => {
               />
             </div>
             
-            <div className="w-[406px] text-black flex flex-col justify-between ml-3">
+            {/* Controls section - stacked on mobile, side by side on desktop */}
+            <div className="w-full text-black flex flex-col justify-between mt-3 md:mt-0 md:ml-3">
               {/* Time Counter */}
-              <div className="rounded-lg overflow-hidden shadow-md bg-[#3B3433]">
+              <div className="rounded shadow-md bg-[#3B3433]">
                 <TimeCounter 
                   ref={timerRef}
                   initialTimeInSeconds={600} 
@@ -360,61 +397,64 @@ const ChessboardComponent = () => {
                 />
               </div>
             
-              {/* Move History - with flex-grow to fill available space */}
+              {/* Move History - with fixed height */}
               <div className="flex flex-col flex-grow my-3 overflow-hidden">
-                <div className=" rounded-lg shadow-md bg-[#3B3433] overflow-auto flex-1">
-                  <table className="w-full -collapse text-white">
-                    <thead className="sticky top-0 z-10">
-                      <tr>
-                        <th className="py-2 px-5 text-left text-sm font-semibold">Turn</th>
-                        <th className="py-2 px-5 text-left text-sm font-semibold">White</th>
-                        <th className="py-2 px-5 text-left text-sm font-semibold">Black</th>
-                        <th className="py-2 px-5 text-right text-sm font-semibold">Time</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {moveHistoryPairs.map((pair) => (
-                        <tr key={pair.turn} className="hover:bg-[#4A4443] transition-colors duration-200">
-                          <td className=" py-2 px-5 text-sm">{pair.turn}.</td>
-                          <td className=" py-2 px-5 text-sm">{pair.whiteMove}</td>
-                          <td className=" py-2 px-5 text-sm">{pair.blackMove}</td>
-                          <td className=" py-2 px-5 text-xs">
-                            {pair.whiteTime !== "-" && (
-                              <div className="mb-1.5 flex items-center justify-between gap-2">
-                                <div className="flex justify-end w-16 h-1.5 overflow-hidden">
-                                  <div 
-                                    className="h-full bg-white"
-                                    style={{ 
-                                      width: `${Math.min(100, (pair.whiteTimeRaw / pair.maxTime) * 100)}%` 
-                                    }}
-                                  />
-                                </div>
-                                <span className="min-w-[30px]">{pair.whiteTime}s</span>
-                              </div>
-                            )}
-                            {pair.blackTime && (
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex justify-end w-16 h-1.5 overflow-hidden">
-                                  <div 
-                                    className="h-full bg-black"
-                                    style={{ 
-                                      width: `${Math.min(100, (pair.blackTimeRaw / pair.maxTime) * 100)}%` 
-                                    }}
-                                  />
-                                </div>
-                                <span className="min-w-[30px]">{pair.blackTime}s</span>
-                              </div>
-                            )}
-                          </td>
+                <h3 className="text-white text-sm font-semibold mb-1 px-2">Move History</h3>
+                <div className="rounded shadow-md bg-[#3B3433] h-100 w-full">
+                  <ScrollArea className="h-full w-full">
+                    <table className="w-full text-white">
+                      <thead className="sticky top-0 z-10 bg-[#3B3433]">
+                        <tr>
+                          <th className="py-2 px-2 sm:px-5 text-left text-xs sm:text-sm font-semibold">Turn</th>
+                          <th className="py-2 px-2 sm:px-5 text-left text-xs sm:text-sm font-semibold">White</th>
+                          <th className="py-2 px-2 sm:px-5 text-left text-xs sm:text-sm font-semibold">Black</th>
+                          <th className="py-2 px-2 sm:px-5 text-right text-xs sm:text-sm font-semibold">Time</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {moveHistoryPairs.map((pair) => (
+                          <tr key={pair.turn} className="hover:bg-[#4A4443] transition-colors duration-200">
+                            <td className="py-2 px-2 sm:px-5 text-xs sm:text-sm">{pair.turn}.</td>
+                            <td className="py-2 px-2 sm:px-5 text-xs sm:text-sm">{pair.whiteMove}</td>
+                            <td className="py-2 px-2 sm:px-5 text-xs sm:text-sm">{pair.blackMove}</td>
+                            <td className="py-2 px-2 sm:px-5 text-xs">
+                              {pair.whiteTime !== "-" && (
+                                <div className="mb-1.5 flex items-center justify-between gap-2">
+                                  <div className="flex justify-end w-10 sm:w-16 h-1.5 overflow-hidden">
+                                    <div 
+                                      className="h-full bg-white"
+                                      style={{ 
+                                        width: `${Math.min(100, (pair.whiteTimeRaw / pair.maxTime) * 100)}%` 
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="min-w-[24px] sm:min-w-[30px] text-xs">{pair.whiteTime}s</span>
+                                </div>
+                              )}
+                              {pair.blackTime && (
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="flex justify-end w-10 sm:w-16 h-1.5 overflow-hidden">
+                                    <div 
+                                      className="h-full bg-black"
+                                      style={{ 
+                                        width: `${Math.min(100, (pair.blackTimeRaw / pair.maxTime) * 100)}%` 
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="min-w-[24px] sm:min-w-[30px] text-xs">{pair.blackTime}s</span>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </ScrollArea>
                 </div>
               </div>
               
-              {/* Control Buttons - at the bottom */}
-              <div className="flex flex-col gap-2 justify-between">
+              {/* Control Buttons - responsive layout */}
+              <div className="grid grid-cols-2 gap-2">
                   <Button
                     onClick={() => {
                       // Determine the last player's turn before undoing
@@ -426,7 +466,7 @@ const ChessboardComponent = () => {
                     disabled={history.length === 0}
                     variant="default"
                     size="sm"
-                    className="px-4 py-6 text-lg"
+                    className="px-2 sm:px-4 py-3 sm:py-6 text-sm sm:text-lg"
                   >
                     Undo Move
                   </Button>
@@ -437,7 +477,7 @@ const ChessboardComponent = () => {
                       timerRef.current?.reset();
                     }}
                     size="sm"
-                    className="px-4 py-6 bg-[#DBB968] text-lg text-black hover:bg-[#C7A95D]" 
+                    className="px-2 sm:px-4 py-3 sm:py-6 bg-[#DBB968] text-sm sm:text-lg text-black hover:bg-[#C7A95D]" 
                   >
                     New Game
                   </Button>
@@ -446,7 +486,7 @@ const ChessboardComponent = () => {
           </div>
 
           {/* Captured Pieces for White */}
-          <div className="mt-0.5 flex justify-start">
+          <div className="mt-0.5 flex justify-center md:justify-start">
             <CapturedPieces color="White" pieces={capturedWhite} />
           </div>
         </div>
@@ -457,11 +497,11 @@ const ChessboardComponent = () => {
         open={gameState.isGameOver} 
         onOpenChange={(open) => !open && setGameState({...gameState, isGameOver: false})}
       >
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex justify-center text-3xl">{gameState.title}</DialogTitle>
+            <DialogTitle className="flex justify-center text-xl sm:text-3xl">{gameState.title}</DialogTitle>
           </DialogHeader>
-          <p className="text-center text-lg">
+          <p className="text-center text-base sm:text-lg">
             {gameState.message}
           </p>
           <div className="flex justify-center space-x-4 mt-4">
@@ -480,18 +520,18 @@ const ChessboardComponent = () => {
         open={showGameModeDialog}
         onOpenChange={(open) => !open && setShowGameModeDialog(false)}
       >
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex justify-center text-3xl">Choose Game Mode</DialogTitle>
+            <DialogTitle className="flex justify-center text-xl sm:text-3xl">Choose Game Mode</DialogTitle>
           </DialogHeader>
           
           <div className="flex flex-col space-y-6">
             <div className="flex flex-col space-y-2">
-              <h3 className="text-xl font-medium">Play against Computer</h3>
+              <h3 className="text-lg sm:text-xl font-medium">Play against Computer</h3>
               
               <div className="flex flex-col space-y-4">
                 <div>
-                  <p className="text-muted-foreground mb-2">Select AI difficulty:</p>
+                  <p className="text-muted-foreground mb-2 text-sm">Select AI difficulty:</p>
                   <div className="flex flex-wrap gap-2">
                     {difficultyLevels.map((level) => (
                       <Button 
@@ -506,7 +546,7 @@ const ChessboardComponent = () => {
                   </div>
                 </div>
                 
-                <div className="flex space-x-4">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
                   <Button 
                     onClick={() => handleStartSinglePlayer('w')}
                     className="flex-1"
@@ -530,12 +570,12 @@ const ChessboardComponent = () => {
             </div>
             
             <div className="flex flex-col space-y-2">
-              <h3 className="text-xl font-medium">Two Player Mode</h3>
+              <h3 className="text-lg sm:text-xl font-medium">Two Player Mode</h3>
               <div className="flex flex-col space-y-2">
                 <Button onClick={handleStartTwoPlayer} className="mb-2">
                   Start Two Player Game
                 </Button>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-xs sm:text-sm text-muted-foreground">
                   <p>In two player mode, you can enable auto-rotate to flip the board automatically between turns.</p>
                 </div>
               </div>
