@@ -87,7 +87,7 @@ const ChessboardComponent = () => {
   if (!mounted) return <p>Loading Chessboard...</p>;
 
   // Handle piece drop (when a piece is dropped on a square)
-  const handleDrop = (sourceSquare: string, targetSquare: string) => {
+  const handleDrop = (sourceSquare: string, targetSquare: string, piece: string) => {
     // In single player mode, only allow moves for the player's color
     if (isSinglePlayer && 
         ((playerColor === 'w' && fen.includes(' b ')) || 
@@ -99,7 +99,32 @@ const ChessboardComponent = () => {
       return false;
     }
     
-    const success = makeMove(sourceSquare, targetSquare);
+    // Check if this is a potential pawn promotion move
+    const sourcePiece = piece.charAt(1).toLowerCase();
+    const sourceColor = piece.charAt(0);
+    const isPawnPromotion = 
+      sourcePiece === 'p' && 
+      ((sourceColor === 'w' && targetSquare[1] === '8') || 
+       (sourceColor === 'b' && targetSquare[1] === '1'));
+    
+    // For pawn promotion, default to queen if not specified
+    let promotionPiece: string | undefined = undefined;
+    
+    // If this is a promotion move and the piece is NOT a pawn, it means 
+    // react-chessboard is calling us with the selected promotion piece
+    if (piece.length === 2 && isPawnPromotion) {
+      // Just return true for the initial call with the pawn
+      // react-chessboard will show the promotion dialog
+      return true;
+    } else if (piece.length === 2 && 
+              piece.charAt(1).toLowerCase() !== 'p' && 
+              ((sourceColor === 'w' && targetSquare[1] === '8') || 
+               (sourceColor === 'b' && targetSquare[1] === '1'))) {
+      // This is the callback with the selected promotion piece
+      promotionPiece = piece.charAt(1).toLowerCase();
+    }
+    
+    const success = makeMove(sourceSquare, targetSquare, promotionPiece);
     if (!success) {
       // Display error toast for invalid move
       toast.error("Invalid Move", {
@@ -148,8 +173,39 @@ const ChessboardComponent = () => {
   const onSquareClick = (square: Square) => {
     // If we have a piece selected and click on a different square
     if (selectedPiece && square !== selectedPiece) {
+      // Get piece information for promotion detection
+      const pieceOnSquare = fen.split(' ')[0]
+        .split('/')
+        .map((row, i) => {
+          let colIndex = 0;
+          const result: {[key: string]: string} = {};
+          for (let j = 0; j < row.length; j++) {
+            const char = row[j];
+            if (/\d/.test(char)) {
+              colIndex += parseInt(char);
+            } else {
+              const squareNotation = `${String.fromCharCode(97 + colIndex)}${8 - i}`;
+              result[squareNotation] = char;
+              colIndex++;
+            }
+          }
+          return result;
+        })
+        .reduce((acc, row) => ({...acc, ...row}), {});
+      
+      const piece = pieceOnSquare[selectedPiece];
+      
+      // Check if this is a potential pawn promotion move
+      const isPawnPromotion = 
+        piece && piece.toLowerCase() === 'p' && 
+        ((piece === 'P' && square[1] === '8') || 
+         (piece === 'p' && square[1] === '1'));
+      
+      // For pawn promotion, default to queen
+      const promotionPiece = isPawnPromotion ? 'q' : undefined;
+      
       // Try to move if it's a valid move
-      const success = makeMove(selectedPiece, square);
+      const success = makeMove(selectedPiece, square, promotionPiece);
       if (!success) {
         // If not a valid move, just deselect the piece
         setSelectedPiece(null);

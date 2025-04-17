@@ -197,11 +197,12 @@ export function useChessGame() {
   }, [game]);
 
   // Handle piece movement
-  const makeMove = useCallback((sourceSquare: string, targetSquare: string) => {
+  const makeMove = useCallback((sourceSquare: string, targetSquare: string, promotionPiece?: string) => {
     try {
       const move = game.move({
         from: sourceSquare,
         to: targetSquare,
+        promotion: promotionPiece as 'q' | 'r' | 'b' | 'n' | undefined
       });
 
       if (move) {
@@ -228,7 +229,9 @@ export function useChessGame() {
               if (bestMove) {
                 const from = bestMove.substring(0, 2) as Square;
                 const to = bestMove.substring(2, 4) as Square;
-                makeMove(from, to);
+                // Check for promotion in AI move (5th char if present)
+                const promotion = bestMove.length > 4 ? bestMove.charAt(4) : undefined;
+                makeMove(from, to, promotion);
               }
             });
           });
