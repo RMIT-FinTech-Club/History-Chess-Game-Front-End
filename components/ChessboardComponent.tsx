@@ -25,6 +25,8 @@ const ChessboardComponent = () => {
   const [currentTurn, setCurrentTurn] = useState<"w" | "b">("w");
   const [gameActive, setGameActive] = useState(false);
   const timerRef = useRef<TimeCounterHandle>(null);
+  const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
+  const [autoRotateBoard, setAutoRotateBoard] = useState(false);
   
   const { 
     fen, 
@@ -55,8 +57,13 @@ const ChessboardComponent = () => {
     const turnPart = fen.split(' ')[1];
     if (turnPart === 'w' || turnPart === 'b') {
       setCurrentTurn(turnPart);
+      
+      // Update board orientation in two-player mode with auto-rotate enabled
+      if (!isSinglePlayer && autoRotateBoard) {
+        setBoardOrientation(turnPart === 'w' ? 'white' : 'black');
+      }
     }
-  }, [fen]);
+  }, [fen, isSinglePlayer, autoRotateBoard]);
 
   useEffect(() => {
     setMounted(true);
@@ -68,6 +75,14 @@ const ChessboardComponent = () => {
   useEffect(() => {
     setGameActive(!gameState.isGameOver && history.length > 0);
   }, [gameState.isGameOver, history.length]);
+
+  // Set board orientation for single player mode
+  useEffect(() => {
+    if (isSinglePlayer) {
+      setBoardOrientation(playerColor === 'w' ? 'white' : 'black');
+      setAutoRotateBoard(false);
+    }
+  }, [isSinglePlayer, playerColor]);
 
   if (!mounted) return <p>Loading Chessboard...</p>;
 
@@ -148,6 +163,9 @@ const ChessboardComponent = () => {
     setShowGameModeDialog(false);
     // Reset the timer when starting a new game
     timerRef.current?.reset();
+    // Set fixed board orientation for single player
+    setBoardOrientation(color === 'w' ? 'white' : 'black');
+    setAutoRotateBoard(false);
   };
 
   const handleStartTwoPlayer = () => {
@@ -155,6 +173,8 @@ const ChessboardComponent = () => {
     setShowGameModeDialog(false);
     // Reset the timer when starting a new game
     timerRef.current?.reset();
+    // Start with white's perspective in two player mode
+    setBoardOrientation('white');
   };
   
   const difficultyLevels: StockfishLevel[] = [1, 2, 3, 5, 8, 10, 15, 20];
@@ -189,6 +209,20 @@ const ChessboardComponent = () => {
 
   const moveHistoryPairs = formatMoveHistory();
   
+  // Toggle auto-rotate board feature
+  const toggleAutoRotate = () => {
+    // Only allow toggling in two player mode
+    if (!isSinglePlayer) {
+      const newAutoRotate = !autoRotateBoard;
+      setAutoRotateBoard(newAutoRotate);
+      
+      // If enabling, immediately set orientation based on current turn
+      if (newAutoRotate) {
+        setBoardOrientation(currentTurn === 'w' ? 'white' : 'black');
+      }
+    }
+  };
+  
   return (
     <div className="flex flex-col items-center max-h-screen overflow-hidden py-1 justify-between">
       <h1 className="text-2xl mb-2">History Chess Game</h1>
@@ -204,6 +238,18 @@ const ChessboardComponent = () => {
           <div className="flex items-center gap-3">
             {isThinking && (
               <span className="animate-pulse text-[#F7D27F] font-medium">AI thinking...</span>
+            )}
+            {!isSinglePlayer && (
+              <Button 
+                variant={autoRotateBoard ? "default" : "outline"} 
+                size="sm"
+                onClick={toggleAutoRotate}
+                className={`${autoRotateBoard 
+                  ? "bg-[#F7D27F] text-black hover:bg-[#E6C26E]" 
+                  : "text-white border-white hover:text-[#F7D27F]"}`}
+              >
+                {autoRotateBoard ? "Auto-rotate: ON" : "Auto-rotate: OFF"}
+              </Button>
             )}
             <Button 
               variant="outline" 
@@ -241,6 +287,7 @@ const ChessboardComponent = () => {
                 customSquareStyles={{
                   ...customSquareStyles,
                 }}
+                boardOrientation={boardOrientation}
               />
             </div>
             
@@ -428,9 +475,14 @@ const ChessboardComponent = () => {
             
             <div className="flex flex-col space-y-2">
               <h3 className="text-xl font-medium">Two Player Mode</h3>
-              <Button onClick={handleStartTwoPlayer}>
-                Start Two Player Game
-              </Button>
+              <div className="flex flex-col space-y-2">
+                <Button onClick={handleStartTwoPlayer} className="mb-2">
+                  Start Two Player Game
+                </Button>
+                <div className="text-sm text-muted-foreground">
+                  <p>In two player mode, you can enable auto-rotate to flip the board automatically between turns.</p>
+                </div>
+              </div>
             </div>
           </div>
         </DialogContent>
