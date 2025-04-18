@@ -319,7 +319,7 @@ const ChessboardComponent = () => {
     <div className="flex flex-col items-center w-full py-1 px-2 md:px-4 justify-between">
       <h1 className="text-xl sm:text-2xl">History Chess Game</h1>
       {/* Game Mode Indicator - improved styling */}
-      <div className="w-full max-w-7xl rounded shadow-md">
+      <div className="w-full max-w-7xl">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 p-2">
           <span className="text-sm sm:text-base font-medium text-white">
             {isSinglePlayer 
