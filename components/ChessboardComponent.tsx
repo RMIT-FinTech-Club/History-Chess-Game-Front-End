@@ -382,6 +382,11 @@ const ChessboardComponent = () => {
               />
             </div>
             
+            {/* Captured Pieces for White on mobile */}
+            <div className="md:hidden flex justify-center md:justify-start">
+              <CapturedPieces color="White" pieces={capturedWhite} />
+            </div>
+            
             {/* Controls section - stacked on mobile, side by side on desktop */}
             <div className="w-full text-black flex flex-col flex-wrap justify-between gap-3">
               {/* Time Counter */}
@@ -489,7 +494,7 @@ const ChessboardComponent = () => {
           </div>
 
           {/* Captured Pieces for White */}
-          <div className="flex justify-center md:justify-start">
+          <div className="md:block hidden flex justify-center md:justify-start">
             <CapturedPieces color="White" pieces={capturedWhite} />
           </div>
         </div>

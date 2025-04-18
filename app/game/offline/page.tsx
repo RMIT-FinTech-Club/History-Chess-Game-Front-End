@@ -4,9 +4,9 @@ import YellowLight from '../../../components/ui/YellowLight';
 
 export default function GamePage() {
   return (
-    <div className='relative flex flex-col items-center justify-center h-screen w-full md:overflow-hidden overflow-visible'>
+    <div className='relative flex flex-col items-center justify-center h-screen w-screen overflow-x-hidden'>
       {/* Background light effect with adjusted positioning */}
-      <YellowLight top='20%' left='65%' />
+      <YellowLight top='20%' left='65%'/>
       
       {/* Main content container with proper padding */}
       <div className='container mx-auto px-4 py-6 flex flex-col items-center justify-center'>
