@@ -36,7 +36,7 @@ const ChessboardComponent = () => {
     
     const width = window.innerWidth;
     if (width < 480) {
-      return Math.min(width - 32, 480); // Smaller margin on very small screens
+      return Math.min(width - 48, 480); // Smaller margin on very small screens
     } else if (width < 768) {
       return Math.min(width - 48, 580);
     } else {
@@ -317,9 +317,9 @@ const ChessboardComponent = () => {
   
   return (
     <div className="flex flex-col items-center w-full py-1 px-2 md:px-4 justify-between">
-      <h1 className="text-xl sm:text-2xl mb-2">History Chess Game</h1>
+      <h1 className="text-xl sm:text-2xl">History Chess Game</h1>
       {/* Game Mode Indicator - improved styling */}
-      <div className="w-full max-w-7xl mb-2 md:mb-4 rounded shadow-md">
+      <div className="w-full max-w-7xl rounded shadow-md">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 p-2">
           <span className="text-sm sm:text-base font-medium text-white">
             {isSinglePlayer 
@@ -359,7 +359,7 @@ const ChessboardComponent = () => {
         {/* Chessboard and captured pieces */}
         <div className="flex flex-col justify-between w-full">
           {/* Captured Pieces for Black */}
-          <div className="mb-0.5 flex justify-center md:justify-start">
+          <div className="flex justify-center md:justify-start">
             <CapturedPieces color="Black" pieces={capturedBlack} />
           </div>
 
@@ -383,23 +383,26 @@ const ChessboardComponent = () => {
             </div>
             
             {/* Controls section - stacked on mobile, side by side on desktop */}
-            <div className="w-full text-black flex flex-col flex-wrap justify-between">
+            <div className="w-full text-black flex flex-col flex-wrap justify-between gap-3">
               {/* Time Counter */}
-              <h2 className="text-white text-sm font-semibold mb-1 px-2">Time Remaining </h2>
-              <div className="rounded shadow-md bg-[#3B3433]">
-                <TimeCounter 
-                  ref={timerRef}
-                  initialTimeInSeconds={600} 
-                  currentTurn={currentTurn} 
-                  gameActive={gameActive}
-                  isGameOver={gameState.isGameOver}
-                  history={history}
-                />
+              <div>             
+                <h2 className="text-white text-sm font-semibold px-2">Time Remaining </h2>
+                <div className="rounded shadow-md bg-[#3B3433]">
+                  <TimeCounter 
+                    ref={timerRef}
+                    initialTimeInSeconds={600} 
+                    currentTurn={currentTurn} 
+                    gameActive={gameActive}
+                    isGameOver={gameState.isGameOver}
+                    history={history}
+                  />
+                </div>
               </div>
+
             
               {/* Move History - with fixed height */}
-              <div className="flex flex-col flex-grow my-3 overflow-hidden">
-                <h3 className="text-white text-sm font-semibold mb-1 px-2">Move History</h3>
+              <div className="flex flex-col flex-grow overflow-hidden">
+                <h3 className="text-white text-sm font-semibold px-2">Move History</h3>
                 <div className="rounded shadow-md bg-[#3B3433] h-96 w-full">
                   <ScrollArea className="h-full w-full">
                     <table className="w-full text-white">
@@ -419,7 +422,7 @@ const ChessboardComponent = () => {
                             <td className="py-2 px-2 sm:px-5 text-xs sm:text-sm">{pair.blackMove}</td>
                             <td className="py-2 px-2 sm:px-5 text-xs">
                               {pair.whiteTime !== "-" && (
-                                <div className="mb-1.5 flex items-center justify-between gap-2">
+                                <div className="flex items-center justify-between gap-2">
                                   <div className="flex justify-end w-10 sm:w-16 h-1.5 overflow-hidden">
                                     <div 
                                       className="h-full bg-white"
@@ -486,7 +489,7 @@ const ChessboardComponent = () => {
           </div>
 
           {/* Captured Pieces for White */}
-          <div className="mt-0.5 flex justify-center md:justify-start">
+          <div className="flex justify-center md:justify-start">
             <CapturedPieces color="White" pieces={capturedWhite} />
           </div>
         </div>
@@ -504,7 +507,7 @@ const ChessboardComponent = () => {
           <p className="text-center text-base sm:text-lg">
             {gameState.message}
           </p>
-          <div className="flex justify-center space-x-4 mt-4">
+          <div className="flex justify-center space-x-4">
             <Button
               onClick={() => setShowGameModeDialog(true)}
               variant="destructive"
@@ -531,7 +534,7 @@ const ChessboardComponent = () => {
               
               <div className="flex flex-col space-y-4">
                 <div>
-                  <p className="text-muted-foreground mb-2 text-sm">Select AI difficulty:</p>
+                  <p className="text-muted-foreground text-sm">Select AI difficulty:</p>
                   <div className="flex flex-wrap gap-2">
                     {difficultyLevels.map((level) => (
                       <Button 
@@ -572,7 +575,7 @@ const ChessboardComponent = () => {
             <div className="flex flex-col space-y-2">
               <h3 className="text-lg sm:text-xl font-medium">Two Player Mode</h3>
               <div className="flex flex-col space-y-2">
-                <Button onClick={handleStartTwoPlayer} className="mb-2">
+                <Button onClick={handleStartTwoPlayer}>
                   Start Two Player Game
                 </Button>
                 <div className="text-xs sm:text-sm text-muted-foreground">
