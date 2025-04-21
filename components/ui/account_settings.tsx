@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Image from "next/image";
 
 const formSchema = z
   .object({
@@ -115,16 +116,18 @@ const AccountSettings = () => {
       );
       router.push("/sign_in");
     } catch (error) {
-      alert("Failed to update profile. Please try again.");
+      alert(`Error: ${error} Failed to update profile. Please try again.`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div>
+    <div className="h-full">
       <div className="flex items-center">
-        <img
+        <Image
+          width={100}
+          height={100}
           src="/Settings.svg"
           alt="Settings icon"
           className="w-[3.5vw] md:w-[2.5vw] mb-[1vh]"
@@ -137,7 +140,7 @@ const AccountSettings = () => {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-3 mt-[0] md:mt-[2vh]"
+          className="space-y-3 mt-[0] md:mt-[1vh]"
         >
           {/* User Information and Avatar Field */}
           <div className="w-full flex flex-row items-center justify-between">
@@ -147,10 +150,14 @@ const AccountSettings = () => {
               onClick={() => fileInputRef.current?.click()}
             >
               {imagePreview ? (
-                <img
-                  src={imagePreview}
-                  alt="Uploaded"
-                  className="object-cover w-full h-full rounded-md"
+
+                <Image
+                  src="/Settings.svg"
+                  alt="Settings icon"
+                  width={0}
+                  height={0}
+                  style={{ width: "3.5vw", height: "auto", marginBottom: "1vh" }}
+                  className="md:w-[2.5vw]"
                 />
               ) : (
                 <div className="flex items-center justify-center bg-[#DCB968] rounded-full w-[3vw] h-[3vw] min-w-[4vh] min-h-[4vh] p-[1vh]">
@@ -311,19 +318,19 @@ const AccountSettings = () => {
 
           {/* Submit Button */}
           <div className="flex items-center justify-end gap-[1vw]">
-          <Button
-            type="button"
-            className="w-[15vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-normal text-[3.5vh] py-[4vh] md:py-[4vh]  mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-[15vw] bg-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#000000] font-normal text-[3.5vh] py-[4vh] md:py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
-          >
-            {loading ? "Saving..." : "Save"}
-          </Button>
+            <Button
+              type="button"
+              className="w-[15vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-normal text-[3.5vh] py-[4vh] md:py-[4vh]  mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-[15vw] bg-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#000000] font-normal text-[3.5vh] py-[4vh] md:py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+            >
+              {loading ? "Saving..." : "Save"}
+            </Button>
           </div>
         </form>
       </Form>
