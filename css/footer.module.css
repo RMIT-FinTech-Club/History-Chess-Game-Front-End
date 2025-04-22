@@ -23,55 +23,26 @@
 }
 
 @media(hover: hover) {
-    .logo {
-        -webkit-transition: -webkit-transform 0.5s;
-        transition: -webkit-transform 0.5s;
-        -o-transition: transform 0.5s;
-        transition: transform 0.5s;
-        transition: transform 0.5s, -webkit-transform 0.5s;
-    }
-    
-    .logo:hover {
-        -webkit-transform: translateX(5px);
-            -ms-transform: translateX(5px);
-                transform: translateX(5px);
+    .link {
+        text-decoration: none;
+        background-image: -o-linear-gradient(#FFF, #FFF);
+        background-image: -webkit-gradient(linear, left top, left bottom, from(#FFF), to(#FFF));
+        background-image: linear-gradient(#FFF, #FFF);
+        background-repeat: no-repeat;
+        -webkit-transition: background-size 0.2s linear;
+        -o-transition: background-size 0.2s linear;
+        transition: background-size 0.2s linear;
+        background-position: 0 100%;
+        background-size: 0% 8%;
     }
 
     .link:hover {
-        text-decoration: underline;
+        background-size: 100% 8%;
     }
 }
 
 .FTC_logo {
     background-image: url('../public/footer/white_logo.svg');
-}
-
-.FB_logo {
-    background-image: url('../public/footer/fb_logo.svg');
-}
-
-.FM_logo {
-    background-image: url('../public/footer/fm_logo.svg');
-}
-
-.GH_logo {
-    background-image: url('../public/footer/gh_logo.svg');
-}
-
-.IT_logo {
-    background-image: url('../public/footer/it_logo.svg');
-}
-
-.TG_logo {
-    background-image: url('../public/footer/tg_logo.svg');
-}
-
-.TT_logo {
-    background-image: url('../public/footer/tt_logo.svg');
-}
-
-.YT_logo {
-    background-image: url('../public/footer/yt_logo.svg');
 }
 
 .lc_ic {
