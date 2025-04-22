@@ -11,7 +11,7 @@ export default function OnlineList() {
           <div key={index} className={`w-full h-[8dvh] sm:h-[15dvh] mb-[5dvh] rounded-[2vw] bg-[rgba(255,255,255,0.3)] border-[0.1px] border-solid border-[#EEFF07] flex justify-start items-center ${styles.player}`}>
             <div 
               className="sm:h-[9dvh] h-[5dvh] aspect-square rounded-[50%] mx-[1dvh] sm:mx-[3dvh] border border-solid border-white bg-center bg-cover bg-no-repeat" 
-              style={{ backgroundImage: `url(https://scontent.fsgn10-1.fna.fbcdn.net/v/t1.6435-9/118843170_379063756428270_2153792653409035582_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_ohc=JATNLW_MvrkQ7kNvgH1FKnj&_nc_oc=AdkrzEto3CFrW11zTkWGbVlJHW5d57GxZhNZeLdL6gOJBvtAhJWuzle_3eo9z2qHLrOp6pbW2Uf6fTNW0coDOvmX&_nc_zt=23&_nc_ht=scontent.fsgn10-1.fna&_nc_gid=W4oGblMebgwyjL42w7AabQ&oh=00_AYFZLF4vd17ip1k3NzT7aXjlKOGgjbIXQZYTOxFea4UUmQ&oe=680139C7)` }}>
+              style={{ backgroundImage: `url(https://i.imgur.com/RoRONDn.jpeg)` }}>
             </div>
             <div className="flex justify-center items-center w-[calc(100%-8dvh-2vw)] sm:w-[calc(100%-15dvh-2vw)] h-full ml-[2vw]">
               <div className="flex flex-col w-[calc(70%/2)] md:w-[calc(70%/3)] h-full items-start justify-center">

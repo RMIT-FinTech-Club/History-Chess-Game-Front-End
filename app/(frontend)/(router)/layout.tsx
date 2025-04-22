@@ -3,8 +3,8 @@ import type { Metadata } from "next"
 import "@/app/globals.css"
 import '@/css/styles.css'
 
+import ClientLayout from "@/components/ClientLayout"
 import { UserProvider } from "@/context/UserContext"
-import Content from "@/components/content"
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,9 +20,9 @@ export default function RootLayout({
     <UserProvider>
       <html lang="en">
         <body
-          className={`h-[100dvh] antialiased overflow-x-hidden`}
+          className={`min-h-[100vh] antialiased overflow-x-hidden`}
         >
-          <Content>{children}</Content>
+          <ClientLayout>{children}</ClientLayout>
         </body>
       </html>
     </UserProvider>

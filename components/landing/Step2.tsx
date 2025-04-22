@@ -9,7 +9,7 @@ export default function Step2() {
                 {Array.from({ length: 5 }).map((_, index) => (
                     <div key={index} className="w-full my-[2vh] flex justify-between items-center">
                         <div className="w-[70%] flex justify-start items-center">
-                            <div className="w-[12vw] sm:w-[6vw] md:w-[3vw] aspect-square rounded-[50%] mr-[5vw] sm:mr-[2vw] relative border border-solid border-white bg-center bg-cover bg-no-repeat" style={{ backgroundImage: `url(https://scontent.fsgn10-1.fna.fbcdn.net/v/t1.6435-9/118843170_379063756428270_2153792653409035582_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_ohc=JATNLW_MvrkQ7kNvgH1FKnj&_nc_oc=AdkrzEto3CFrW11zTkWGbVlJHW5d57GxZhNZeLdL6gOJBvtAhJWuzle_3eo9z2qHLrOp6pbW2Uf6fTNW0coDOvmX&_nc_zt=23&_nc_ht=scontent.fsgn10-1.fna&_nc_gid=W4oGblMebgwyjL42w7AabQ&oh=00_AYFZLF4vd17ip1k3NzT7aXjlKOGgjbIXQZYTOxFea4UUmQ&oe=680139C7)` }}>
+                            <div className="w-[12vw] sm:w-[6vw] md:w-[3vw] aspect-square rounded-[50%] mr-[5vw] sm:mr-[2vw] relative border border-solid border-white bg-center bg-cover bg-no-repeat" style={{ backgroundImage: `url(https://i.imgur.com/RoRONDn.jpeg)` }}>
                                 <div className="w-1/2 bottom-[-1vw] sm:bottom-[-0.6vw] md:bottom-[-0.2vw] absolute left-[3vw] sm:left-[1.5vw] md:left-[0.5vw] aspect-[38/21] bg-center bg-cover bg-no-repeat" style={{ backgroundImage: `url(https://i.imgur.com/oAxJZQs.png)` }}></div>
                             </div>
                             <p className="md:text-[1.8rem] sm:text-[2.5rem] text-[1.5rem] font-bold whitespace-nowrap overflow-hidden text-ellipsis w-[40vw] sm:w-[50vw]">{index == 4 ? 'Negic LegendLegendLegendLegendLegendLegend' : 'Negic Legend'}</p>
