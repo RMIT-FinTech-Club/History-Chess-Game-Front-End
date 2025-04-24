@@ -44,7 +44,10 @@ export default function ProfilePage() {
         });
         setUser(response.data.user);
       } catch (err: unknown) {
-        const message = err.response?.data?.message || "Failed to load profile";
+        const message =
+          axios.isAxiosError(err) && err.response?.data?.message
+            ? err.response.data.message
+            : "Failed to load profile";
         toast.error(message);
       }
     };

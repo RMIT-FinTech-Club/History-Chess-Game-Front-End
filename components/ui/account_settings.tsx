@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, {useState, useRef, useEffect} from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -50,19 +50,29 @@ const formSchema = z
       .string()
       .min(1, { message: "Please confirm your password." }),
     language: z.string(),
+    walletAddress: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match.",
     path: ["confirmPassword"],
   });
 
-const mockUsers = [
-  { username: "test", email: "test@example.com" },
-  { username: "user", email: "user@example.com" },
-];
+  const mockUsers = [
+    { username: "test", email: "test@example.com" },
+    { username: "user", email: "user@example.com" },
+  ];
+
+  // Type definition for form values ???
+  type FormValues = z.infer<typeof formSchema>;
 
 const AccountSettings = () => {
   const router = useRouter();
+  // const { toast } = useToast(); // toast notification for feedback
+
+  // State for password field
+  const [password, setPassword] = useState("");
+  const [initialLoading, setInitialLoading] = useState(true);
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -73,6 +83,43 @@ const AccountSettings = () => {
       language: "English",
     },
   });
+
+  /**
+   * Fetch user profile data from the backend API, runs when the component mounts
+   */
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/users/profile", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          }
+        });
+
+        if(!response.ok){
+          throw new Error("Failed to fetch profile");
+        }
+
+        const data = await response.json();
+
+        if(data.success && data.data){
+          // Reset form with fetched data
+          form.reset({
+            email: data.data.email || "",
+            username: data.data.username || "",
+            password: "",
+            confirmPassword: "",
+            language: "English",
+            walletAddress: data.data.walletAddress || "",
+          });
+        }
+      } catch(error){
+        console.error("Error fetching profile:", error);
+      }
+    }
+    fetchProfile();
+  }, [form])
 
   const [imagePreview, setImagePreview] = useState<string | null>(null); // Moved inside the component
   const [imagePath, setImagePath] = useState<string | null>(null);
@@ -90,7 +137,6 @@ const AccountSettings = () => {
     }
   };
 
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Password validation tracking
@@ -102,19 +148,51 @@ const AccountSettings = () => {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setLoading(true);
     try {
+      // Prepare data for API - only include fields that have values:
+      const updateData: any = {
+        username: data.username,
+        email: data.email
+      };
+
+      // Only include optional fields if they have values
+      if(data.password) updateData.password = data.password;
+      if(data.walletAddress) updateData.walletAddress = data.walletAddress;
+
+      console.log("Sending update to API:", updateData);
+
+      // Send update request to API
+      const response = await fetch("http://localhost:8000/api/users/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      const result = await response.json();
+
+      if(result.success){
+        // Clear password fields after successful update
+        form.setValue("password", "");
+        form.setValue("confirmPassword", "");
+        setPassword("");
+      }else{
+        throw new Error("Failed to update profile");
+      }
+
       // Include the imagePath in the form data
       const formData = {
         ...data,
         avatar: imagePath, // Add the image path to the form data
       };
 
-      console.log("Saving data:", formData);
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      alert(
-        `Profile updated successfully!\n\nEmail: ${data.email}\nUsername: ${data.username}\nNew Password: ${data.password}\nLanguage: ${data.language}\nAvatar: ${formData.avatar}`
-      );
-      router.push("/sign_in");
+      // console.log("Saving data:", formData);
+      //
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
+      // alert(
+      //   `Profile updated successfully!\n\nEmail: ${data.email}\nUsername: ${data.username}\nNew Password: ${data.password}\nLanguage: ${data.language}\nAvatar: ${formData.avatar}`
+      // );
+      // router.push("/sign_in");
     } catch (error) {
       alert(`Error: ${error} Failed to update profile. Please try again.`);
     } finally {
