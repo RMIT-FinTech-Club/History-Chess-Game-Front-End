@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,99 +15,76 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { FaFacebook } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
-
-const mockUsers = [
-  { username: "test@example.com", password: "Password123!" },
-  { username: "user@example.com", password: "SecurePass1@" },
-];
+import { toast } from "sonner";
+import axios from "axios";
+import validator from "validator";
 
 const Page = () => {
   const [error, setError] = useState("");
+  const router = useRouter();
   const form = useForm({
     defaultValues: {
-      username: "",
+      identifier: "",
       password: "",
     },
   });
 
   type FormValues = {
-    username: string;
+    identifier: string;
     password: string;
   };
 
-  function onSubmit(values: FormValues) {
-    const { username, password } = values;
-    const user = mockUsers.find((u) => u.username === username);
+  async function onSubmit(values: FormValues) {
+    const { identifier, password } = values;
 
-    if (!username) {
+    if (!identifier) {
       setError("Please enter your username or email.");
-      document
-        .getElementById("username-input")
-        ?.classList.add("border-red-500", "border-[0.3vh]");
-    } else {
-      document
-        .getElementById("username-input")
-        ?.classList.remove("border-red-500", "border-[0.3vh]");
+      document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
+      return;
     }
+
+    // Allow only letters, numbers, @, and . in identifier
+    const validIdentifierRegex = /^[a-zA-Z0-9@.]+$/;
+    if (!validIdentifierRegex.test(identifier)) {
+      setError("Only @ and . are allowed as special characters.");
+      document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
+      return;
+    }
+
+    // Check if identifier is a valid username (alphanumeric) or email
+    const isEmail = validator.isEmail(identifier);
+    if (!isEmail && !validator.isAlphanumeric(identifier)) {
+      setError("Please enter a valid username (alphanumeric) or email.");
+      document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
+      return;
+    }
+    document.getElementById("identifier-input")?.classList.remove("border-red-500", "border-[0.3vh]");
 
     if (!password) {
       setError("Please enter your password.");
-      document
-        .querySelector("input[type='password']")
-        ?.classList.add("border-red-500", "border-[0.3vh]");
-    } else {
-      document
-        .querySelector("input[type='password']")
-        ?.classList.remove("border-red-500", "border-[0.3vh]");
-    }
-
-    if (!username || !password) {
+      document.querySelector("input[type='password']")?.classList.add("border-red-500", "border-[0.3vh]");
       return;
     }
+    document.querySelector("input[type='password']")?.classList.remove("border-red-500", "border-[0.3vh]");
 
-    if (!user) {
-      setError("The username or email you entered is not registered.");
-      document
-        .getElementById("username-input")
-        ?.classList.add("border-red-500", "border-[0.3vh]");
-      return;
-    } else {
-      document
-        .getElementById("username-input")
-        ?.classList.remove("border-red-500", "border-[0.3vh]");
-      document
-        .getElementById("username-input")
-        ?.classList.add("border-green-500", "border-[0.3vh]");
+    try {
+      const response = await axios.post("http://localhost:8080/users/login", {
+        identifier,
+        password,
+      });
+      localStorage.setItem("token", response.data.token);
+      document.getElementById("identifier-input")?.classList.add("border-green-500", "border-[0.3vh]");
+      document.querySelector("input[type='password']")?.classList.add("border-green-500", "border-[0.3vh]");
+      setError("");
+      toast.success("Sign in successful!");
+      router.push("/profile");
+    } catch (err: any) {
+      const message = err.response?.data?.message || "Sign in failed";
+      setError(message);
+      toast.error(message);
+      document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
+      document.querySelector("input[type='password']")?.classList.add("border-red-500", "border-[0.3vh]");
     }
-
-    if (user.password !== password) {
-      setError("The password you entered is incorrect.");
-      document
-        .querySelector("input[type='password']")
-        ?.classList.add("border-red-500", "border-[0.3vh]");
-      return;
-    } else {
-      document
-        .querySelector("input[type='password']")
-        ?.classList.remove("border-red-500", "border-[0.3vh]");
-      document
-        .querySelector("input[type='password']")
-        ?.classList.add("border-green-500", "border-[0.3vh]");
-    }
-    document
-      .getElementById("username-input")
-      ?.classList.add("border-green-500", "border-[0.3vh]");
-    document
-      .querySelector("input[type='password']")
-      ?.classList.add("border-green-500", "border-[0.3vh]");
-    setError("");
-
-    // Ensure the border color changes are applied before showing the alert
-    setTimeout(() => {
-      alert(
-        `Sign in successful!\nUsername/Email: ${username}\nPassword: ${password}`
-      );
-    }, 0);
   }
 
   return (
@@ -125,14 +103,13 @@ const Page = () => {
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-3 w-[80vw] md:w-[42vw]"
           >
-            {" "}
             <FormField
               control={form.control}
-              name="username"
+              name="identifier"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="font-bold text-[3vh] rounded-md">
-                    Username/Email
+                    Username or Email
                   </FormLabel>
                   <FormControl>
                     <div className="relative">
@@ -142,12 +119,12 @@ const Page = () => {
                          top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
                          "
                         onClick={() =>
-                          document.getElementById("username-input")?.focus()
+                          document.getElementById("identifier-input")?.focus()
                         }
                       />
                       <Input
-                        id="username-input"
-                        placeholder="Enter your email"
+                        id="identifier-input"
+                        placeholder="Enter your username or email"
                         {...field}
                         className="
                           pl-[7.5vw]
@@ -218,36 +195,18 @@ const Page = () => {
             </Button>
           </form>
         </Form>
-
-        <div
-          className="
-          text-center text-[#C4C4C4]
-          text-[3vh]
-          font-normal
-        "
-        >
+        <div className="text-center text-[#C4C4C4] text-[3vh] font-normal">
           or continue with
         </div>
         <div className="space-y-2 sm:space-y-3 md:space-y-4">
           <button
-            className="
-              w-full flex items-center justify-center 
-              bg-[#1877F2] cursor-pointer 
-              text-[#FFFFFF] font-bold text-[3vh]
-              py-[1.5vh] md:py-[2.45vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]
-            "
+            className="w-full flex items-center justify-center bg-[#1877F2] cursor-pointer text-[#FFFFFF] font-bold text-[3vh] py-[1.5vh] md:py-[2.45vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
           >
             <FaFacebook className="mr-[1vw] md:mr-[0.5vw] text-[4vh]" />
             Continue with Facebook
           </button>
-
           <button
-            className="
-              w-full flex items-center justify-center 
-              bg-[#ECECEC] cursor-pointer 
-              text-[#000000] font-bold text-[3vh] 
-              py-[1.5vh] md:py-[2.45vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]
-            "
+            className="w-full flex items-center justify-center bg-[#ECECEC] cursor-pointer text-[#000000] font-bold text-[3vh] py-[1.5vh] md:py-[2.45vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
           >
             <img
               src="/Google-Logo.svg"
@@ -257,19 +216,9 @@ const Page = () => {
             Continue with Google
           </button>
         </div>
-
-        <div
-          className="
-          text-center text-[#C4C4C4]
-          text-[3vh]
-          font-normal
-        "
-        >
+        <div className="text-center text-[#C4C4C4] text-[3vh] font-normal">
           Don’t have an account?{" "}
-          <a
-            href="/sign_up"
-            className="text-[#184BF2] font-bold hover:underline"
-          >
+          <a href="/sign_up" className="text-[#184BF2] font-bold hover:underline">
             Sign Up
           </a>
         </div>

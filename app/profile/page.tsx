@@ -1,7 +1,6 @@
 "use client";
-
 import styles from "@/css/profile.module.css";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUp } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -16,21 +15,47 @@ import SettingIcon from "@/components/ui/settingIcon";
 import OtherPlayers from "@/components/ui/otherPlayers";
 import Matches from "@/components/ui/matches";
 import AccountSettings from "@/components/ui/account_settings";
-
+import { toast } from "sonner";
+import axios from "axios";
 
 export default function ProfilePage() {
   const profileRef = useRef<HTMLDivElement | null>(null);
   const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true);
   const [profileMenu, setProfileMenu] = useState(1);
+  const [user, setUser] = useState<{
+    username: string;
+    email: string;
+    elo: number;
+    id: string;
+  } | null>(null);
 
   const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          toast.error("Please sign in to view your profile.");
+          return;
+        }
+        const response = await axios.get("http://localhost:8080/users/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(response.data.user);
+      } catch (err: unknown) {
+        const message = err.response?.data?.message || "Failed to load profile";
+        toast.error(message);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   return (
     <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3vh] mx-[5vw] md:mx-[10vw] text-white relative h-[100dvh]">
       {profileMenu !== 2 && (
         <div
-          className={`w-full relative md:absolute ${isProfileOpened ? "md:top-[3vh]" : "md:top-[calc(-12vw-2px)]"
-            } top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3vh] transition-all duration-300`}
+          className={`w-full relative md:absolute ${isProfileOpened ? "md:top-[3vh]" : "md:top-[calc(-12vw-2px)]"} top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3vh] transition-all duration-300`}
         >
           <Tooltip disableHoverableContent>
             <TooltipTrigger asChild>
@@ -41,8 +66,7 @@ export default function ProfilePage() {
               >
                 <FontAwesomeIcon
                   icon={faArrowUp}
-                  className={`${isProfileOpened ? "rotate-none" : "rotate-[180deg]"
-                    } text-[1vw]`}
+                  className={`${isProfileOpened ? "rotate-none" : "rotate-[180deg]"} text-[1vw]`}
                 />
               </div>
             </TooltipTrigger>
@@ -62,12 +86,12 @@ export default function ProfilePage() {
             ></div>
             <div className="w-[23vw] md:w-[24vw] flex flex-col justify-between items-start">
               <p className="text-[2vw] font-bold w-full whitespace-nowrap overflow-hidden text-ellipsis">
-                Negic Legend
+                {user?.username || "Negic Legend"}
               </p>
               <p className="text-[1.2vw] font-thin my-[0.5vw] md:my-0">
-                Global Ranking: #100
+                Global Ranking: #{user?.elo || 100}
               </p>
-              <p className="text-[1.2vw] font-thin">Player ID: 31082007</p>
+              <p className="text-[1.2vw] font-thin">Player ID: {user?.id || "31082007"}</p>
             </div>
           </div>
           <div className="w-[65vw] md:w-[48vw] flex justify-around items-center py-[2vw]">
@@ -121,26 +145,13 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-
       <div
-        className={`w-full ${isProfileOpened && profileMenu !== 2
-            ? "md:mt-[calc(12vw+2px+3vh)]"
-            : "md:mt-0"
-          } mt-0 ${isProfileOpened
-            ? "h-[calc(100vh-3vh-12vw-2px-6vh)]"
-            : "h-[calc(100vh-6vh)]"
-          } transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}
+        className={`w-full ${isProfileOpened && profileMenu !== 2 ? "md:mt-[calc(12vw+2px+3vh)]" : "md:mt-0"} mt-0 ${isProfileOpened ? "h-[calc(100vh-3vh-12vw-2px-6vh)]" : "h-[calc(100vh-6vh)]"} transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}
       >
         <div className="md:w-[30%] w-full flex flex-col">
           <div className="px-0 md:px-[2vw] py-[1vw] md:py-[2vw] w-full flex flex-row md:flex-col bg-[#1D1D1D] rounded-[2vw] mb-[3vh] relative items-center justify-around">
             <div
-              className={`absolute ${profileMenu === 0
-                  ? "md:top-[2vw] md:left-0 top-0 left-0"
-                  : `${profileMenu === 1
-                    ? "md:top-[6vw] md:left-0 top-0 left-[30vw]"
-                    : "md:top-[10vw] md:left-0 top-0 left-[60vw]"
-                  }`
-                } left-0 md:h-[2vw] md:w-[calc(2vw/3)] w-1/3 h-[1vw] rounded-[0.5vw] md:rounded-[1vw] bg-[#DBB968] transition-all duration-200`}
+              className={`absolute ${profileMenu === 0 ? "md:top-[2vw] md:left-0 top-0 left-0" : `${profileMenu === 1 ? "md:top-[6vw] md:left-0 top-0 left-[30vw]" : "md:top-[10vw] md:left-0 top-0 left-[60vw]"}`} left-0 md:h-[2vw] md:w-[calc(2vw/3)] w-1/3 h-[1vw] rounded-[0.5vw] md:rounded-[1vw] bg-[#DBB968] transition-all duration-200`}
             ></div>
             {[
               {
@@ -158,17 +169,13 @@ export default function ProfilePage() {
             ].map((menu, index) => (
               <div
                 key={index}
-                className={`flex justify-center mr-0 md:mr-auto w-1/3 md:w-[max-content] max-w-[100%] cursor-pointer group ${index % 2 === 1 ? "my-[2vw]" : ""
-                  }`}
+                className={`flex justify-center mr-0 md:mr-auto w-1/3 md:w-[max-content] max-w-[100%] cursor-pointer group ${index % 2 === 1 ? "my-[2vw]" : ""}`}
                 onClick={() => {
                   if (index !== profileMenu) setProfileMenu(index);
                 }}
               >
                 <div
-                  className={`${index === profileMenu
-                      ? `${styles.profile_menu_icon} border-[#DBB968]`
-                      : "border-white"
-                    } h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid rounded-[50%]`}
+                  className={`${index === profileMenu ? `${styles.profile_menu_icon} border-[#DBB968]` : "border-white"} h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid rounded-[50%]`}
                 >
                   {
                     <menu.icon
@@ -178,10 +185,7 @@ export default function ProfilePage() {
                   }
                 </div>
                 <p
-                  className={`${index === profileMenu
-                      ? `text-[#DBB968]`
-                      : "text-white group-hover:md:left-[0.3vw]"
-                    } text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:text-[#DBB968] transition-all duration-200`}
+                  className={`${index === profileMenu ? `text-[#DBB968]` : "text-white group-hover:md:left-[0.3vw]"} text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:text-[#DBB968] transition-all duration-200`}
                 >
                   {menu.content}
                 </p>
@@ -191,11 +195,7 @@ export default function ProfilePage() {
           {profileMenu === 1 && <OtherPlayers isOpen={isProfileOpened} />}
         </div>
         <div
-          className={`w-full md:w-[60%] flex flex-col ${
-            // profileMenu === 2 ? `overflow-y-auto ${styles.list_container} h-[calc(100vh-6vh)]` : ""
-            profileMenu === 2 ? `h-[calc(100vh-6vh)]` : ""
-
-            }`}
+          className={`w-full md:w-[60%] flex flex-col ${profileMenu === 2 ? `h-[calc(100vh-6vh)]` : ""}`}
         >
           {profileMenu === 1 && <Matches />}
           {profileMenu === 2 && <AccountSettings />}
