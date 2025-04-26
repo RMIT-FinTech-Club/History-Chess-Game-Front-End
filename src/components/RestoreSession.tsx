@@ -5,7 +5,7 @@ import { useGlobalStorage } from "../components/GlobalStorage"
 import axios from "axios"
 
 export default function RestoreSession() {
-  const { accessToken, userId, setUserInfo, clearAuth } = useGlobalStorage()
+  const { accessToken, userId, setAuthData, clearAuth } = useGlobalStorage()
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -18,7 +18,10 @@ export default function RestoreSession() {
           })
 
           const { id, name, avatar } = response.data
-          setUserInfo(id, name, avatar)
+
+          // Fill user info + tokens into Zustand
+          // Since we already have tokens, just reuse
+          setAuthData(id, name, avatar, accessToken, "") // No need refresh token here when restoring
         } catch (error) {
           console.error('Failed to restore user session:', error)
           clearAuth()
@@ -27,7 +30,7 @@ export default function RestoreSession() {
     }
 
     fetchUserInfo()
-  }, [accessToken, userId, setUserInfo, clearAuth])
+  }, [accessToken, userId, setAuthData, clearAuth])
 
   return null
 }

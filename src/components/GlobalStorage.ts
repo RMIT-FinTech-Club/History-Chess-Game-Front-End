@@ -24,41 +24,54 @@ interface GlobalStorage {
   accessToken: string | null
   refreshToken: string | null
 
-  setUserInfo: (userId: string, userName: string, avatar: string) => void
-  setTokens: (accessToken: string, refreshToken: string) => void
+  setAuthData: (
+    userId: string,
+    userName: string,
+    avatar: string,
+    accessToken: string,
+    refreshToken: string
+  ) => void
+
   clearAuth: () => void
   isLoggedIn: () => boolean
 }
 
-// --- Initialize decrypted tokens from cookies ---
-const encryptedAccessToken = Cookies.get('accessToken')
-const encryptedRefreshToken = Cookies.get('refreshToken')
+// --- Initialize decrypted values if window exists ---
+let userIdCookie: string | null = null
+let accessTokenCookie: string | null = null
+let refreshTokenCookie: string | null = null
 
-const accessTokenCookie = encryptedAccessToken ? decryptData(encryptedAccessToken) : null
-const refreshTokenCookie = encryptedRefreshToken ? decryptData(encryptedRefreshToken) : null
+if (typeof window !== "undefined") {
+  const encryptedUserId = Cookies.get('userId')
+  const encryptedAccessToken = Cookies.get('accessToken')
+  const encryptedRefreshToken = Cookies.get('refreshToken')
+
+  userIdCookie = encryptedUserId ? decryptData(encryptedUserId) : null
+  accessTokenCookie = encryptedAccessToken ? decryptData(encryptedAccessToken) : null
+  refreshTokenCookie = encryptedRefreshToken ? decryptData(encryptedRefreshToken) : null
+}
 
 export const useGlobalStorage = create<GlobalStorage>((set, get) => ({
-  userId: null,
+  userId: userIdCookie,
   userName: null,
   avatar: null,
   accessToken: accessTokenCookie,
   refreshToken: refreshTokenCookie,
 
-  setUserInfo: (userId, userName, avatar) => {
-    set({ userId, userName, avatar })
-  },
-
-  setTokens: (accessToken, refreshToken) => {
+  setAuthData: (userId, userName, avatar, accessToken, refreshToken) => {
+    const encryptedUserId = encryptData(userId)
     const encryptedAccess = encryptData(accessToken)
     const encryptedRefresh = encryptData(refreshToken)
 
+    Cookies.set('userId', encryptedUserId, { secure: true, sameSite: 'strict' })
     Cookies.set('accessToken', encryptedAccess, { secure: true, sameSite: 'strict' })
     Cookies.set('refreshToken', encryptedRefresh, { secure: true, sameSite: 'strict' })
 
-    set({ accessToken, refreshToken })
+    set({ userId, userName, avatar, accessToken, refreshToken })
   },
 
   clearAuth: () => {
+    Cookies.remove('userId')
     Cookies.remove('accessToken')
     Cookies.remove('refreshToken')
 
@@ -72,8 +85,8 @@ export const useGlobalStorage = create<GlobalStorage>((set, get) => ({
   },
 
   isLoggedIn: () => {
-    const sessionExists = !!get().userId
+    const userExists = !!get().userId
     const tokenExists = !!get().accessToken
-    return sessionExists || tokenExists
+    return userExists && tokenExists
   }
 }))
