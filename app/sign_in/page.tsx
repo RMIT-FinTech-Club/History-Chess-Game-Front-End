@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
@@ -17,10 +16,9 @@ import { FaFacebook } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { toast } from "sonner";
 import axios from "axios";
-import validator from "validator";
 
-const Page = () => {
-  const [error, setError] = useState("");
+const SignIn = () => {
+  const [errors, setErrors] = useState({ identifier: "", password: "" });
   const router = useRouter();
   const form = useForm({
     defaultValues: {
@@ -34,58 +32,68 @@ const Page = () => {
     password: string;
   };
 
-  async function onSubmit(values: FormValues) {
-    const { identifier, password } = values;
+  const onSubmit = useCallback(
+    async (values: FormValues) => {
+      const { identifier, password } = values;
+      setErrors({ identifier: "", password: "" });
 
-    if (!identifier) {
-      setError("Please enter your username or email.");
-      document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
-      return;
-    }
+      // Client-side validation
+      if (!identifier) {
+        setErrors((prev) => ({ ...prev, identifier: "Please enter your username or email." }));
+        document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
+        return;
+      }
 
-    // Allow only letters, numbers, @, and . in identifier
-    const validIdentifierRegex = /^[a-zA-Z0-9@.]+$/;
-    if (!validIdentifierRegex.test(identifier)) {
-      setError("Only @ and . are allowed as special characters.");
-      document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
-      return;
-    }
+      const validIdentifierRegex = /^[a-zA-Z0-9@.]+$/;
+      if (!validIdentifierRegex.test(identifier)) {
+        setErrors((prev) => ({ ...prev, identifier: "Please enter suitable email or username." }));
+        document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
+        return;
+      }
 
-    // Check if identifier is a valid username (alphanumeric) or email
-    const isEmail = validator.isEmail(identifier);
-    if (!isEmail && !validator.isAlphanumeric(identifier)) {
-      setError("Please enter a valid username (alphanumeric) or email.");
-      document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
-      return;
-    }
-    document.getElementById("identifier-input")?.classList.remove("border-red-500", "border-[0.3vh]");
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+      const isUsername = /^[a-zA-Z0-9]+$/.test(identifier);
+      if (!isEmail && !isUsername) {
+        setErrors((prev) => ({ ...prev, identifier: "Please enter suitable email or username." }));
+        document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
+        return;
+      }
+      document.getElementById("identifier-input")?.classList.remove("border-red-500", "border-[0.3vh]");
 
-    if (!password) {
-      setError("Please enter your password.");
-      document.querySelector("input[type='password']")?.classList.add("border-red-500", "border-[0.3vh]");
-      return;
-    }
-    document.querySelector("input[type='password']")?.classList.remove("border-red-500", "border-[0.3vh]");
+      if (!password) {
+        setErrors((prev) => ({ ...prev, password: "Please enter your password." }));
+        document.querySelector("input[type='password']")?.classList.add("border-red-500", "border-[0.3vh]");
+        return;
+      }
+      document.querySelector("input[type='password']")?.classList.remove("border-red-500", "border-[0.3vh]");
 
-    try {
-      const response = await axios.post("http://localhost:8080/users/login", {
-        identifier,
-        password,
-      });
-      localStorage.setItem("token", response.data.token);
-      document.getElementById("identifier-input")?.classList.add("border-green-500", "border-[0.3vh]");
-      document.querySelector("input[type='password']")?.classList.add("border-green-500", "border-[0.3vh]");
-      setError("");
-      toast.success("Sign in successful!");
-      router.push("/profile");
-    } catch (err: any) {
-      const message = err.response?.data?.message || "Sign in failed";
-      setError(message);
-      toast.error(message);
-      document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
-      document.querySelector("input[type='password']")?.classList.add("border-red-500", "border-[0.3vh]");
-    }
-  }
+      try {
+        const response = await axios.post("http://localhost:8080/users/login", {
+          identifier,
+          password,
+        });
+        localStorage.setItem("token", response.data.token);
+        document.getElementById("identifier-input")?.classList.add("border-green-500", "border-[0.3vh]");
+        document.querySelector("input[type='password']")?.classList.add("border-green-500", "border-[0.3vh]");
+        toast.success("Sign in successful!");
+        router.push("/profile");
+      } catch (err: any) {
+        const message = err.response?.data?.message || "Sign in failed";
+        if (message.includes("User") || message.includes("email")) {
+          setErrors((prev) => ({ ...prev, identifier: message }));
+          document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
+        } else if (message.includes("password")) {
+          setErrors((prev) => ({ ...prev, password: message }));
+          document.querySelector("input[type='password']")?.classList.add("border-red-500", "border-[0.3vh]");
+        } else {
+          setErrors((prev) => ({ ...prev, password: message }));
+          document.querySelector("input[type='password']")?.classList.add("border-red-500", "border-[0.3vh]");
+        }
+        toast.error(message);
+      }
+    },
+    [router]
+  );
 
   return (
     <div className="min-h-screen flex items-center justify-center md:justify-start text-white font-poppins font-bold relative">
@@ -108,16 +116,16 @@ const Page = () => {
               name="identifier"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold text-[3vh] rounded-md">
+                  <FormLabel className="font-bold text-[3vh]">
                     Username or Email
                   </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <MdEmail
                         className="
-                         absolute text-black cursor-pointer
-                         top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
-                         "
+                          absolute text-black cursor-pointer
+                          top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
+                        "
                         onClick={() =>
                           document.getElementById("identifier-input")?.focus()
                         }
@@ -130,16 +138,18 @@ const Page = () => {
                           pl-[7.5vw]
                           sm:pl-[5.85vw]
                           md:pl-[4.5vw]
-                          lg:pl-[3.75vw] 
+                          lg:pl-[3.75vw]
                           py-[4vh] w-full
-                          bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F] 
+                          bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
                         "
                         autoComplete="off"
                       />
                     </div>
                   </FormControl>
-                  <FormMessage />
+                  {errors.identifier && (
+                    <p className="text-red-500 text-[2.5vh] font-bold">{errors.identifier}</p>
+                  )}
                 </FormItem>
               )}
             />
@@ -148,7 +158,7 @@ const Page = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold text-[3vh] rounded-md">
+                  <FormLabel className="font-bold text-[3vh]">
                     Password
                   </FormLabel>
                   <FormControl>
@@ -160,15 +170,17 @@ const Page = () => {
                           pl-[7.5vw]
                           sm:pl-[5.85vw]
                           md:pl-[4.5vw]
-                          lg:pl-[3.75vw] 
+                          lg:pl-[3.75vw]
                           py-[4vh] w-full
-                          bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F] 
+                          bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
                         "
                       />
                     </div>
                   </FormControl>
-                  <FormMessage />
+                  {errors.password && (
+                    <p className="text-red-500 text-[2.5vh] font-bold">{errors.password}</p>
+                  )}
                 </FormItem>
               )}
             />
@@ -184,12 +196,9 @@ const Page = () => {
                 Forgot Password?
               </a>
             </div>
-            {error && (
-              <p className="text-red-500 text-[2.5vh] font-bold">{error}</p>
-            )}
             <Button
               type="submit"
-              className="w-full bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[4vh] md:py-[4vh] lg:py-[4.5vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+              className="w-full bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
             >
               Sign In
             </Button>
@@ -227,4 +236,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default SignIn;

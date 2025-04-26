@@ -1,6 +1,6 @@
 "use client";
 import styles from "@/css/profile.module.css";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUp } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -8,6 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import CountUp from "react-countup";
 import GamePadIcon from "@/components/ui/gamePadIcon";
 import CupIcon from "@/components/ui/cupIcon";
@@ -17,8 +18,9 @@ import Matches from "@/components/ui/matches";
 import AccountSettings from "@/components/ui/account_settings";
 import { toast } from "sonner";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
-export default function ProfilePage() {
+const ProfilePage = () => {
   const profileRef = useRef<HTMLDivElement | null>(null);
   const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true);
   const [profileMenu, setProfileMenu] = useState(1);
@@ -28,31 +30,52 @@ export default function ProfilePage() {
     elo: number;
     id: string;
   } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened);
+  const fetchProfile = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("Please sign in to view your profile.");
+        router.push("/sign_in");
+        return;
+      }
+      const response = await axios.get("http://localhost:8080/users/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(response.data.user);
+    } catch (err: any) {
+      const message = err.response?.data?.message || "Failed to load profile";
+      toast.error(message);
+      router.push("/sign_in");
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          toast.error("Please sign in to view your profile.");
-          return;
-        }
-        const response = await axios.get("http://localhost:8080/users/profile", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUser(response.data.user);
-      } catch (err: unknown) {
-        const message =
-          axios.isAxiosError(err) && err.response?.data?.message
-            ? err.response.data.message
-            : "Failed to load profile";
-        toast.error(message);
-      }
-    };
     fetchProfile();
+  }, [fetchProfile]);
+
+  const handleToggleProfile = useCallback(() => {
+    setIsProfileOpened((prev) => !prev);
   }, []);
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("token");
+    toast.success("Logged out successfully!");
+    router.push("/sign_in");
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white font-poppins font-bold">
+        <p className="text-[3vh]">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3vh] mx-[5vw] md:mx-[10vw] text-white relative h-[100dvh]">
@@ -202,8 +225,18 @@ export default function ProfilePage() {
         >
           {profileMenu === 1 && <Matches />}
           {profileMenu === 2 && <AccountSettings />}
+          {profileMenu === 2 && (
+            <Button
+              onClick={handleLogout}
+              className="w-full bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[4vh] mt-[1.75vh] rounded-[1.5vh]"
+            >
+              Log Out
+            </Button>
+          )}
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ProfilePage;
