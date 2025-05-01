@@ -312,7 +312,7 @@ const Home = () => {
                 </div>
 
                 {gameState && (
-                    <div className="bg-white p-4 rounded shadow">
+                    <div className="bg-white text-black p-4 rounded shadow">
                         <h2 className="text-xl font-semibold mb-4">Game State</h2>
                         <p><strong>Match Duration:</strong> {formatTime(matchDuration)}</p>
                         <p><strong>White Time Left:</strong> {gameState.whiteTimeLeft !== undefined ? formatTime(gameState.whiteTimeLeft) : 'N/A'}</p>
@@ -320,7 +320,7 @@ const Home = () => {
                         <p><strong>FEN:</strong> {gameState.fen}</p>
                         <p><strong>Players:</strong> {gameState.players.join(', ')}</p>
                         <p><strong>Status:</strong> {gameState.status}</p>
-                        <p><strong>Moves:</strong> {gameState.moves.map(m => `${m.moveNumber}: ${m.move}`).join(', ')}</p>
+                        <p><strong>Moves:</strong> {gameState.moves ? gameState.moves.map(m => `${m.moveNumber}: ${m.move}`).join(', ') : 'No moves yet'}</p>
                         <p><strong>Play Mode:</strong> {gameState.playMode}</p>
                         <p><strong>Time Limit:</strong> {gameState.timeLimit / 60000} minutes</p>
                         {gameState.turn && <p><strong>Turn:</strong> {gameState.turn === 'w' ? 'White' : 'Black'}</p>}
@@ -330,7 +330,7 @@ const Home = () => {
                 )}
 
                 {message && (
-                    <div className="bg-yellow-100 p-4 rounded shadow">
+                    <div className="bg-yellow-100 text-black p-4 rounded shadow">
                         <p>{message}</p>
                     </div>
                 )}
