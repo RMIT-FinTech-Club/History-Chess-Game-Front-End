@@ -21,13 +21,13 @@ export function useStockfish({ level = 5, timeForMove = 1000 }: UseStockfishOpti
 
     stockfishWorker.onmessage = (e) => {
       const message = e.data;
-      
+
       // When engine outputs 'readyok', it's ready for commands
       if (message === 'readyok') {
         setIsReady(true);
         setupEngine();
       }
-      
+
       // Parse best move from engine response
       if (message.includes('bestmove')) {
         const moveMatch = message.match(/bestmove\s+(\w+)/);
@@ -40,7 +40,7 @@ export function useStockfish({ level = 5, timeForMove = 1000 }: UseStockfishOpti
         }
       }
     };
-    
+
     // Initialize the engine
     stockfishWorker.postMessage('uci');
     stockfishWorker.postMessage('isready');
@@ -63,7 +63,7 @@ export function useStockfish({ level = 5, timeForMove = 1000 }: UseStockfishOpti
   // Setup engine with appropriate skill level
   const setupEngine = () => {
     if (!engineRef.current) return;
-    
+
     // Configure engine based on level
     engineRef.current.postMessage('ucinewgame');
     engineRef.current.postMessage(`setoption name Skill Level value ${engineLevel}`);
@@ -74,17 +74,17 @@ export function useStockfish({ level = 5, timeForMove = 1000 }: UseStockfishOpti
   // Find best move for a given FEN position
   const findBestMove = (fen: string, callback: (move: string) => void) => {
     if (!engineRef.current || !isReady) return;
-    
+
     setIsThinking(true);
     onMoveCallback.current = callback;
-    
+
     engineRef.current.postMessage(`position fen ${fen}`);
-    
+
     // Clear any existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    
+
     // Set a timeout to ensure the engine responds within a reasonable time
     timeoutRef.current = setTimeout(() => {
       engineRef.current?.postMessage(`go movetime ${timeForMove}`);
