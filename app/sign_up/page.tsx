@@ -84,7 +84,7 @@ const SignUp = () => {
       const validEmailRegex = /^[a-zA-Z0-9@.]+$/;
       const isValidEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email);
       if (!validEmailRegex.test(values.email) || !isValidEmailFormat || !values.email.endsWith("@gmail.com")) {
-        setErrors((prev) => ({ ...prev, email: "Please enter a valid Gmail address." }));
+        setErrors((prev) => ({ ...prev, email: "Please enter a valid email address." }));
         document.getElementById("email-input")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
