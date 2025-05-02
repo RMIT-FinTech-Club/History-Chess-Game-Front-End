@@ -1,9 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { FaKey } from "react-icons/fa6";
-import { Button } from "@/components/ui/button";
+import { FaKey, FaEye, FaEyeSlash } from "react-icons/fa6";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -12,17 +10,12 @@ const PasswordInput = React.forwardRef<
   React.ComponentProps<"input">
 >(({ className, ...props }, ref) => {
   const [showPassword, setShowPassword] = React.useState(false);
-  const disabled =
-    props.value === "" || props.value === undefined || props.disabled;
 
   return (
     <div className="relative">
       {/* Left-side Key Icon */}
       <FaKey
-        className="
-        absolute text-black cursor-pointer
-        top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
-        "
+        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[3vh] cursor-pointer"
         onClick={() => document.getElementById("password-input")?.focus()}
       />
 
@@ -33,45 +26,35 @@ const PasswordInput = React.forwardRef<
         className={cn(
           "pl-10 pr-10 bg-[#C4C4C4] border-gray-600 text-[#000000]",
           className
-        )} // Adjust padding for icons
+        )}
         ref={ref}
         {...props}
       />
 
-      {/* Show/Hide Password Button
-      <Button
+      {/* Toggle Password Visibility */}
+      <button
         type="button"
-        variant="ghost"
-        size="default"
-        className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer hover:bg-transparent p-1"
-        onClick={() => setShowPassword((prev) => !prev)}
-        disabled={disabled}
+        className="absolute top-1/2 right-6 md:right-4 transform -translate-y-1/2 bg-transparent border-none p-0 cursor-pointer"
+        onClick={() => setShowPassword(!showPassword)}
+        disabled={props.disabled}
+        aria-label={showPassword ? "Hide password" : "Show password"}
       >
-        {showPassword && !disabled ? (
-          <EyeIcon
-            className="h-5 w-5 text-[#000000] cursor-pointer"
-            aria-hidden="true"
-          />
+        {showPassword ? (
+          <FaEyeSlash className="text-[#2F2F2F] text-[3vh]" aria-hidden="true" />
         ) : (
-          <EyeOffIcon
-            className="h-5 w-5 text-[#000000] cursor-pointer"
-            aria-hidden="true"
-          />
+          <FaEye className="text-[#2F2F2F] text-[3vh]" aria-hidden="true" />
         )}
-        <span className="sr-only">
-          {showPassword ? "Hide password" : "Show password"}
-        </span>
-      </Button> */}
+      </button>
 
-      {/* Hide browser's default password toggle
+      {/* Hide browser's default password toggle */}
       <style>{`
-          .hide-password-toggle::-ms-reveal,
-          .hide-password-toggle::-ms-clear {
-            visibility: hidden;
-            pointer-events: none;
-            display: none;
-          }
-        `}</style> */}
+        #password-input::-ms-reveal,
+        #password-input::-ms-clear {
+          visibility: hidden;
+          pointer-events: none;
+          display: none;
+        }
+      `}</style>
     </div>
   );
 });

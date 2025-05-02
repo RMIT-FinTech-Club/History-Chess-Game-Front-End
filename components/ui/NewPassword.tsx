@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { FaKey } from "react-icons/fa6";
+import { FaKey, FaEye, FaEyeSlash } from "react-icons/fa6";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +18,7 @@ const NewPassword = React.forwardRef<
       {/* Left-side Key Icon */}
       <FaKey
         className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 
-                        text-[#2F2F2F] text-[3vh] cursor-pointer"
+                    text-[#2F2F2F] text-[3vh] cursor-pointer"
         onClick={() => document.getElementById("new-password")?.focus()}
       />
 
@@ -29,10 +29,29 @@ const NewPassword = React.forwardRef<
         className={cn(
           "pl-10 pr-10 bg-[#C4C4C4] border-gray-600 text-[#000000]",
           className
-        )} // Adjust padding for icons
+        )}
         ref={ref}
         {...props}
       />
+
+      {/* Right-side Eye Icon for toggling password visibility */}
+      {showPassword ? (
+        <FaEyeSlash
+          className="absolute top-1/2 right-6 md:right-4 transform -translate-y-1/2 
+                      text-[#2F2F2F] text-[3vh] cursor-pointer"
+          onClick={() => setShowPassword(false)}
+          title="Hide password"
+          aria-label="Hide password"
+        />
+      ) : (
+        <FaEye
+          className="absolute top-1/2 right-6 md:right-4 transform -translate-y-1/2 
+                      text-[#2F2F2F] text-[3vh] cursor-pointer"
+          onClick={() => setShowPassword(true)}
+          title="Show password"
+          aria-label="Show password"
+        />
+      )}
     </div>
   );
 });

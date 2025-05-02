@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { FaKey } from "react-icons/fa6";
+import { FaKey, FaEye, FaEyeSlash } from "react-icons/fa6";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -29,10 +29,40 @@ const NewPasswordConfirm = React.forwardRef<
         className={cn(
           "pl-10 pr-10 bg-[#C4C4C4] border-gray-600 text-[#000000]",
           className
-        )} // Adjust padding for icons
+        )}
         ref={ref}
         {...props}
       />
+
+      {/* Toggle Password Visibility */}
+      <button
+        type="button"
+        className={cn(
+          "absolute top-1/2 right-6 md:right-4 transform -translate-y-1/2",
+          "bg-transparent border-none p-0",
+          "text-[#2F2F2F] text-[3vh] cursor-pointer",
+          props.disabled && "opacity-50 cursor-not-allowed"
+        )}
+        onClick={() => setShowPassword(!showPassword)}
+        disabled={props.disabled}
+        aria-label={showPassword ? "Hide password" : "Show password"}
+      >
+        {showPassword ? (
+          <FaEyeSlash aria-hidden="true" />
+        ) : (
+          <FaEye aria-hidden="true" />
+        )}
+      </button>
+
+      {/* Hide browser's default password toggle */}
+      <style>{`
+        #password-confirm::-ms-reveal,
+        #password-confirm::-ms-clear {
+          visibility: hidden;
+          pointer-events: none;
+          display: none;
+        }
+      `}</style>
     </div>
   );
 });
