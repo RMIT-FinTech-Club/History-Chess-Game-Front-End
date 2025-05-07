@@ -7,6 +7,10 @@
 
 @import "./animation.css";
 
+.check {
+    background-image: url(../public/players/check.svg);
+}
+
 .container::before {
     content: '';
     position: fixed;

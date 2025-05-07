@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowUp } from "@fortawesome/free-solid-svg-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { useGlobalStorage } from "@/components/GlobalStorage"
 import CountUp from "react-countup"
 import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
 import CupIcon from "@/public/profile/SVG/cupIcon"
@@ -26,6 +27,7 @@ export default function ProfilePage() {
     const [matches, setMatches] = useState<Match[]>([])
     // const [isLoading, setIsLoading] = useState<boolean>(true)
     const [error, setError] = useState<string | null>(null)
+    const { userId, userName, avatar } = useGlobalStorage()
 
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
 
@@ -33,8 +35,7 @@ export default function ProfilePage() {
         const fetchMatchHistory = async () => {
             try {
                 // Replace with actual userId - e.g., from auth context, localStorage, or route params
-                const userId = '64ca2824-056b-4f52-b75e-9924fee71eef';
-                const response = await axios.get(`http://localhost:8000/api/v1/game/history/${userId}`);
+                const response = await axios.get(`http://localhost:8000/api/v1/game/history/${userId}`)
 
                 const formattedMatches = response.data.map((match: any) => {
                     return {
@@ -51,14 +52,14 @@ export default function ProfilePage() {
                 setMatches(formattedMatches);
                 setError(null);
             } catch (err) {
-                console.error('Error fetching match history:', err);
-                setError('Failed to load match history');
-                setMatches([]);
+                console.error('Error fetching match history:', err)
+                setError('Failed to load match history')
+                setMatches([])
             }
-        };
+        }
 
-        fetchMatchHistory();
-    }, []);
+        fetchMatchHistory()
+    }, [])
     return (
         <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3dvh] mx-[5vw] md:mx-[10vw] text-white relative h-[100ddvh]">
             <div className={`w-full relative md:absolute ${isProfileOpened ? 'md:top-[3dvh]' : 'md:top-[calc(-12vw-2px)]'} top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3dvh] transition-all duration-300`}>
@@ -84,11 +85,11 @@ export default function ProfilePage() {
                 </Tooltip>
                 <div className="w-[35vw] md:w-[32vw] flex justify-between items-center">
                     <div
-                        style={{ backgroundImage: `url(https://i.imgur.com/RoRONDn.jpeg)` }}
+                        style={{ backgroundImage: `url(${avatar})` }}
                         className="w-[10vw] md:w-[8vw] m-[2vw] aspect-square rounded-[50%] bg-center bg-cover bg-no-repeat border border-white border-solid"
                     ></div>
                     <div className="w-[23vw] md:w-[24vw] flex flex-col justify-between items-start">
-                        <p className="text-[2vw] font-bold w-full whitespace-nowrap overflow-hidden text-ellipsis">Negic Legend</p>
+                        <p className="text-[2vw] font-bold w-full whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
                         <p className="text-[1.2vw] font-thin my-[0.5vw] md:my-0">Global Ranking: #100</p>
                         <p className="text-[1.2vw] font-thin">Player ID: 31082007</p>
                     </div>
