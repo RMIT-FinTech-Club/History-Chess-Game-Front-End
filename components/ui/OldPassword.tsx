@@ -5,7 +5,7 @@ import { FaKey, FaEye, FaEyeSlash } from "react-icons/fa6";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-const NewPasswordConfirm = React.forwardRef<
+const OldPassword = React.forwardRef<
   HTMLInputElement,
   React.ComponentProps<"input">
 >(({ className, ...props }, ref) => {
@@ -19,12 +19,12 @@ const NewPasswordConfirm = React.forwardRef<
       <FaKey
         className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 
         text-[#2F2F2F] text-[3vh] cursor-pointer"
-        onClick={() => document.getElementById("password-confirm")?.focus()}
+        onClick={() => document.getElementById("old-password")?.focus()}
       />
 
       {/* Password Input Field */}
       <Input
-        id="password-confirm"
+        id="old-password"
         type={showPassword ? "text" : "password"}
         className={cn(
           "pl-10 pr-10 bg-[#c4c4c4] text-[#000000] focus:border-[0.2rem] focus:border-[#DBB968]",
@@ -53,19 +53,9 @@ const NewPasswordConfirm = React.forwardRef<
           <FaEye aria-hidden="true" />
         )}
       </button>
-
-      {/* Hide browser's default password toggle */}
-      <style>{`
-        #password-confirm::-ms-reveal,
-        #password-confirm::-ms-clear {
-          visibility: hidden;
-          pointer-events: none;
-          display: none;
-        }
-      `}</style>
     </div>
   );
 });
-NewPasswordConfirm.displayName = "NewPasswordConfirm";
+OldPassword.displayName = "NewPasswordConfirm";
 
-export { NewPasswordConfirm };
+export { OldPassword };

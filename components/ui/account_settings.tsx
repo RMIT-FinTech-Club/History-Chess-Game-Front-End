@@ -1,5 +1,5 @@
 "use client";
-import React, {useState, useRef, useEffect} from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { NewPassword } from "@/components/ui/NewPassword";
 import { NewPasswordConfirm } from "@/components/ui/NewPasswordConfirm";
+import { OldPassword } from "@/components/ui/OldPassword";
 import { MdEmail } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
 import { useRouter } from "next/navigation";
@@ -28,11 +29,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Image from "next/image";
+import styles from "@/css/profile.module.css";
 
 const formSchema = z
   .object({
     email: z.string(),
     username: z.string(),
+    oldPassword: z.string(),
     password: z
       .string()
       .min(1, { message: "Please enter your password." })
@@ -57,73 +60,68 @@ const formSchema = z
     path: ["confirmPassword"],
   });
 
-  const mockUsers = [
-    { username: "test", email: "test@example.com" },
-    { username: "user", email: "user@example.com" },
-  ];
-
-  // Type definition for form values ???
-  type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<typeof formSchema>;
 
 const AccountSettings = () => {
   const router = useRouter();
-  // const { toast } = useToast(); // toast notification for feedback
-
-  // State for password field
   const [password, setPassword] = useState("");
   const [initialLoading, setInitialLoading] = useState(true);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const form = useForm({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: mockUsers[0].email,
-      username: mockUsers[0].username,
+      email: "",
+      username: "",
+      oldPassword: "",
       password: "",
       confirmPassword: "",
       language: "English",
+      walletAddress: "",
     },
   });
 
-  /**
-   * Fetch user profile data from the backend API, runs when the component mounts
-   */
   useEffect(() => {
     const fetchProfile = async () => {
+      setInitialLoading(true);
       try {
-        const response = await fetch("http://localhost:8000/api/users/profile", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
+        const response = await fetch(
+          "http://localhost:8000/api/users/profile",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
           }
-        });
+        );
 
-        if(!response.ok){
+        if (!response.ok) {
           throw new Error("Failed to fetch profile");
         }
 
         const data = await response.json();
 
-        if(data.success && data.data){
-          // Reset form with fetched data
+        if (data.success && data.data) {
           form.reset({
             email: data.data.email || "",
             username: data.data.username || "",
+            oldPassword: "",
             password: "",
             confirmPassword: "",
             language: "English",
             walletAddress: data.data.walletAddress || "",
           });
         }
-      } catch(error){
+      } catch (error) {
         console.error("Error fetching profile:", error);
+      } finally {
+        setInitialLoading(false);
       }
-    }
+    };
     fetchProfile();
-  }, [form])
-
-  const [imagePreview, setImagePreview] = useState<string | null>(null); // Moved inside the component
-  const [imagePath, setImagePath] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null); // Moved inside the component
+  }, [form]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -131,70 +129,47 @@ const AccountSettings = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
-        setImagePath(file.name);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const [loading, setLoading] = useState(false);
-
-  // Password validation tracking
   const isMinLength = password.length >= 8;
   const hasUppercase = /[A-Z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
   const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const onSubmit = async (data: FormValues) => {
     setLoading(true);
     try {
-      // Prepare data for API - only include fields that have values:
-      const updateData: any = {
-        username: data.username,
-        email: data.email
-      };
+      const formData = new FormData();
+      formData.append("username", data.username);
+      formData.append("email", data.email);
+      formData.append("oldPassword", data.oldPassword);
+      if (data.password) formData.append("password", data.password);
+      if (data.walletAddress)
+        formData.append("walletAddress", data.walletAddress);
+      if (fileInputRef.current?.files?.[0]) {
+        formData.append("avatar", fileInputRef.current.files[0]);
+      }
 
-      // Only include optional fields if they have values
-      if(data.password) updateData.password = data.password;
-      if(data.walletAddress) updateData.walletAddress = data.walletAddress;
-
-      console.log("Sending update to API:", updateData);
-
-      // Send update request to API
       const response = await fetch("http://localhost:8000/api/users/profile", {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updateData),
+        body: formData,
       });
 
       const result = await response.json();
 
-      if(result.success){
-        // Clear password fields after successful update
+      if (result.success) {
+        form.setValue("oldPassword", "");
         form.setValue("password", "");
         form.setValue("confirmPassword", "");
         setPassword("");
-      }else{
-        throw new Error("Failed to update profile");
+        setImagePreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      } else {
+        throw new Error(result.message || "Failed to update profile");
       }
-
-      // Include the imagePath in the form data
-      const formData = {
-        ...data,
-        avatar: imagePath, // Add the image path to the form data
-      };
-
-      // console.log("Saving data:", formData);
-      //
-      // await new Promise((resolve) => setTimeout(resolve, 1000));
-      // alert(
-      //   `Profile updated successfully!\n\nEmail: ${data.email}\nUsername: ${data.username}\nNew Password: ${data.password}\nLanguage: ${data.language}\nAvatar: ${formData.avatar}`
-      // );
-      // router.push("/sign_in");
-    } catch (error) {
-      alert(`Error: ${error} Failed to update profile. Please try again.`);
     } finally {
       setLoading(false);
     }
@@ -210,7 +185,7 @@ const AccountSettings = () => {
           alt="Settings icon"
           className="w-[3.5vw] md:w-[2.5vw] mb-[1vh]"
         />
-        <h3 className="text-[3.5vw] md:text-[2.5vw] leading-[3vw] ml-[1vw]">
+        <h3 className="text-[3.5vw] md:text-[2.5vw] leading-[3vw] ml-[1vw] font-bold">
           Settings
         </h3>
       </div>
@@ -218,24 +193,25 @@ const AccountSettings = () => {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-3 mt-[0] md:mt-[1vh]"
+          className={`flex flex-col w-full max-h-[80vh] overflow-y-auto mt-[2vh] ${styles.list_container}`}
         >
-          {/* User Information and Avatar Field */}
           <div className="w-full flex flex-row items-center justify-between">
-            {/* Image Upload */}
             <div
               className="md:w-[10vw] md:aspect-square w-[16vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
               {imagePreview ? (
-
                 <Image
-                  src="/Settings.svg"
-                  alt="Settings icon"
+                  src={imagePreview}
+                  alt="Uploaded avatar"
                   width={0}
                   height={0}
-                  style={{ width: "3.5vw", height: "auto", marginBottom: "1vh" }}
-                  className="md:w-[2.5vw]"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                  className="rounded-md"
                 />
               ) : (
                 <div className="flex items-center justify-center bg-[#DCB968] rounded-full w-[3vw] h-[3vw] min-w-[4vh] min-h-[4vh] p-[1vh]">
@@ -251,7 +227,6 @@ const AccountSettings = () => {
               />
             </div>
 
-            {/* User Information Field */}
             <div>
               <Label className="text-[2.5vw] md:text-[1.5vw]">
                 User Information
@@ -265,12 +240,12 @@ const AccountSettings = () => {
                   <Input
                     disabled
                     className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
-                          rounded-[1.5vh] bg-[#F9F9F9] border-[#B7B7B7] text-[#8C8C8C] 
-                          !text-[2.5vh] md:!text-[3vh] font-normal
-                          disabled:opacity-100
-                          disabled:cursor-not-allowed"
+                    rounded-[1.5vh] bg-[#F9F9F9] border-[#B7B7B7] text-[#8C8C8C] 
+                    !text-[2.5vh] md:!text-[3vh] font-normal
+                    disabled:opacity-100
+                    disabled:cursor-not-allowed"
                     autoComplete="off"
-                    defaultValue={mockUsers[0].username}
+                    {...form.register("username")}
                   />
                 </div>
               </FormItem>
@@ -289,21 +264,88 @@ const AccountSettings = () => {
                     disabled:opacity-100
                     disabled:cursor-not-allowed"
                     autoComplete="off"
-                    defaultValue={mockUsers[0].email}
+                    {...form.register("email")}
                   />
                 </div>
               </FormItem>
             </div>
           </div>
 
-          {/* Password Field */}
+          {/* Language Field */}
+          <FormField
+            control={form.control}
+            name="language"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-[2.5vw] md:text-[1.5vw]">
+                  Language
+                </FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="py-[3vh] md:py-[3.5vh] rounded-[1.5vh] w-full bg-[#c4c4c4] text-[#000000] focus:border-[0.2rem] focus:border-[#DBB968] text-[2.5vh] md:text-[3vh] font-bold cursor-pointer">
+                      <SelectValue defaultValue="English" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="font-normal border-gray-600 text-[#000000] bg-[#C4C4C4]">
+                    <SelectItem
+                      value="English"
+                      className="hover:border-[0.2rem] hover:border-[#F7D27F] data-[state=checked]:font-bold text-[2.5vh] md:text-[3vh] cursor-pointer"
+                    >
+                      English
+                    </SelectItem>
+                    <SelectItem
+                      value="Vietnamese"
+                      className="hover:border-[0.2rem] hover:border-[#F7D27F] data-[state=checked]:font-bold text-[2.5vh] md:text-[3vh] cursor-pointer"
+                    >
+                      Tiếng Việt
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            )}
+          />
+
+          <div className="flex justify-between items-center m-[0.5rem] ml-0 mr-0">
+            <div className="font-bold text-[1.8rem]">Change Password</div>
+            <a href="" className="text-[#E9B654] text-[1.2rem] underline">
+              Forgot your password?
+            </a>
+          </div>
+
+          <FormField
+            control={form.control}
+            name="oldPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-[2.5vw] md:text-[1.5vw]">
+                  Old Password
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <OldPassword
+                      placeholder="Enter your current password"
+                      {...field}
+                      className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
+                          rounded-[1.5vh]
+                          !text-[2.5vh] md:!text-[3vh] font-normal"
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage className="text-[2.5vh] text-red-500" />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="password"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-[2.5vw] md:text-[1.5vw]">
-                  New Password<span className="text-[#BB2649]">*</span>
+                  New Password
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
@@ -320,27 +362,44 @@ const AccountSettings = () => {
                     />
                   </div>
                 </FormControl>
-
-                {/* Dynamic Password Checklist */}
                 <ul className="font-normal text-[2.5vh] rounded-md">
-                  {!isMinLength && <li>✔ 8 characters minimum</li>}
-                  {!hasUppercase && <li>✔ At least 1 capital letter</li>}
-                  {!hasNumber && <li>✔ At least 1 digit</li>}
-                  {!hasSpecialChar && <li>✔ At least 1 special character</li>}
+                  <li
+                    className={isMinLength ? "text-green-500" : "text-gray-500"}
+                  >
+                    ✔ 8 characters minimum
+                  </li>
+                  <li
+                    className={
+                      hasUppercase ? "text-green-500" : "text-gray-500"
+                    }
+                  >
+                    ✔ At least 1 capital letter
+                  </li>
+                  <li
+                    className={hasNumber ? "text-green-500" : "text-gray-500"}
+                  >
+                    ✔ At least 1 digit
+                  </li>
+                  <li
+                    className={
+                      hasSpecialChar ? "text-green-500" : "text-gray-500"
+                    }
+                  >
+                    ✔ At least 1 special character
+                  </li>
                 </ul>
                 <FormMessage className="text-[2.5vh] text-red-500" />
               </FormItem>
             )}
           />
 
-          {/* Confirm Password Field */}
           <FormField
             control={form.control}
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-[2.5vw] md:text-[1.5vw]">
-                  Confirm New Password<span className="text-[#BB2649]">*</span>
+                  Confirm New Password
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
@@ -358,47 +417,11 @@ const AccountSettings = () => {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="language"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[2.5vw] md:text-[1.5vw]">
-                  Language<span className="text-[#BB2649]">*</span>
-                </FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger className="py-[3vh] md:py-[3.5vh] rounded-[1.5vh] w-full font-normal border-gray-600 text-[#000000] bg-[#C4C4C4] text-[2.5vh] md:text-[3vh] cursor-pointer">
-                      <SelectValue defaultValue="English" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="font-normal border-gray-600 text-[#000000] bg-[#C4C4C4]">
-                    <SelectItem
-                      value="English"
-                      className="hover:bg-[#FFD700] hover:text-[#00008B] data-[state=checked]:bg-[#00008B] data-[state=checked]:text-[#FFD700] text-[2.5vh] md:text-[3vh] cursor-pointer"
-                    >
-                      English
-                    </SelectItem>
-                    <SelectItem
-                      value="Vietnamese"
-                      className="hover:bg-[#FFD700] hover:text-[#00008B] data-[state=checked]:bg-[#00008B] data-[state=checked]:text-[#FFD700] text-[2.5vh] md:text-[3vh] cursor-pointer"
-                    >
-                      Tiếng Việt
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-
-          {/* Submit Button */}
           <div className="flex items-center justify-end gap-[1vw]">
             <Button
               type="button"
-              className="w-[15vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-normal text-[3.5vh] py-[4vh] md:py-[4vh]  mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+              className="w-[15vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-normal text-[3.5vh] py-[4vh] md:py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+              onClick={() => router.push("/")} // Optional: Redirect or reset form
             >
               Cancel
             </Button>
