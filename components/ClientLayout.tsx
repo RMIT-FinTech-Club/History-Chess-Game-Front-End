@@ -25,7 +25,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const noFooterRoutes = [
         '/loadout',
         '/players',
-        '/profile'
+        '/profile',
+        '/otp'
     ]
 
     const showFooter = !noFooterRoutes.includes(pathname)

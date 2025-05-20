@@ -20,7 +20,7 @@ export default function RootLayout({
     <UserProvider>
       <html lang="en">
         <body
-          className={`min-h-[100vh] antialiased overflow-x-hidden`}
+          className={`min-h-[100dvh] antialiased overflow-x-hidden`}
         >
           <ClientLayout>{children}</ClientLayout>
         </body>

@@ -25,7 +25,6 @@ export default function ProfilePage() {
     const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
     const [profileMenu, setProfileMenu] = useState(1)
     const [matches, setMatches] = useState<Match[]>([])
-    // const [isLoading, setIsLoading] = useState<boolean>(true)
     const [error, setError] = useState<string | null>(null)
     const { userId, userName, avatar } = useGlobalStorage()
 

@@ -5,7 +5,7 @@ export default function Title() {
     return (
         <div className={`grid place-items-center relative text-white mb-[20vh] md:mb-[30vh] w-full h-[100vh] overflow-x-clip`}>
             <div className={`${styles.content} opacity-[1] flex flex-col justify-center items-center px-[5vw]`}>
-                <p className="md:text-[4rem] text-[5rem] font-medium">welcome to</p>
+                <p className="md:text-[4rem] text-[5rem] font-medium">Welcome to</p>
                 <Heading classes={`${styles.SVG} my-[3vh] md:w-[60vw] w-[90vw]`} width="60vw" />
                 <p className="md:text-[4rem] text-[5rem] font-light text-center">Powered by <span className="font-bold">RMIT Vietnam FinTech Club</span></p>
             </div>
