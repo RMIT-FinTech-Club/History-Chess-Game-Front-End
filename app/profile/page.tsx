@@ -19,6 +19,7 @@ import AccountSettings from "@/components/ui/account_settings";
 import { toast } from "sonner";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useGlobalStorage } from "@/components/GlobalStorage";
 
 const ProfilePage = () => {
   const profileRef = useRef<HTMLDivElement | null>(null);
@@ -32,18 +33,18 @@ const ProfilePage = () => {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { accessToken } = useGlobalStorage();
 
   const fetchProfile = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
+      if (!accessToken) {
         toast.error("Please sign in to view your profile.");
         router.push("/sign_in");
         return;
       }
       const response = await axios.get("http://localhost:8080/users/profile", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
       setUser(response.data.user);
     } catch (err: any) {
@@ -53,7 +54,7 @@ const ProfilePage = () => {
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, accessToken]);
 
   useEffect(() => {
     fetchProfile();
@@ -64,7 +65,7 @@ const ProfilePage = () => {
   }, []);
 
   const handleLogout = useCallback(() => {
-    localStorage.removeItem("token");
+    useGlobalStorage.getState().clearAuth();
     toast.success("Logged out successfully!");
     router.push("/sign_in");
   }, [router]);
