@@ -1,67 +1,163 @@
+"use client";
+
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { FaUser, FaPuzzlePiece, FaSignOutAlt, FaWallet, FaChevronDown } from 'react-icons/fa';
+import { HiOutlineMenuAlt3, HiX } from 'react-icons/hi';
+import { useGlobalStorage } from './GlobalStorage';
+import Toast from './Toast'; 
 
 export default function Navbar() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter();
 
+  const {
+    isLoggedIn,
+    userName,
+    avatar,
+    clearAuth
+  } = useGlobalStorage();
+
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null); 
   const handleAvatarClick = () => setShowDropdown(prev => !prev);
+  const displayName = userName || "User 1";
+  const avatarUrl = avatar || "/img/DefaultUser.png";
 
   return (
-    <nav className="w-full bg-black text-white flex justify-between items-center px-12 py-4 shadow-sm relative font-[Poppins]">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-white rounded-full"></div>
-        <span className="font-bold text-[25.2px] leading-[38px]">FTC Chess Game</span>
-      </div>
+    
+    
+    <nav className="w-full bg-black text-white font-[Poppins] px-6 py-4">
+      {toast && (
+        <Toast
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      )}
 
-      <div className="flex items-center gap-10 text-[18px] font-semibold">
-        <a href="#" className="hover:text-[#E9B654] transition-colors">Home</a>
-        <a href="#" className="hover:text-[#E9B654] transition-colors">Our Market</a>
+      {/* Desktop */}
+      <div className="hidden md:flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <img src="/img/FintechLogo.png" alt="logo" className="w-[70px] h-[50px]" />
+          <span className="font-bold text-[25.2px] leading-[38px]">FTC Chess Game</span>
+        </div>
 
-        {isLoggedIn ? (
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <FaWallet className="text-white text-xl" />
-              <span>1,500</span>
-            </div>
+        <div className="flex items-center gap-6 text-[18px] font-semibold">
+          <span onClick={() => router.push('/home')} className="cursor-pointer hover:text-[#E9B654]">Home</span>
+          <span onClick={() => router.push('/market')} className="cursor-pointer hover:text-[#E9B654]">Our Market</span>
 
-            <div className="relative">
-              <button onClick={handleAvatarClick} className="flex items-center gap-2">
-                <img src="/avatar.png" alt="avatar" className="w-10 h-10 rounded-full" />
-                <FaChevronDown className="text-white" />
-              </button>
-
-              {showDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-black border border-white rounded-md shadow-lg z-50">
-                  <div className="px-4 py-3 flex items-center gap-2 hover:bg-gray-800 cursor-pointer text-[14px] font-medium font-[Poppins]">
-                    <FaUser /> <span>Profile</span>
-                  </div>
-                  <div className="px-4 py-3 flex items-center gap-2 hover:bg-gray-800 cursor-pointer text-[14px] font-medium font-[Poppins]">
-                    <FaPuzzlePiece /> <span>My Skins</span>
-                  </div>
-                  <div className="px-4 py-3 flex items-center gap-2 hover:bg-gray-800 cursor-pointer text-[14px] font-medium font-[Poppins]">
-                    <FaSignOutAlt /> <span>Log out</span>
-                  </div>
+          {!isLoggedIn() ? (
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <FaWallet className="text-white text-xl" />
+                <span>1,500</span>
+              </div>
+              <div className="relative">
+                <div onClick={handleAvatarClick} className="flex items-center gap-2 cursor-pointer">
+                  <img src={avatarUrl} alt="avatar" className="w-10 h-10 rounded-full" />
+                  <FaChevronDown className="text-white" />
                 </div>
-              )}
-            </div>
+                {showDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 bg-black border border-white rounded-md shadow-lg z-50">
+                    <div onClick={() => router.push('/profile')} className="px-4 py-3 flex items-center gap-2 hover:bg-gray-800 cursor-pointer text-[14px] font-medium">
+                      <FaUser /> <span>Profile</span>
+                    </div>
+                    <div onClick={() => router.push('/skins')} className="px-4 py-3 flex items-center gap-2 hover:bg-gray-800 cursor-pointer text-[14px] font-medium">
+                      <FaPuzzlePiece /> <span>My Skins</span>
+                    </div>
+                    <div onClick={() => { clearAuth(); router.push('/login'); }} className="px-4 py-3 flex items-center gap-2 hover:bg-gray-800 cursor-pointer text-[14px] font-medium">
+                      <FaSignOutAlt /> <span>Log out</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+             <button
+                onClick={() => {
+                  router.push('/game/offline');
+                  setToast({ type: "success", message: "You have successfully started a new game!" });
+                }}
+                className="px-4 py-2 w-[124px] h-[35px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#9E7C00] to-[#605715] flex justify-center items-center"
+              >
+                New Game
+            </button>
 
-            {}
-            <button className="px-4 py-2 bg-gradient-to-b from-[#E8BB05] via-[#9E7C00] to-[#605715] text-white rounded-md font-semibold">
-              New Game
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-4">
-            <button className="px-4 py-2 bg-gradient-to-b from-[#E8BB05] via-[#9E7C00] to-[#605715] text-white rounded-md font-semibold">
-              Log In
-            </button>
-            <button className="px-4 py-2 border-2 border-[#E9B654] text-white rounded-md font-semibold">
-              Sign Up
-            </button>
-          </div>
-        )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-4">
+              <button onClick={() => router.push('/login')} className="px-4 py-2 w-[78px] h-[35px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#9E7C00] to-[#605715] flex justify-center items-center">
+                Log In
+              </button>
+              <button onClick={() => router.push('/signup')} className="px-4 py-2 w-[94px] h-[35px] text-white border border-[#E9B654] rounded-[6px] font-semibold flex justify-center items-center">
+                Sign Up
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Mobile */}
+      <div className="md:hidden flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <img src="/img/FintechLogo.png" alt="logo" className="w-[50px] h-[45px]" />
+          <span className="font-bold text-xl">FTC Chess Game</span>
+        </div>
+        <p onClick={() => setMobileOpen(!mobileOpen)} className="text-white text-[34px]">
+          {mobileOpen ? <HiX className="text-white text-[34px]" /> : <HiOutlineMenuAlt3 className="text-white text-[30px]" />}
+        </p>
+      </div>  
+
+      {/* Mobile Drawer */}
+      {mobileOpen && (
+        <div className="md:hidden absolute top-[72px] left-0 w-full bg-black z-50 p-6 flex flex-col items-center gap-6 text-white">
+          {!isLoggedIn() && (
+            <div className="flex items-center justify-between w-full px-2">
+              <div className="flex gap-3 items-center">
+                <img src={avatarUrl} alt="avatar" className="w-12 h-12 rounded-full" />
+                <div>
+                  <p className="font-semibold text-lg">{displayName}</p>
+                  <p onClick={() => router.push('/profile')} className="text-[#E9B654] text-sm underline bg-transparent border-none px-0 py-0">
+                    See more
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <FaWallet className="text-white text-xl" />
+                <span>1,500</span>
+              </div>
+            </div>
+          )}
+
+          <span onClick={() => { router.push('/home'); setMobileOpen(false); }} className="text-xl font-semibold cursor-pointer text-center w-full">
+            Home
+          </span>
+          <span onClick={() => { router.push('/market'); setMobileOpen(false); }} className="text-xl font-semibold cursor-pointer text-center w-full">
+            Our Market
+          </span>
+          {isLoggedIn() && (
+            <span onClick={() => { router.push('/skins'); setMobileOpen(false); }} className="text-xl font-semibold cursor-pointer text-center w-full">
+              My Skins
+            </span>
+          )}
+
+          <div className="w-full flex flex-col gap-3 mt-4 items-center">
+            {isLoggedIn() ? (
+              <button onClick={() => { clearAuth(); router.push('/login'); }} className="w-[352px] h-[40px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#9E7C00] to-[#605715] flex justify-center items-center">
+                Log Out
+              </button>
+            ) : (
+              <>
+                <button onClick={() => router.push('/login')} className="w-[352px] h-[40px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#9E7C00] to-[#605715] flex justify-center items-center">
+                  Log in
+                </button>
+                <button onClick={() => router.push('/signup')} className="w-[352px] h-[40px] text-white border border-[#E9B654] rounded-[6px] font-semibold flex justify-center items-center">
+                  Sign Up
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

@@ -26,6 +26,7 @@
     "react-chessboard": "^4.7.2",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.1",
+    "react-icons": "^5.5.0",
     "shadcn": "^2.4.0-canary.17",
     "socket.io-client": "^4.8.1",
     "sonner": "^2.0.1",
