@@ -64,11 +64,11 @@ const ProfilePage = () => {
     setIsProfileOpened((prev) => !prev);
   }, []);
 
-  const handleLogout = useCallback(() => {
-    useGlobalStorage.getState().clearAuth();
-    toast.success("Logged out successfully!");
-    router.push("/sign_in");
-  }, [router]);
+  // const handleLogout = useCallback(() => {
+  //   useGlobalStorage.getState().clearAuth();
+  //   toast.success("Logged out successfully!");
+  //   router.push("/sign_in");
+  // }, [router]);
 
   if (loading) {
     return (

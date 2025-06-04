@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import styles from "@/css/profile.module.css";
+import { useGlobalStorage } from "@/components/GlobalStorage"; // Import useGlobalStorage
 
 const formSchema = z
   .object({
@@ -69,6 +70,7 @@ const AccountSettings = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { accessToken } = useGlobalStorage(); // Retrieve accessToken
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -85,34 +87,40 @@ const AccountSettings = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      if (!accessToken) {
+        console.error("No access token found");
+        router.push("/sign_in"); // Redirect to sign-in if no token
+        return;
+      }
+
       setInitialLoading(true);
       try {
-        const response = await fetch(
-          "http://localhost:8000/api/users/profile",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await fetch("http://localhost:8080/users/profile", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`, // Add Authorization header
+          },
+        });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch profile");
+          throw new Error(`Failed to fetch profile: ${response.statusText}`);
         }
 
         const data = await response.json();
 
-        if (data.success && data.data) {
+        if (data.user) {
           form.reset({
-            email: data.data.email || "",
-            username: data.data.username || "",
+            email: data.user.email || "",
+            username: data.user.username || "",
             oldPassword: "",
             password: "",
             confirmPassword: "",
             language: "English",
-            walletAddress: data.data.walletAddress || "",
+            walletAddress: data.user.walletAddress || "", 
           });
+        } else {
+          throw new Error("Invalid response data: 'user' field missing");
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
@@ -121,7 +129,7 @@ const AccountSettings = () => {
       }
     };
     fetchProfile();
-  }, [form]);
+  }, [form, accessToken, router]); // Add dependencies to useEffect
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -147,14 +155,16 @@ const AccountSettings = () => {
       formData.append("email", data.email);
       formData.append("oldPassword", data.oldPassword);
       if (data.password) formData.append("password", data.password);
-      if (data.walletAddress)
-        formData.append("walletAddress", data.walletAddress);
+      if (data.walletAddress) formData.append("walletAddress", data.walletAddress);
       if (fileInputRef.current?.files?.[0]) {
         formData.append("avatar", fileInputRef.current.files[0]);
       }
 
-      const response = await fetch("http://localhost:8000/api/users/profile", {
+      const response = await fetch("http://localhost:8080/users/profile", { 
         method: "PUT",
+        headers: {
+          Authorization: `Bearer ${accessToken}`, 
+        },
         body: formData,
       });
 
@@ -170,6 +180,8 @@ const AccountSettings = () => {
       } else {
         throw new Error(result.message || "Failed to update profile");
       }
+    } catch (error) {
+      console.error("Error updating profile:", error);
     } finally {
       setLoading(false);
     }
@@ -275,16 +287,17 @@ const AccountSettings = () => {
               </FormItem>
             </div>
 
-            <div className="flex self-start ml-[4vw] gap-2 cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors">
+            <button className="flex self-start ml-[4vw] gap-2 cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors">
               <div className="text-[2.25vw] md:text-[1.25vw]">Edit</div>
               <img
                 src="/edit_icon.svg"
                 alt="Edit icon"
                 className="w-[1.5rem]"
               />
-            </div>
+            </button>
           </div>
 
+          {/* Uncomment and adjust the password fields if needed */}
           {/* <div className="flex justify-between items-center m-[0.5rem] ml-0 mr-0">
             <div className="font-bold text-[1.8rem]">Change Password</div>
             <a href="" className="text-[#E9B654] text-[1.2rem] underline">
@@ -429,7 +442,7 @@ const AccountSettings = () => {
       <hr className="border-t border-[#FFFFFF]" />
 
       <div className="text-[#979797] text-[1.85vw] md:text-[1.1vw] py-[2.5vh]">
-        Please careful when changing your password. You need both the old and
+        Please be careful when changing your password. You need both the old and
         the new ones to successfully change your password.
       </div>
 
