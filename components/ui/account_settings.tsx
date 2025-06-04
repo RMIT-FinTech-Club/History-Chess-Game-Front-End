@@ -183,21 +183,23 @@ const AccountSettings = () => {
           height={100}
           src="/Settings.svg"
           alt="Settings icon"
-          className="w-[3.5vw] md:w-[2.5vw] mb-[1vh]"
+          className="w-[2.5vw] md:w-[2vw] mb-[1vh]"
         />
-        <h3 className="text-[3.5vw] md:text-[2.5vw] leading-[3vw] ml-[1vw] font-bold">
-          Settings
+        <h3 className="text-[3vw] md:text-[2vw] leading-[2vw] ml-[1vw] font-bold">
+          Basic Information
         </h3>
       </div>
+
+      <hr className="border-t border-[#FFFFFF]" />
 
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className={`flex flex-col w-full max-h-[80vh] overflow-y-auto mt-[2vh] ${styles.list_container}`}
+          className={`flex flex-col w-full max-h-[80vh] mt-[2vh] ${styles.list_container}`}
         >
-          <div className="w-full flex flex-row items-center justify-between">
+          <div className="w-full flex flex-row items-center">
             <div
-              className="md:w-[10vw] md:aspect-square w-[16vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative cursor-pointer"
+              className="md:w-[8vw] md:aspect-square w-[14vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
               {imagePreview ? (
@@ -214,7 +216,7 @@ const AccountSettings = () => {
                   className="rounded-md"
                 />
               ) : (
-                <div className="flex items-center justify-center bg-[#DCB968] rounded-full w-[3vw] h-[3vw] min-w-[4vh] min-h-[4vh] p-[1vh]">
+                <div className="flex items-center justify-center bg-[#DCB968] rounded-full w-[2.5vw] h-[2.5vw] min-w-[3vh] min-h-[3vh] p-[1vh]">
                   <MdOutlineFileUpload className="text-white text-[3vw] min-text-[3vh]" />
                 </div>
               )}
@@ -227,21 +229,24 @@ const AccountSettings = () => {
               />
             </div>
 
-            <div>
-              <Label className="text-[2.5vw] md:text-[1.5vw]">
-                User Information
-              </Label>
+            <div className="ml-[2vw]">
+              <div>
+                <Label className="text-[2.25vw] md:text-[1.25vw]">
+                  User Information
+                </Label>
+              </div>
+
               <FormItem>
-                <div className="relative w-[70vw] md:w-[35vw]">
+                <div className="relative w-[55vw] md:w-[25vw]">
                   <FaUser
                     className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 
-                        text-[#2F2F2F] text-[3vh] pointer-events-none"
+                        text-[#2F2F2F] text-[2.5vh] pointer-events-none"
                   />
                   <Input
                     disabled
-                    className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
+                    className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] 
                     rounded-[1.5vh] bg-[#F9F9F9] border-[#B7B7B7] text-[#8C8C8C] 
-                    !text-[2.5vh] md:!text-[3vh] font-normal
+                    !text-[2vh] md:!text-[2.5vh] font-normal
                     disabled:opacity-100
                     disabled:cursor-not-allowed"
                     autoComplete="off"
@@ -251,16 +256,16 @@ const AccountSettings = () => {
               </FormItem>
 
               <FormItem>
-                <div className="relative w-[70vw] md:w-[35vw] mt-[2vh]">
+                <div className="relative w-[55vw] md:w-[25vw] mt-[2vh]">
                   <MdEmail
                     className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 
                         text-[#2F2F2F] text-[3vh] pointer-events-none"
                   />
                   <Input
                     disabled
-                    className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
+                    className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] 
                     rounded-[1.5vh] bg-[#F9F9F9] border-[#B7B7B7] text-[#8C8C8C] 
-                    !text-[2.5vh] md:!text-[3vh] font-normal
+                    !text-[2vh] md:!text-[2.5vh] font-normal
                     disabled:opacity-100
                     disabled:cursor-not-allowed"
                     autoComplete="off"
@@ -269,46 +274,18 @@ const AccountSettings = () => {
                 </div>
               </FormItem>
             </div>
+
+            <div className="flex self-start ml-[4vw] gap-2 cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors">
+              <div className="text-[2.25vw] md:text-[1.25vw]">Edit</div>
+              <img
+                src="/edit_icon.svg"
+                alt="Edit icon"
+                className="w-[1.5rem]"
+              />
+            </div>
           </div>
 
-          {/* Language Field */}
-          <FormField
-            control={form.control}
-            name="language"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[2.5vw] md:text-[1.5vw]">
-                  Language
-                </FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger className="py-[3vh] md:py-[3.5vh] rounded-[1.5vh] w-full bg-[#c4c4c4] text-[#000000] focus:border-[0.2rem] focus:border-[#DBB968] text-[2.5vh] md:text-[3vh] font-bold cursor-pointer">
-                      <SelectValue defaultValue="English" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="font-normal border-gray-600 text-[#000000] bg-[#C4C4C4]">
-                    <SelectItem
-                      value="English"
-                      className="hover:border-[0.2rem] hover:border-[#F7D27F] data-[state=checked]:font-bold text-[2.5vh] md:text-[3vh] cursor-pointer"
-                    >
-                      English
-                    </SelectItem>
-                    <SelectItem
-                      value="Vietnamese"
-                      className="hover:border-[0.2rem] hover:border-[#F7D27F] data-[state=checked]:font-bold text-[2.5vh] md:text-[3vh] cursor-pointer"
-                    >
-                      Tiếng Việt
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-
-          <div className="flex justify-between items-center m-[0.5rem] ml-0 mr-0">
+          {/* <div className="flex justify-between items-center m-[0.5rem] ml-0 mr-0">
             <div className="font-bold text-[1.8rem]">Change Password</div>
             <a href="" className="text-[#E9B654] text-[1.2rem] underline">
               Forgot your password?
@@ -415,9 +392,9 @@ const AccountSettings = () => {
                 <FormMessage className="text-[2.5vh] text-red-500" />
               </FormItem>
             )}
-          />
+          /> */}
 
-          <div className="flex items-center justify-end gap-[1vw]">
+          {/* <div className="flex items-center justify-end gap-[1vw]">
             <Button
               type="button"
               className="w-[15vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-normal text-[3.5vh] py-[4vh] md:py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
@@ -432,9 +409,33 @@ const AccountSettings = () => {
             >
               {loading ? "Saving..." : "Save"}
             </Button>
-          </div>
+          </div> */}
         </form>
       </Form>
+
+      <div className="flex items-center mt-[4vh]">
+        <Image
+          width={100}
+          height={100}
+          src="/key.svg"
+          alt="Settings icon"
+          className="w-[2.5vw] md:w-[2vw] mb-[1vh]"
+        />
+        <h3 className="text-[3vw] md:text-[2vw] leading-[2vw] ml-[1vw] font-bold">
+          Password
+        </h3>
+      </div>
+
+      <hr className="border-t border-[#FFFFFF]" />
+
+      <div className="text-[#979797] text-[1.85vw] md:text-[1.1vw] py-[2.5vh]">
+        Please careful when changing your password. You need both the old and
+        the new ones to successfully change your password.
+      </div>
+
+      <div className="max-w-[15vw] cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors">
+        <div className="text-[2.25vw] md:text-[1.25vw] text-center">Change Password</div>
+      </div>
     </div>
   );
 };
