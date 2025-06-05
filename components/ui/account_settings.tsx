@@ -117,7 +117,7 @@ const AccountSettings = () => {
             password: "",
             confirmPassword: "",
             language: "English",
-            walletAddress: data.user.walletAddress || "", 
+            walletAddress: data.user.walletAddress || "",
           });
         } else {
           throw new Error("Invalid response data: 'user' field missing");
@@ -155,15 +155,16 @@ const AccountSettings = () => {
       formData.append("email", data.email);
       formData.append("oldPassword", data.oldPassword);
       if (data.password) formData.append("password", data.password);
-      if (data.walletAddress) formData.append("walletAddress", data.walletAddress);
+      if (data.walletAddress)
+        formData.append("walletAddress", data.walletAddress);
       if (fileInputRef.current?.files?.[0]) {
         formData.append("avatar", fileInputRef.current.files[0]);
       }
 
-      const response = await fetch("http://localhost:8080/users/profile", { 
+      const response = await fetch("http://localhost:8080/users/profile", {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${accessToken}`, 
+          Authorization: `Bearer ${accessToken}`,
         },
         body: formData,
       });
@@ -184,6 +185,32 @@ const AccountSettings = () => {
       console.error("Error updating profile:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEditClick = () => {
+    const userNameInput = document.querySelector("#username") as HTMLInputElement;
+    if (userNameInput) {
+      userNameInput.disabled = false; // Enable all input fields
+      userNameInput.classList.remove("disabled:opacity-100", "disabled:cursor-not-allowed");
+      userNameInput.classList.add("text-black");
+      userNameInput.focus();
+    }
+    
+    const editText = document.getElementById("edit-text");
+    if (editText) {
+      editText.textContent = "Save";
+      (editText as HTMLElement).style.color = "#000000";
+      (editText as HTMLElement).style.fontWeight = "bold";
+    }
+    const editIcon = document.getElementById("edit-icon");
+    if (editIcon) {
+      (editIcon as HTMLElement).style.display = "none";
+    }
+    const editButton = document.getElementById("edit-button");
+    if (editButton) {
+      editButton.classList.remove("border");
+      editButton.classList.add("bg-[#F7D27F]");
     }
   };
 
@@ -256,8 +283,9 @@ const AccountSettings = () => {
                   />
                   <Input
                     disabled
+                    id="username"
                     className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] 
-                    rounded-[1.5vh] bg-[#F9F9F9] border-[#B7B7B7] text-[#8C8C8C] 
+                    rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] 
                     !text-[2vh] md:!text-[2.5vh] font-normal
                     disabled:opacity-100
                     disabled:cursor-not-allowed"
@@ -276,7 +304,7 @@ const AccountSettings = () => {
                   <Input
                     disabled
                     className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] 
-                    rounded-[1.5vh] bg-[#F9F9F9] border-[#B7B7B7] text-[#8C8C8C] 
+                    rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] 
                     !text-[2vh] md:!text-[2.5vh] font-normal
                     disabled:opacity-100
                     disabled:cursor-not-allowed"
@@ -287,9 +315,14 @@ const AccountSettings = () => {
               </FormItem>
             </div>
 
-            <button className="flex self-start ml-[4vw] gap-2 cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors">
-              <div className="text-[2.25vw] md:text-[1.25vw]">Edit</div>
+            <button
+              id="edit-button"
+              onClick={handleEditClick}
+              className="flex self-start ml-[5vw] gap-2 cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors"
+            >
+              <div id="edit-text" className="text-[2.25vw] md:text-[1.25vw]">Edit</div>
               <img
+                id="edit-icon"
                 src="/edit_icon.svg"
                 alt="Edit icon"
                 className="w-[1.5rem]"
@@ -447,7 +480,9 @@ const AccountSettings = () => {
       </div>
 
       <div className="max-w-[15vw] cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors">
-        <div className="text-[2.25vw] md:text-[1.25vw] text-center">Change Password</div>
+        <div className="text-[2.25vw] md:text-[1.25vw] text-center">
+          Change Password
+        </div>
       </div>
     </div>
   );

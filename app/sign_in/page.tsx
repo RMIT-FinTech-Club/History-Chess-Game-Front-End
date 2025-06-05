@@ -335,12 +335,12 @@ const SignIn = () => {
               or continue with
             </div>
             <div className="space-y-2 sm:space-y-3 md:space-y-4">
-              <button
+              {/* <button
                 className="w-full flex items-center justify-center bg-[#1877F2] cursor-pointer text-[#FFFFFF] font-bold text-[3vh] py-[1.5vh] md:py-[2.45vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
               >
                 <FaFacebook className="mr-[1vw] md:mr-[0.5vw] text-[4vh]" />
                 Continue with Facebook
-              </button>
+              </button> */}
               <button
                 onClick={handleGoogleLogin}
                 className="w-full flex items-center justify-center bg-[#ECECEC] cursor-pointer text-[#000000] font-bold text-[3vh] py-[1.5vh] md:py-[2.45vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
