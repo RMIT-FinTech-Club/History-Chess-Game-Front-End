@@ -28,6 +28,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useOfflineGame } from "@/hooks/useOfflineGame";
 import { io, Socket } from "socket.io-client";
+import { Chess } from "chess.js";
 
 // --- Helper Components ---
 
@@ -229,6 +230,12 @@ const OnlinePage = () => {
   const [capturedBlack, setCapturedBlack] = useState<string[]>([]);
   const [selectedPiece, setSelectedPiece] = useState<Square | null>(null);
   const [customSquareStyles, setCustomSquareStyles] = useState({});
+  const [moveHistory, setMoveHistory] = useState<Array<{
+    moveNumber: number;
+    move: string;
+    color: string;
+    time: number;
+  }>>([]);
 
   const {
     fen,
@@ -252,6 +259,8 @@ const OnlinePage = () => {
     isAiReady,
   } = useOfflineGame();
 
+  const [chess] = useState(new Chess());
+
   // Initialize socket connection
   useEffect(() => {
     const newSocket = io("http://localhost:8000");
@@ -271,8 +280,27 @@ const OnlinePage = () => {
       setGameState(state);
       if (state.players && userId) {
         const playerIndex = state.players.indexOf(userId);
-        setBoardOrientation(playerIndex === 0 ? "white" : "black");
+        const newOrientation = playerIndex === 0 ? "white" : "black";
+        setBoardOrientation(newOrientation);
+        // Disable auto-rotate for online games
+        setAutoRotateBoard(false);
       }
+      if (state.move) {
+        setMoveHistory(prev => [...prev, {
+          moveNumber: state.moveNumber,
+          move: state.move,
+          color: state.color,
+          time: state.time || 0
+        }]);
+      }
+    });
+
+    newSocket.on("timeUpdate", (data) => {
+      setGameState(prev => ({
+        ...prev,
+        whiteTimeLeft: data.whiteTimeLeft,
+        blackTimeLeft: data.blackTimeLeft
+      }));
     });
 
     newSocket.on("error", (error) => {
@@ -302,10 +330,11 @@ const OnlinePage = () => {
   // Update current turn and orientation
   useEffect(() => {
     setCurrentTurn(gameTurn);
-    if (!isSinglePlayer && autoRotateBoard) {
+    // Only apply auto-rotate for offline games
+    if (!isSinglePlayer && autoRotateBoard && !gameId) {
       setBoardOrientation(gameTurn === "w" ? "white" : "black");
     }
-  }, [gameTurn, isSinglePlayer, autoRotateBoard]);
+  }, [gameTurn, isSinglePlayer, autoRotateBoard, gameId]);
 
   useEffect(() => {
     setMounted(true);
@@ -322,6 +351,42 @@ const OnlinePage = () => {
       setAutoRotateBoard(false);
     }
   }, [isSinglePlayer, playerColor]);
+
+  // Add this effect to calculate possible moves when a piece is selected
+  useEffect(() => {
+    if (selectedPiece && gameState?.fen) {
+      chess.load(gameState.fen);
+      const moves = chess.moves({ square: selectedPiece, verbose: true });
+      const newStyles: Record<string, React.CSSProperties> = {};
+      
+      // Highlight the selected piece
+      newStyles[selectedPiece] = {
+        backgroundColor: 'rgba(255, 255, 0, 0.4)'
+      };
+      
+      // Highlight possible moves
+      moves.forEach(move => {
+        newStyles[move.to] = {
+          backgroundColor: chess.get(move.to) ? 'rgba(255, 0, 0, 0.4)' : 'rgba(0, 255, 0, 0.4)'
+        };
+      });
+      
+      setCustomSquareStyles(newStyles);
+    } else {
+      setCustomSquareStyles({});
+    }
+  }, [selectedPiece, gameState?.fen, chess]);
+
+  // Add this effect to handle board orientation for online games
+  useEffect(() => {
+    if (gameState?.players && userId && gameId) {
+      const playerIndex = gameState.players.indexOf(userId);
+      const newOrientation = playerIndex === 0 ? "white" : "black";
+      setBoardOrientation(newOrientation);
+      // Disable auto-rotate for online games
+      setAutoRotateBoard(false);
+    }
+  }, [gameState?.players, userId, gameId]);
 
   // --- Handlers ---
 
@@ -503,6 +568,15 @@ const OnlinePage = () => {
     }
   }, [isSinglePlayer, autoRotateBoard, currentTurn]);
 
+  // Format time helper function
+  const formatTime = (ms?: number) => {
+    if (typeof ms !== "number") return "-";
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
+
   if (!mounted) return <p>Loading Chessboard...</p>;
 
   return (
@@ -570,11 +644,11 @@ const OnlinePage = () => {
                 </h2>
                 <div className="rounded shadow-md bg-[#3B3433] p-2">
                   <div className="flex justify-between">
-                    <span className="text-white">
-                      White: {Math.floor((gameState?.whiteTimeLeft || 0) / 1000)}s
+                    <span className={`text-white ${currentTurn === 'w' ? 'font-bold' : ''}`}>
+                      White: {formatTime(gameState?.whiteTimeLeft)}
                     </span>
-                    <span className="text-white">
-                      Black: {Math.floor((gameState?.blackTimeLeft || 0) / 1000)}s
+                    <span className={`text-white ${currentTurn === 'b' ? 'font-bold' : ''}`}>
+                      Black: {formatTime(gameState?.blackTimeLeft)}
                     </span>
                   </div>
                 </div>
@@ -603,20 +677,21 @@ const OnlinePage = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {gameState?.moves?.map((move: any, index: number) => (
-                          <MoveHistoryRow
-                            key={index}
-                            pair={{
-                              turn: Math.floor(index / 2) + 1,
-                              whiteMove: move.color === "white" ? move.move : "",
-                              blackMove: move.color === "black" ? move.move : "",
-                              whiteTime: move.color === "white" ? "0" : "",
-                              blackTime: move.color === "black" ? "0" : "",
-                              whiteTimeRaw: 0,
-                              blackTimeRaw: 0,
-                              maxTime: 60,
-                            }}
-                          />
+                        {moveHistory.map((move, index) => (
+                          <tr key={index} className="hover:bg-[#4A4443] transition-colors duration-200">
+                            <td className="py-2 px-2 sm:px-5 text-xs sm:text-sm">
+                              {Math.floor(index / 2) + 1}.
+                            </td>
+                            <td className="py-2 px-2 sm:px-5 text-xs sm:text-sm">
+                              {move.color === 'white' ? move.move : ''}
+                            </td>
+                            <td className="py-2 px-2 sm:px-5 text-xs sm:text-sm">
+                              {move.color === 'black' ? move.move : ''}
+                            </td>
+                            <td className="py-2 px-2 sm:px-5 text-xs">
+                              {formatTime(move.time)}
+                            </td>
+                          </tr>
                         ))}
                       </tbody>
                     </table>
