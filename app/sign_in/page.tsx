@@ -53,33 +53,57 @@ const SignIn = () => {
 
       // Client-side validation
       if (!identifier) {
-        setErrors((prev) => ({ ...prev, identifier: "Please enter your username or email." }));
-        document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
+        setErrors((prev) => ({
+          ...prev,
+          identifier: "Please enter your username or email.",
+        }));
+        document
+          .getElementById("identifier-input")
+          ?.classList.add("border-red-500", "border-[0.3vh]");
         return;
       }
 
       const validIdentifierRegex = /^[a-zA-Z0-9@.]+$/;
       if (!validIdentifierRegex.test(identifier)) {
-        setErrors((prev) => ({ ...prev, identifier: "Please enter suitable email or username." }));
-        document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
+        setErrors((prev) => ({
+          ...prev,
+          identifier: "Please enter suitable email or username.",
+        }));
+        document
+          .getElementById("identifier-input")
+          ?.classList.add("border-red-500", "border-[0.3vh]");
         return;
       }
 
       const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
       const isUsername = /^[a-zA-Z0-9]+$/.test(identifier);
       if (!isEmail && !isUsername) {
-        setErrors((prev) => ({ ...prev, identifier: "Please enter suitable email or username." }));
-        document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
+        setErrors((prev) => ({
+          ...prev,
+          identifier: "Please enter suitable email or username.",
+        }));
+        document
+          .getElementById("identifier-input")
+          ?.classList.add("border-red-500", "border-[0.3vh]");
         return;
       }
-      document.getElementById("identifier-input")?.classList.remove("border-red-500", "border-[0.3vh]");
+      document
+        .getElementById("identifier-input")
+        ?.classList.remove("border-red-500", "border-[0.3vh]");
 
       if (!password) {
-        setErrors((prev) => ({ ...prev, password: "Please enter your password." }));
-        document.querySelector("input[type='password']")?.classList.add("border-red-500", "border-[0.3vh]");
+        setErrors((prev) => ({
+          ...prev,
+          password: "Please enter your password.",
+        }));
+        document
+          .querySelector("input[type='password']")
+          ?.classList.add("border-red-500", "border-[0.3vh]");
         return;
       }
-      document.querySelector("input[type='password']")?.classList.remove("border-red-500", "border-[0.3vh]");
+      document
+        .querySelector("input[type='password']")
+        ?.classList.remove("border-red-500", "border-[0.3vh]");
 
       try {
         const response = await axios.post("http://localhost:8080/users/login", {
@@ -94,9 +118,16 @@ const SignIn = () => {
           accessToken: response.data.token,
           refreshToken: null,
         });
-        console.log("Stored accessToken:", useGlobalStorage.getState().accessToken);
-        document.getElementById("identifier-input")?.classList.add("border-green-500", "border-[0.3vh]");
-        document.querySelector("input[type='password']")?.classList.add("border-green-500", "border-[0.3vh]");
+        console.log(
+          "Stored accessToken:",
+          useGlobalStorage.getState().accessToken
+        );
+        document
+          .getElementById("identifier-input")
+          ?.classList.add("border-green-500", "border-[0.3vh]");
+        document
+          .querySelector("input[type='password']")
+          ?.classList.add("border-green-500", "border-[0.3vh]");
         toast.success("Sign in successful!");
         router.push("/profile");
       } catch (err: any) {
@@ -104,13 +135,19 @@ const SignIn = () => {
         console.error("Login error:", err.response?.data);
         if (message.includes("User") || message.includes("email")) {
           setErrors((prev) => ({ ...prev, identifier: message }));
-          document.getElementById("identifier-input")?.classList.add("border-red-500", "border-[0.3vh]");
+          document
+            .getElementById("identifier-input")
+            ?.classList.add("border-red-500", "border-[0.3vh]");
         } else if (message.includes("password")) {
           setErrors((prev) => ({ ...prev, password: message }));
-          document.querySelector("input[type='password']")?.classList.add("border-red-500", "border-[0.3vh]");
+          document
+            .querySelector("input[type='password']")
+            ?.classList.add("border-red-500", "border-[0.3vh]");
         } else {
           setErrors((prev) => ({ ...prev, password: message }));
-          document.querySelector("input[type='password']")?.classList.add("border-red-500", "border-[0.3vh]");
+          document
+            .querySelector("input[type='password']")
+            ?.classList.add("border-red-500", "border-[0.3vh]");
         }
         toast.error(message);
       }
@@ -122,8 +159,8 @@ const SignIn = () => {
     const state = Math.random().toString(36).substring(2);
     const popup = window.open(
       `http://localhost:8080/users/google-auth?state=${state}`,
-      'google-auth',
-      'width=500,height=600'
+      "google-auth",
+      "width=500,height=600"
     );
     if (!popup) {
       toast.error("Popup blocked. Please allow popups and try again.");
@@ -133,10 +170,13 @@ const SignIn = () => {
   const onUsernameSubmit = useCallback(
     async (values: UsernameFormValues) => {
       try {
-        const response = await axios.post("http://localhost:8080/users/complete-google-login", {
-          tempToken,
-          username: values.username,
-        });
+        const response = await axios.post(
+          "http://localhost:8080/users/complete-google-login",
+          {
+            tempToken,
+            username: values.username,
+          }
+        );
         console.log("Google login completion response:", response.data);
         setAuthData({
           userId: response.data.user.id,
@@ -149,7 +189,8 @@ const SignIn = () => {
         setShowUsernamePrompt(false);
         router.push("/profile");
       } catch (err: any) {
-        const message = err.response?.data?.message || "Failed to complete Google login";
+        const message =
+          err.response?.data?.message || "Failed to complete Google login";
         toast.error(message);
       }
     },
@@ -158,9 +199,10 @@ const SignIn = () => {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== 'http://localhost:8080') return;
-      const { type, token, userId, username, email, tempToken, error } = event.data;
-      if (type === 'google-auth') {
+      if (event.origin !== "http://localhost:8080") return;
+      const { type, token, userId, username, email, tempToken, error } =
+        event.data;
+      if (type === "google-auth") {
         setAuthData({
           userId,
           userName: username,
@@ -170,20 +212,22 @@ const SignIn = () => {
         });
         toast.success("Google login successful!");
         router.push("/profile");
-      } else if (type === 'google-auth-prompt-username') {
+      } else if (type === "google-auth-prompt-username") {
         setGoogleEmail(email);
         setTempToken(tempToken);
         setShowUsernamePrompt(true);
-      } else if (type === 'google-auth-error') {
-        if (error.includes('This email has been used already')) {
-          toast.error('This email is already registered with a standard account. Please use a different Google account or sign in with your password.');
+      } else if (type === "google-auth-error") {
+        if (error.includes("This email has been used already")) {
+          toast.error(
+            "This email is already registered with a standard account. Please use a different Google account or sign in with your password."
+          );
         } else {
           toast.error(error || "Google login failed");
         }
       }
     };
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
   }, [router, setAuthData]);
 
   return (
@@ -199,13 +243,18 @@ const SignIn = () => {
         <h2 className="text-center text-[7vh]">Sign In</h2>
         {showUsernamePrompt ? (
           <Form {...usernameForm}>
-            <form onSubmit={usernameForm.handleSubmit(onUsernameSubmit)} className="space-y-3 w-[80vw] md:w-[42vw]">
+            <form
+              onSubmit={usernameForm.handleSubmit(onUsernameSubmit)}
+              className="space-y-3 w-[80vw] md:w-[42vw]"
+            >
               <FormField
                 control={usernameForm.control}
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-bold text-[3vh]">Choose a Username</FormLabel>
+                    <FormLabel className="font-bold text-[3vh]">
+                      Choose a Username
+                    </FormLabel>
                     <FormControl>
                       <Input
                         id="username-input"
@@ -254,7 +303,9 @@ const SignIn = () => {
                               top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
                             "
                             onClick={() =>
-                              document.getElementById("identifier-input")?.focus()
+                              document
+                                .getElementById("identifier-input")
+                                ?.focus()
                             }
                           />
                           <Input
@@ -275,7 +326,9 @@ const SignIn = () => {
                         </div>
                       </FormControl>
                       {errors.identifier && (
-                        <p className="text-red-500 text-[2.5vh] font-bold">{errors.identifier}</p>
+                        <p className="text-red-500 text-[2.5vh] font-bold">
+                          {errors.identifier}
+                        </p>
                       )}
                     </FormItem>
                   )}
@@ -306,7 +359,9 @@ const SignIn = () => {
                         </div>
                       </FormControl>
                       {errors.password && (
-                        <p className="text-red-500 text-[2.5vh] font-bold">{errors.password}</p>
+                        <p className="text-red-500 text-[2.5vh] font-bold">
+                          {errors.password}
+                        </p>
                       )}
                     </FormItem>
                   )}
@@ -319,7 +374,10 @@ const SignIn = () => {
                     />
                     Remember me
                   </label>
-                  <a href="/reset_password" className="hover:underline text-[#184BF2]">
+                  <a
+                    href="/reset_password"
+                    className="hover:underline text-[#184BF2]"
+                  >
                     Forgot Password?
                   </a>
                 </div>
@@ -335,12 +393,6 @@ const SignIn = () => {
               or continue with
             </div>
             <div className="space-y-2 sm:space-y-3 md:space-y-4">
-              {/* <button
-                className="w-full flex items-center justify-center bg-[#1877F2] cursor-pointer text-[#FFFFFF] font-bold text-[3vh] py-[1.5vh] md:py-[2.45vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
-              >
-                <FaFacebook className="mr-[1vw] md:mr-[0.5vw] text-[4vh]" />
-                Continue with Facebook
-              </button> */}
               <button
                 onClick={handleGoogleLogin}
                 className="w-full flex items-center justify-center bg-[#ECECEC] cursor-pointer text-[#000000] font-bold text-[3vh] py-[1.5vh] md:py-[2.45vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
@@ -355,7 +407,10 @@ const SignIn = () => {
             </div>
             <div className="text-center text-[#C4C4C4] text-[3vh] font-normal">
               Don’t have an account?{" "}
-              <a href="/sign_up" className="text-[#184BF2] font-bold hover:underline">
+              <a
+                href="/sign_up"
+                className="text-[#184BF2] font-bold hover:underline"
+              >
                 Sign Up
               </a>
             </div>
