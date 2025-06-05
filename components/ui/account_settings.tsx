@@ -3,89 +3,48 @@ import React, { useState, useRef, useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
 import {
   Form,
-  FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { NewPassword } from "@/components/ui/NewPassword";
-import { NewPasswordConfirm } from "@/components/ui/NewPasswordConfirm";
-import { OldPassword } from "@/components/ui/OldPassword";
 import { MdEmail } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { Label } from "@radix-ui/react-label";
 import { MdOutlineFileUpload } from "react-icons/md";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import Image from "next/image";
 import styles from "@/css/profile.module.css";
-import { useGlobalStorage } from "@/components/GlobalStorage"; // Import useGlobalStorage
+import { useGlobalStorage } from "@/components/GlobalStorage"; 
 
-const formSchema = z
-  .object({
-    email: z.string(),
-    username: z.string(),
-    oldPassword: z.string(),
-    password: z
-      .string()
-      .min(1, { message: "Please enter your password." })
-      .min(8, { message: "Password must be at least 8 characters." })
-      .refine((value) => /[A-Z]/.test(value), {
-        message: "Password must contain at least one uppercase letter.",
-      })
-      .refine((value) => /[0-9]/.test(value), {
-        message: "Password must contain at least one number.",
-      })
-      .refine((value) => /[^A-Za-z0-9]/.test(value), {
-        message: "Password must contain at least one special character.",
-      }),
-    confirmPassword: z
-      .string()
-      .min(1, { message: "Please confirm your password." }),
-    language: z.string(),
-    walletAddress: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match.",
-    path: ["confirmPassword"],
-  });
+const formSchema = z.object({
+  username: z.string().min(1, { message: "Username is required." }),
+});
 
 type FormValues = z.infer<typeof formSchema>;
 
 const AccountSettings = () => {
   const router = useRouter();
-  const [password, setPassword] = useState("");
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [email, setEmail] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { accessToken } = useGlobalStorage(); // Retrieve accessToken
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
       username: "",
-      oldPassword: "",
-      password: "",
-      confirmPassword: "",
-      language: "English",
-      walletAddress: "",
     },
   });
 
   useEffect(() => {
+    setIsMounted(true);
+
     const fetchProfile = async () => {
       if (!accessToken) {
         console.error("No access token found");
@@ -93,7 +52,7 @@ const AccountSettings = () => {
         return;
       }
 
-      setInitialLoading(true);
+      setLoading(true);
       try {
         const response = await fetch("http://localhost:8080/users/profile", {
           method: "GET",
@@ -110,26 +69,22 @@ const AccountSettings = () => {
         const data = await response.json();
 
         if (data.user) {
-          form.reset({
-            email: data.user.email || "",
-            username: data.user.username || "",
-            oldPassword: "",
-            password: "",
-            confirmPassword: "",
-            language: "English",
-            walletAddress: data.user.walletAddress || "",
-          });
+          form.reset({ username: data.user.username || "" });
+          setEmail(data.user.email || "");
         } else {
           throw new Error("Invalid response data: 'user' field missing");
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
       } finally {
-        setInitialLoading(false);
+        setLoading(false);
       }
     };
     fetchProfile();
-  }, [form, accessToken, router]); // Add dependencies to useEffect
+    return () => {
+      setIsMounted(false);
+    };
+  }, [form, accessToken, router]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -142,21 +97,11 @@ const AccountSettings = () => {
     }
   };
 
-  const isMinLength = password.length >= 8;
-  const hasUppercase = /[A-Z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
-  const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
-
   const onSubmit = async (data: FormValues) => {
     setLoading(true);
     try {
       const formData = new FormData();
       formData.append("username", data.username);
-      formData.append("email", data.email);
-      formData.append("oldPassword", data.oldPassword);
-      if (data.password) formData.append("password", data.password);
-      if (data.walletAddress)
-        formData.append("walletAddress", data.walletAddress);
       if (fileInputRef.current?.files?.[0]) {
         formData.append("avatar", fileInputRef.current.files[0]);
       }
@@ -172,10 +117,8 @@ const AccountSettings = () => {
       const result = await response.json();
 
       if (result.success) {
-        form.setValue("oldPassword", "");
-        form.setValue("password", "");
-        form.setValue("confirmPassword", "");
-        setPassword("");
+        form.reset({ username: result.user.username });
+        setIsEditing(false);
         setImagePreview(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
       } else {
@@ -185,32 +128,6 @@ const AccountSettings = () => {
       console.error("Error updating profile:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleEditClick = () => {
-    const userNameInput = document.querySelector("#username") as HTMLInputElement;
-    if (userNameInput) {
-      userNameInput.disabled = false; // Enable all input fields
-      userNameInput.classList.remove("disabled:opacity-100", "disabled:cursor-not-allowed");
-      userNameInput.classList.add("text-black");
-      userNameInput.focus();
-    }
-    
-    const editText = document.getElementById("edit-text");
-    if (editText) {
-      editText.textContent = "Save";
-      (editText as HTMLElement).style.color = "#000000";
-      (editText as HTMLElement).style.fontWeight = "bold";
-    }
-    const editIcon = document.getElementById("edit-icon");
-    if (editIcon) {
-      (editIcon as HTMLElement).style.display = "none";
-    }
-    const editButton = document.getElementById("edit-button");
-    if (editButton) {
-      editButton.classList.remove("border");
-      editButton.classList.add("bg-[#F7D27F]");
     }
   };
 
@@ -238,8 +155,14 @@ const AccountSettings = () => {
         >
           <div className="w-full flex flex-row items-center">
             <div
-              className="md:w-[8vw] md:aspect-square w-[14vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative cursor-pointer"
-              onClick={() => fileInputRef.current?.click()}
+              className={`md:w-[8vw] md:aspect-square w-[14vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative ${
+                isEditing ? "cursor-pointer" : "cursor-not-allowed"
+              }`}
+              onClick={() => {
+                if (isEditing) {
+                  fileInputRef.current?.click();
+                }
+              }}
             >
               {imagePreview ? (
                 <Image
@@ -265,6 +188,7 @@ const AccountSettings = () => {
                 ref={fileInputRef}
                 onChange={handleImageChange}
                 className="hidden"
+                disabled={!isEditing}
               />
             </div>
 
@@ -275,63 +199,83 @@ const AccountSettings = () => {
                 </Label>
               </div>
 
-              <FormItem>
-                <div className="relative w-[55vw] md:w-[25vw]">
-                  <FaUser
-                    className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 
-                        text-[#2F2F2F] text-[2.5vh] pointer-events-none"
-                  />
-                  <Input
-                    disabled
-                    id="username"
-                    className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] 
-                    rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] 
-                    !text-[2vh] md:!text-[2.5vh] font-normal
-                    disabled:opacity-100
-                    disabled:cursor-not-allowed"
-                    autoComplete="off"
-                    {...form.register("username")}
-                  />
-                </div>
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="relative w-[55vw] md:w-[25vw]">
+                      <FaUser className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[2.5vh] pointer-events-none" />
+                      <Input
+                        disabled={!isEditing}
+                        id="username"
+                        className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                        autoComplete="off"
+                        onCanPlay={() => setIsMounted(true)}
+                        {...field}
+                      />
+                    </div>
+                    <FormMessage className="text-[2.5vh] text-red-500" />
+                  </FormItem>
+                )}
+              />
 
-              <FormItem>
-                <div className="relative w-[55vw] md:w-[25vw] mt-[2vh]">
-                  <MdEmail
-                    className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 
-                        text-[#2F2F2F] text-[3vh] pointer-events-none"
-                  />
-                  <Input
-                    disabled
-                    className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] 
-                    rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] 
-                    !text-[2vh] md:!text-[2.5vh] font-normal
-                    disabled:opacity-100
-                    disabled:cursor-not-allowed"
-                    autoComplete="off"
-                    {...form.register("email")}
-                  />
-                </div>
-              </FormItem>
+              <div className="relative w-[55vw] md:w-[25vw] mt-[2vh]">
+                <MdEmail className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[3vh] pointer-events-none" />
+                <Input
+                  disabled
+                  value={email}
+                  className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                />
+              </div>
             </div>
 
-            <button
-              id="edit-button"
-              onClick={handleEditClick}
-              className="flex self-start ml-[5vw] gap-2 cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors"
-            >
-              <div id="edit-text" className="text-[2.25vw] md:text-[1.25vw]">Edit</div>
-              <img
-                id="edit-icon"
-                src="/edit_icon.svg"
-                alt="Edit icon"
-                className="w-[1.5rem]"
-              />
-            </button>
+            <div className="flex self-start gap-[1vw] ml-[5vw]">
+              {isEditing ? (
+                <>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    onClick={() => router.push("/sign_in")}
+                    className="cursor-pointer rounded-[1vh] py-[1vh] px-[1vw] font-semibold text-[#000000] bg-[#F7D27F] hover:bg-[#E9B654] transition-colors text-[2.25vw] md:text-[1.25vw]"
+                  >
+                    {loading ? "Saving..." : "Save"}
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditing(true);
+                    const userNameInput = document.querySelector(
+                      "#username"
+                    ) as HTMLInputElement;
+                    if (userNameInput) {
+                      userNameInput.disabled = false; // Enable all input fields
+                      userNameInput.classList.remove(
+                        "disabled:opacity-100",
+                        "disabled:cursor-not-allowed"
+                      );
+                      userNameInput.classList.add("text-black");
+                      userNameInput.focus();
+                    }
+                  }}
+                  className="flex items-center gap-2 cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors"
+                >
+                  <span className="text-[2.25vw] md:text-[1.25vw]">Edit</span>
+                  <img
+                    src="/edit_icon.svg"
+                    alt="Edit icon"
+                    className="w-[1.5rem]"
+                  />
+                </button>
+              )}
+            </div>
           </div>
+        </form>
+      </Form>
 
-          {/* Uncomment and adjust the password fields if needed */}
-          {/* <div className="flex justify-between items-center m-[0.5rem] ml-0 mr-0">
+      {/* <div className="flex justify-between items-center m-[0.5rem] ml-0 mr-0">
             <div className="font-bold text-[1.8rem]">Change Password</div>
             <a href="" className="text-[#E9B654] text-[1.2rem] underline">
               Forgot your password?
@@ -440,7 +384,7 @@ const AccountSettings = () => {
             )}
           /> */}
 
-          {/* <div className="flex items-center justify-end gap-[1vw]">
+      {/* <div className="flex items-center justify-end gap-[1vw]">
             <Button
               type="button"
               className="w-[15vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-normal text-[3.5vh] py-[4vh] md:py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
@@ -456,8 +400,6 @@ const AccountSettings = () => {
               {loading ? "Saving..." : "Save"}
             </Button>
           </div> */}
-        </form>
-      </Form>
 
       <div className="flex items-center mt-[4vh]">
         <Image
