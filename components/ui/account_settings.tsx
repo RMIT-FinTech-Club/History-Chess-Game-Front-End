@@ -31,6 +31,7 @@ const AccountSettings = () => {
   const [email, setEmail] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [initialAvatar, setInitialAvatar] = useState<string | null>(null);
+  const [initialUsername, setInitialUsername] = useState<string>(""); // New state for initial username
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
@@ -68,6 +69,7 @@ const AccountSettings = () => {
       }
 
       form.reset({ username: data.user.username || "" });
+      setInitialUsername(data.user.username || ""); // Store initial username
       setEmail(data.user.email || "");
       setInitialAvatar(data.user.avatar || null);
     } catch (error) {
@@ -154,16 +156,16 @@ const AccountSettings = () => {
       if (result.user) {
         const updatedUser = result.user;
         form.reset({ username: updatedUser.username });
+        setInitialUsername(updatedUser.username); // Update initial username
         setEmail(updatedUser.email);
         setInitialAvatar(updatedUser.avatar || null);
 
-        // Update global storage with new user data and token if provided
         setAuthData({
           userId: updatedUser.id,
           userName: updatedUser.username,
           email: updatedUser.email,
-          accessToken: result.newToken || accessToken, // Use new token if provided, else keep existing
-          refreshToken: null, // Assuming no refresh token for now
+          accessToken: result.newToken || accessToken,
+          refreshToken: null,
           avatar: updatedUser.avatar || null,
         });
 
@@ -209,11 +211,13 @@ const AccountSettings = () => {
     }
   };
 
-  const handleCancelEdit = () => {
-    form.reset({ username: form.getValues("username") });
+  const handleCancelClick = () => {
+    form.reset({ username: initialUsername }); // Revert to initial username
     setIsEditing(false);
-    setImagePreview(null); // Reset preview to avoid confusion
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
 
     const userNameInput = document.querySelector("#username") as HTMLInputElement;
     if (userNameInput) {
@@ -353,7 +357,7 @@ const AccountSettings = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={handleCancelEdit}
+                    onClick={handleCancelClick} // Updated to use handleCancelClick
                     className="cursor-pointer rounded-[1vh] py-[1vh] px-[1vw] font-semibold text-[#000000] bg-[#CCCCCC] hover:bg-[#AAAAAA] transition-colors text-[2.25vw] md:text-[1.25vw]"
                   >
                     Cancel
@@ -401,11 +405,11 @@ const AccountSettings = () => {
       <button
         id="change-password-button"
         onClick={handleChangePassword}
-        className="max-w-[15vw] cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors"
+        className="max-w-[15vw] cursor-pointer border border-[#DCB968] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#DCB968] transition-colors"
         aria-label="Change password"
       >
-        <div className="text-[2.25vw] md:text-[1.25vw] text-center">
-          Change Password
+        <div className="text-[2rem] md:text-[1.25vw] text-center">
+          Change password
         </div>
       </button>
     </div>
