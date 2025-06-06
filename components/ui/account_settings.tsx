@@ -3,12 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { MdEmail } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
@@ -17,7 +12,9 @@ import { Label } from "@radix-ui/react-label";
 import { MdOutlineFileUpload } from "react-icons/md";
 import Image from "next/image";
 import styles from "@/css/profile.module.css";
-import { useGlobalStorage } from "@/components/GlobalStorage"; 
+import { useGlobalStorage } from "@/components/GlobalStorage";
+import axios from "axios";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   username: z.string().min(1, { message: "Username is required." }),
@@ -33,7 +30,7 @@ const AccountSettings = () => {
   const [loading, setLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { accessToken } = useGlobalStorage(); // Retrieve accessToken
+  const { accessToken } = useGlobalStorage();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -48,25 +45,23 @@ const AccountSettings = () => {
     const fetchProfile = async () => {
       if (!accessToken) {
         console.error("No access token found");
-        router.push("/sign_in"); // Redirect to sign-in if no token
+        router.push("/sign_in");
         return;
       }
 
       setLoading(true);
       try {
-        const response = await fetch("http://localhost:8080/users/profile", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`, // Add Authorization header
-          },
-        });
+        const response = await axios.get(
+          "http://localhost:8080/users/profile",
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch profile: ${response.statusText}`);
-        }
-
-        const data = await response.json();
+        const data = response.data;
 
         if (data.user) {
           form.reset({ username: data.user.username || "" });
@@ -75,7 +70,13 @@ const AccountSettings = () => {
           throw new Error("Invalid response data: 'user' field missing");
         }
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+          toast.error("Session expired. Please sign in again.");
+          router.push("/sign_in");
+        } else {
+          console.error("Error fetching profile:", error);
+          toast.error("Failed to fetch profile data");
+        }
       } finally {
         setLoading(false);
       }
@@ -89,6 +90,16 @@ const AccountSettings = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/svg+xml",
+      ];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error("Only JPG, PNG, WEBP, and SVG files are allowed.");
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -106,27 +117,27 @@ const AccountSettings = () => {
         formData.append("avatar", fileInputRef.current.files[0]);
       }
 
-      const response = await fetch("http://localhost:8080/users/profile", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: formData,
-      });
+      const response = await axios.put(
+        "http://localhost:8080/users/profile",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
-      const result = await response.json();
+      const result = response.data;
 
       if (result.success) {
         form.reset({ username: result.user.username });
         setIsEditing(false);
         setImagePreview(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
-      } else {
-        throw new Error(result.message || "Failed to update profile");
       }
-    } catch (error) {
-      console.error("Error updating profile:", error);
     } finally {
+      toast.success("Profile updated successfully");
+      router.push("/sign_in");
       setLoading(false);
     }
   };
@@ -211,7 +222,6 @@ const AccountSettings = () => {
                         id="username"
                         className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
                         autoComplete="off"
-                        onCanPlay={() => setIsMounted(true)}
                         {...field}
                       />
                     </div>
@@ -230,28 +240,40 @@ const AccountSettings = () => {
               </div>
             </div>
 
-            <div className="flex self-start gap-[1vw] ml-[5vw]">
+            <div className="flex flex-col self-start gap-[1vw] ml-[5vw]">
               {isEditing ? (
                 <>
                   <button
                     type="submit"
                     disabled={loading}
-                    onClick={() => router.push("/sign_in")}
                     className="cursor-pointer rounded-[1vh] py-[1vh] px-[1vw] font-semibold text-[#000000] bg-[#F7D27F] hover:bg-[#E9B654] transition-colors text-[2.25vw] md:text-[1.25vw]"
                   >
                     {loading ? "Saving..." : "Save"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      form.reset();
+                      setIsEditing(false);
+                      setImagePreview(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    className="cursor-pointer rounded-[1vh] py-[1vh] px-[1vw] font-semibold text-[#000000] bg-[#CCCCCC] hover:bg-[#AAAAAA] transition-colors text-[2.25vw] md:text-[1.25vw]"
+                  >
+                    Cancel
                   </button>
                 </>
               ) : (
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
                     setIsEditing(true);
                     const userNameInput = document.querySelector(
                       "#username"
                     ) as HTMLInputElement;
                     if (userNameInput) {
-                      userNameInput.disabled = false; // Enable all input fields
+                      userNameInput.disabled = false;
                       userNameInput.classList.remove(
                         "disabled:opacity-100",
                         "disabled:cursor-not-allowed"
@@ -274,132 +296,6 @@ const AccountSettings = () => {
           </div>
         </form>
       </Form>
-
-      {/* <div className="flex justify-between items-center m-[0.5rem] ml-0 mr-0">
-            <div className="font-bold text-[1.8rem]">Change Password</div>
-            <a href="" className="text-[#E9B654] text-[1.2rem] underline">
-              Forgot your password?
-            </a>
-          </div>
-
-          <FormField
-            control={form.control}
-            name="oldPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[2.5vw] md:text-[1.5vw]">
-                  Old Password
-                </FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <OldPassword
-                      placeholder="Enter your current password"
-                      {...field}
-                      className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
-                          rounded-[1.5vh]
-                          !text-[2.5vh] md:!text-[3vh] font-normal"
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage className="text-[2.5vh] text-red-500" />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[2.5vw] md:text-[1.5vw]">
-                  New Password
-                </FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <NewPassword
-                      placeholder="Enter your new password"
-                      {...field}
-                      className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
-                          rounded-[1.5vh]
-                          !text-[2.5vh] md:!text-[3vh] font-normal"
-                      onChange={(e) => {
-                        field.onChange(e);
-                        setPassword(e.target.value);
-                      }}
-                    />
-                  </div>
-                </FormControl>
-                <ul className="font-normal text-[2.5vh] rounded-md">
-                  <li
-                    className={isMinLength ? "text-green-500" : "text-gray-500"}
-                  >
-                    ✔ 8 characters minimum
-                  </li>
-                  <li
-                    className={
-                      hasUppercase ? "text-green-500" : "text-gray-500"
-                    }
-                  >
-                    ✔ At least 1 capital letter
-                  </li>
-                  <li
-                    className={hasNumber ? "text-green-500" : "text-gray-500"}
-                  >
-                    ✔ At least 1 digit
-                  </li>
-                  <li
-                    className={
-                      hasSpecialChar ? "text-green-500" : "text-gray-500"
-                    }
-                  >
-                    ✔ At least 1 special character
-                  </li>
-                </ul>
-                <FormMessage className="text-[2.5vh] text-red-500" />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="confirmPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[2.5vw] md:text-[1.5vw]">
-                  Confirm New Password
-                </FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <NewPasswordConfirm
-                      placeholder="Confirm your new password"
-                      {...field}
-                      className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
-                          rounded-[1.5vh]
-                          !text-[2.5vh] md:!text-[3vh] font-normal"
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage className="text-[2.5vh] text-red-500" />
-              </FormItem>
-            )}
-          /> */}
-
-      {/* <div className="flex items-center justify-end gap-[1vw]">
-            <Button
-              type="button"
-              className="w-[15vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-normal text-[3.5vh] py-[4vh] md:py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
-              onClick={() => router.push("/")} // Optional: Redirect or reset form
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-[15vw] bg-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#000000] font-normal text-[3.5vh] py-[4vh] md:py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
-            >
-              {loading ? "Saving..." : "Save"}
-            </Button>
-          </div> */}
 
       <div className="flex items-center mt-[4vh]">
         <Image

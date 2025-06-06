@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { FaFacebook } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { toast } from "sonner";
 import axios from "axios";
