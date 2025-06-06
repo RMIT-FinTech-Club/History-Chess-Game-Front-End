@@ -85,30 +85,28 @@ const ProfilePage = () => {
           isProfileOpened ? "md:top-[3vh]" : "md:top-[calc(-12vw-2px)]"
         } top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3vh] transition-all duration-300`}
       >
-        {profileMenu !== 2 && (
-          <Tooltip disableHoverableContent>
-            <TooltipTrigger asChild>
-              <div
-                ref={profileRef}
-                onClick={handleToggleProfile}
-                className={`absolute w-[calc(2vw-2px)] aspect-square left-[calc(100%-2vw)] bottom-[calc(-3vw)] cursor-pointer bg-[#1D1D1D] border border-solid border-white rounded-[50%] hidden md:flex justify-center items-center`}
-              >
-                <FontAwesomeIcon
-                  icon={faArrowUp}
-                  className={`${
-                    isProfileOpened ? "rotate-none" : "rotate-[180deg]"
-                  } text-[1vw]`}
-                />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent
-              side="bottom"
-              className="text-white bg-black rounded-lg px-2 py-1 shadow-lg"
+        <Tooltip disableHoverableContent>
+          <TooltipTrigger asChild>
+            <div
+              ref={profileRef}
+              onClick={handleToggleProfile}
+              className={`absolute w-[calc(2vw-2px)] aspect-square left-[calc(100%-2vw)] bottom-[calc(-3vw)] cursor-pointer bg-[#1D1D1D] border border-solid border-white rounded-[50%] hidden md:flex justify-center items-center`}
             >
-              {isProfileOpened ? "Close Profile" : "Open Profile"}
-            </TooltipContent>
-          </Tooltip>
-        )}
+              <FontAwesomeIcon
+                icon={faArrowUp}
+                className={`${
+                  isProfileOpened ? "rotate-none" : "rotate-[180deg]"
+                } text-[1vw]`}
+              />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent
+            side="bottom"
+            className="text-white bg-black rounded-lg px-2 py-1 shadow-lg"
+          >
+            {isProfileOpened ? "Close Profile" : "Open Profile"}
+          </TooltipContent>
+        </Tooltip>
 
         <div className="w-[35vw] md:w-[32vw] flex justify-between items-center">
           <div

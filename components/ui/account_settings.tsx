@@ -232,9 +232,9 @@ const AccountSettings = () => {
   };
 
   if (initialLoading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <p className="text-white text-xl">Loading profile...</p>
+        return (
+      <div className="min-h-screen flex items-center justify-center text-white font-poppins font-bold">
+        <p className="text-[3vh]">Loading Profile...</p>
       </div>
     );
   }
