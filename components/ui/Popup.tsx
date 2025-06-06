@@ -26,7 +26,9 @@ const Popup: React.FC<PopupProps> = ({ isOpen, onClose, title, children }) => {
             </button>
           </div>
         )}
-        <div className={styles.popupContent}>{children}</div>
+        <div className={styles.popupContent}>
+          {children}
+        </div>
       </div>
     </div>
   );

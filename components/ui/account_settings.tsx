@@ -15,6 +15,7 @@ import styles from "@/css/profile.module.css";
 import { useGlobalStorage } from "@/components/GlobalStorage";
 import axios from "axios";
 import { toast } from "sonner";
+import Popup from "@/components/ui/Popup";
 
 const formSchema = z.object({
   username: z.string().min(1, { message: "Username is required." }),
@@ -136,16 +137,17 @@ const AccountSettings = () => {
         setIsEditing(false);
         setImagePreview(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
+        toast.success(result.message || "Profile updated successfully");
+      } else {
+        toast.message(result.message || "Failed to update profile");
       }
+    } catch (error) {
+      console.error("Error updating profile:", error);
     } finally {
-      toast.success("Profile updated successfully");
-      // Consider if you really want to redirect to sign_in after a successful profile update.
-      // Usually, users remain on the profile page or are redirected to a dashboard.
       router.push("/sign_in");
       setLoading(false);
     }
   };
-
 
   const handleAvatarClick = () => {
     if (isEditing) {
@@ -154,13 +156,15 @@ const AccountSettings = () => {
   };
 
   const handleCancelEdit = () => {
-    form.reset(); 
+    form.reset();
     setIsEditing(false);
     setImagePreview(null); // Clear image preview
     if (fileInputRef.current) fileInputRef.current.value = ""; // Clear file input value
 
     // Re-disable the username input and reset its styling
-    const userNameInput = document.querySelector("#username") as HTMLInputElement;
+    const userNameInput = document.querySelector(
+      "#username"
+    ) as HTMLInputElement;
     if (userNameInput) {
       userNameInput.disabled = true;
       userNameInput.classList.add(
@@ -176,7 +180,9 @@ const AccountSettings = () => {
     setIsEditing(true);
 
     // Enable the username input and adjust its styling
-    const userNameInput = document.querySelector("#username") as HTMLInputElement;
+    const userNameInput = document.querySelector(
+      "#username"
+    ) as HTMLInputElement;
     if (userNameInput) {
       userNameInput.disabled = false;
       userNameInput.classList.remove(
@@ -347,11 +353,14 @@ const AccountSettings = () => {
         the new ones to successfully change your password.
       </div>
 
-      <div className="max-w-[15vw] cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors">
+      <button
+        id="change-password-button"
+        className="max-w-[15vw] cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors"
+      >
         <div className="text-[2.25vw] md:text-[1.25vw] text-center">
           Change Password
         </div>
-      </div>
+      </button>
     </div>
   );
 };
