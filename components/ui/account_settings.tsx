@@ -28,6 +28,7 @@ const AccountSettings = () => {
   const [email, setEmail] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { accessToken } = useGlobalStorage();
@@ -46,10 +47,11 @@ const AccountSettings = () => {
       if (!accessToken) {
         console.error("No access token found");
         router.push("/sign_in");
+        setInitialLoading(false);
         return;
       }
 
-      setLoading(true);
+      setInitialLoading(true);
       try {
         const response = await axios.get(
           "http://localhost:8080/users/profile",
@@ -78,7 +80,7 @@ const AccountSettings = () => {
           toast.error("Failed to fetch profile data");
         }
       } finally {
-        setLoading(false);
+        setInitialLoading(false);
       }
     };
     fetchProfile();
@@ -137,10 +139,62 @@ const AccountSettings = () => {
       }
     } finally {
       toast.success("Profile updated successfully");
+      // Consider if you really want to redirect to sign_in after a successful profile update.
+      // Usually, users remain on the profile page or are redirected to a dashboard.
       router.push("/sign_in");
       setLoading(false);
     }
   };
+
+
+  const handleAvatarClick = () => {
+    if (isEditing) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleCancelEdit = () => {
+    form.reset(); 
+    setIsEditing(false);
+    setImagePreview(null); // Clear image preview
+    if (fileInputRef.current) fileInputRef.current.value = ""; // Clear file input value
+
+    // Re-disable the username input and reset its styling
+    const userNameInput = document.querySelector("#username") as HTMLInputElement;
+    if (userNameInput) {
+      userNameInput.disabled = true;
+      userNameInput.classList.add(
+        "disabled:opacity-100",
+        "disabled:cursor-not-allowed"
+      );
+      userNameInput.classList.remove("text-black");
+    }
+  };
+
+  const handleEditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Prevent default form submission
+    setIsEditing(true);
+
+    // Enable the username input and adjust its styling
+    const userNameInput = document.querySelector("#username") as HTMLInputElement;
+    if (userNameInput) {
+      userNameInput.disabled = false;
+      userNameInput.classList.remove(
+        "disabled:opacity-100",
+        "disabled:cursor-not-allowed"
+      );
+      userNameInput.classList.add("text-black");
+      userNameInput.focus(); // Focus on the input for immediate editing
+    }
+  };
+
+  if (initialLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <p className="text-white text-xl">Loading profile...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full">
@@ -169,11 +223,7 @@ const AccountSettings = () => {
               className={`md:w-[8vw] md:aspect-square w-[14vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative ${
                 isEditing ? "cursor-pointer" : "cursor-not-allowed"
               }`}
-              onClick={() => {
-                if (isEditing) {
-                  fileInputRef.current?.click();
-                }
-              }}
+              onClick={handleAvatarClick}
             >
               {imagePreview ? (
                 <Image
@@ -252,12 +302,7 @@ const AccountSettings = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      form.reset();
-                      setIsEditing(false);
-                      setImagePreview(null);
-                      if (fileInputRef.current) fileInputRef.current.value = "";
-                    }}
+                    onClick={handleCancelEdit}
                     className="cursor-pointer rounded-[1vh] py-[1vh] px-[1vw] font-semibold text-[#000000] bg-[#CCCCCC] hover:bg-[#AAAAAA] transition-colors text-[2.25vw] md:text-[1.25vw]"
                   >
                     Cancel
@@ -266,22 +311,7 @@ const AccountSettings = () => {
               ) : (
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsEditing(true);
-                    const userNameInput = document.querySelector(
-                      "#username"
-                    ) as HTMLInputElement;
-                    if (userNameInput) {
-                      userNameInput.disabled = false;
-                      userNameInput.classList.remove(
-                        "disabled:opacity-100",
-                        "disabled:cursor-not-allowed"
-                      );
-                      userNameInput.classList.add("text-black");
-                      userNameInput.focus();
-                    }
-                  }}
+                  onClick={handleEditClick}
                   className="flex items-center gap-2 cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors"
                 >
                   <span className="text-[2.25vw] md:text-[1.25vw]">Edit</span>
