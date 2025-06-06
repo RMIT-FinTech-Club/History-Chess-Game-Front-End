@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -13,9 +13,11 @@ import { MdOutlineFileUpload } from "react-icons/md";
 import Image from "next/image";
 import styles from "@/css/profile.module.css";
 import { useGlobalStorage } from "@/components/GlobalStorage";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import Popup from "@/components/ui/Popup";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit
 
 const formSchema = z.object({
   username: z.string().min(1, { message: "Username is required." }),
@@ -28,11 +30,12 @@ const AccountSettings = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [email, setEmail] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [initialAvatar, setInitialAvatar] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { accessToken } = useGlobalStorage();
+  const { accessToken, setAuthData } = useGlobalStorage();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -41,77 +44,94 @@ const AccountSettings = () => {
     },
   });
 
-  useEffect(() => {
-    setIsMounted(true);
+  const fetchProfile = useCallback(async () => {
+    if (!accessToken) {
+      console.error("No access token found");
+      toast.error("Authentication required. Please sign in.");
+      router.push("/sign_in");
+      setInitialLoading(false);
+      return;
+    }
 
-    const fetchProfile = async () => {
-      if (!accessToken) {
-        console.error("No access token found");
-        router.push("/sign_in");
-        setInitialLoading(false);
-        return;
+    setInitialLoading(true);
+    try {
+      const response = await axios.get("http://localhost:8080/users/profile", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      const data = response.data;
+      if (!data?.user) {
+        throw new Error("Invalid response data: 'user' field missing");
       }
 
-      setInitialLoading(true);
-      try {
-        const response = await axios.get(
-          "http://localhost:8080/users/profile",
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        const data = response.data;
-
-        if (data.user) {
-          form.reset({ username: data.user.username || "" });
-          setEmail(data.user.email || "");
-        } else {
-          throw new Error("Invalid response data: 'user' field missing");
-        }
-      } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 401) {
+      form.reset({ username: data.user.username || "" });
+      setEmail(data.user.email || "");
+      setInitialAvatar(data.user.avatar || null);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
           toast.error("Session expired. Please sign in again.");
           router.push("/sign_in");
         } else {
-          console.error("Error fetching profile:", error);
-          toast.error("Failed to fetch profile data");
+          toast.error(
+            error.response?.data?.message || "Failed to fetch profile data"
+          );
         }
-      } finally {
-        setInitialLoading(false);
+      } else {
+        console.error("Error fetching profile:", error);
+        toast.error("An unexpected error occurred while fetching profile");
       }
-    };
-    fetchProfile();
+    } finally {
+      if (isMounted) setInitialLoading(false);
+    }
+  }, [accessToken, form, router, isMounted]);
+
+  useEffect(() => {
+    setIsMounted(true);
+    const controller = new AbortController();
+
+    fetchProfile().catch((error) =>
+      console.error("Fetch profile failed:", error)
+    );
+
     return () => {
       setIsMounted(false);
+      controller.abort();
     };
-  }, [form, accessToken, router]);
+  }, [fetchProfile]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const allowedTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-        "image/svg+xml",
-      ];
-      if (!allowedTypes.includes(file.type)) {
-        toast.error("Only JPG, PNG, WEBP, and SVG files are allowed.");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only JPG, PNG, WEBP, and SVG files are allowed.");
+      return;
     }
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File size exceeds 5MB limit.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (isMounted) setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const onSubmit = async (data: FormValues) => {
+    if (!accessToken) {
+      toast.error("Authentication required. Please sign in.");
+      router.push("/sign_in");
+      return;
+    }
+
     setLoading(true);
     try {
       const formData = new FormData();
@@ -131,20 +151,41 @@ const AccountSettings = () => {
       );
 
       const result = response.data;
+      if (result.user) {
+        const updatedUser = result.user;
+        form.reset({ username: updatedUser.username });
+        setEmail(updatedUser.email);
+        setInitialAvatar(updatedUser.avatar || null);
 
-      if (result.success) {
-        form.reset({ username: result.user.username });
+        // Update global storage with new user data and token if provided
+        setAuthData({
+          userId: updatedUser.id,
+          userName: updatedUser.username,
+          email: updatedUser.email,
+          accessToken: result.newToken || accessToken, // Use new token if provided, else keep existing
+          refreshToken: null, // Assuming no refresh token for now
+          avatar: updatedUser.avatar || null,
+        });
+
         setIsEditing(false);
         setImagePreview(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
-        toast.success(result.message || "Profile updated successfully");
+        toast.success("Profile updated successfully");
       } else {
-        toast.message(result.message || "Failed to update profile");
+        toast.error("Failed to update profile");
       }
     } catch (error) {
-      console.error("Error updating profile:", error);
+      if (axios.isAxiosError(error)) {
+        const err = error as AxiosError<{ message?: string }>;
+        toast.error(
+          err.response?.data?.message ||
+            "Failed to update profile. Please try again."
+        );
+      } else {
+        console.error("Error updating profile:", error);
+        toast.error("An unexpected error occurred while updating profile");
+      }
     } finally {
-      router.push("/sign_in");
       setLoading(false);
     }
   };
@@ -155,43 +196,35 @@ const AccountSettings = () => {
     }
   };
 
-  const handleCancelEdit = () => {
-    form.reset();
-    setIsEditing(false);
-    setImagePreview(null); // Clear image preview
-    if (fileInputRef.current) fileInputRef.current.value = ""; // Clear file input value
+  const handleEditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setIsEditing(true);
 
-    // Re-disable the username input and reset its styling
-    const userNameInput = document.querySelector(
-      "#username"
-    ) as HTMLInputElement;
+    const userNameInput = document.querySelector("#username") as HTMLInputElement;
+    if (userNameInput) {
+      userNameInput.disabled = false;
+      userNameInput.classList.remove("disabled:opacity-100", "disabled:cursor-not-allowed");
+      userNameInput.classList.add("text-black");
+      userNameInput.focus();
+    }
+  };
+
+  const handleCancelEdit = () => {
+    form.reset({ username: form.getValues("username") });
+    setIsEditing(false);
+    setImagePreview(null); // Reset preview to avoid confusion
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    const userNameInput = document.querySelector("#username") as HTMLInputElement;
     if (userNameInput) {
       userNameInput.disabled = true;
-      userNameInput.classList.add(
-        "disabled:opacity-100",
-        "disabled:cursor-not-allowed"
-      );
+      userNameInput.classList.add("disabled:opacity-100", "disabled:cursor-not-allowed");
       userNameInput.classList.remove("text-black");
     }
   };
 
-  const handleEditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault(); // Prevent default form submission
-    setIsEditing(true);
-
-    // Enable the username input and adjust its styling
-    const userNameInput = document.querySelector(
-      "#username"
-    ) as HTMLInputElement;
-    if (userNameInput) {
-      userNameInput.disabled = false;
-      userNameInput.classList.remove(
-        "disabled:opacity-100",
-        "disabled:cursor-not-allowed"
-      );
-      userNameInput.classList.add("text-black");
-      userNameInput.focus(); // Focus on the input for immediate editing
-    }
+  const handleChangePassword = () => {
+    toast.info("Password change functionality coming soon!");
   };
 
   if (initialLoading) {
@@ -230,18 +263,25 @@ const AccountSettings = () => {
                 isEditing ? "cursor-pointer" : "cursor-not-allowed"
               }`}
               onClick={handleAvatarClick}
+              role="button"
+              aria-label={isEditing ? "Upload new avatar" : "Avatar display"}
             >
-              {imagePreview ? (
+              {isEditing && imagePreview ? (
                 <Image
                   src={imagePreview}
                   alt="Uploaded avatar"
                   width={0}
                   height={0}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  className="rounded-md"
+                />
+              ) : initialAvatar ? (
+                <Image
+                  src={initialAvatar}
+                  alt="Current avatar"
+                  width={0}
+                  height={0}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   className="rounded-md"
                 />
               ) : (
@@ -251,11 +291,12 @@ const AccountSettings = () => {
               )}
               <input
                 type="file"
-                accept=".jpg,.png,.webp,.svg"
+                accept="image/jpeg,image/png,image/webp,image/svg+xml"
                 ref={fileInputRef}
                 onChange={handleImageChange}
                 className="hidden"
                 disabled={!isEditing}
+                aria-hidden={!isEditing}
               />
             </div>
 
@@ -274,10 +315,11 @@ const AccountSettings = () => {
                     <div className="relative w-[55vw] md:w-[25vw]">
                       <FaUser className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[2.5vh] pointer-events-none" />
                       <Input
-                        disabled={!isEditing}
                         id="username"
+                        disabled={!isEditing}
                         className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
                         autoComplete="off"
+                        aria-disabled={!isEditing}
                         {...field}
                       />
                     </div>
@@ -291,7 +333,9 @@ const AccountSettings = () => {
                 <Input
                   disabled
                   value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                  aria-disabled="true"
                 />
               </div>
             </div>
@@ -302,7 +346,8 @@ const AccountSettings = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="cursor-pointer rounded-[1vh] py-[1vh] px-[1vw] font-semibold text-[#000000] bg-[#F7D27F] hover:bg-[#E9B654] transition-colors text-[2.25vw] md:text-[1.25vw]"
+                    className="cursor-pointer rounded-[1vh] py-[1vh] px-[1vw] font-semibold text-[#000000] bg-[#F7D27F] hover:bg-[#E9B654] transition-colors text-[2.25vw] md:text-[1.25vw] disabled:opacity-50"
+                    aria-busy={loading}
                   >
                     {loading ? "Saving..." : "Save"}
                   </button>
@@ -355,7 +400,9 @@ const AccountSettings = () => {
 
       <button
         id="change-password-button"
+        onClick={handleChangePassword}
         className="max-w-[15vw] cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors"
+        aria-label="Change password"
       >
         <div className="text-[2.25vw] md:text-[1.25vw] text-center">
           Change Password
