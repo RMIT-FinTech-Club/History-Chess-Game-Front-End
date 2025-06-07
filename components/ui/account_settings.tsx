@@ -3,7 +3,6 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { MdEmail } from "react-icons/md";
 import { FaUser } from "react-icons/fa";
@@ -16,6 +15,17 @@ import { useGlobalStorage } from "@/components/GlobalStorage";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import Popup from "@/components/ui/Popup";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { OldPassword } from "@/components/ui/OldPassword";
+import { NewPassword } from "@/components/ui/NewPassword";
+import { NewPasswordConfirm } from "@/components/ui/NewPasswordConfirm";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit
 
@@ -25,16 +35,46 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+
+const passwordFormSchema = z
+  .object({
+    oldPassword: z.string(),
+    password: z
+      .string()
+      .min(1, { message: "Please enter your password." })
+      .min(8, { message: "Password must be at least 8 characters." })
+      .refine((value) => /[A-Z]/.test(value), {
+        message: "Password must contain at least one uppercase letter.",
+      })
+      .refine((value) => /[0-9]/.test(value), {
+        message: "Password must contain at least one number.",
+      })
+      .refine((value) => /[^A-Za-z0-9]/.test(value), {
+        message: "Password must contain at least one special character.",
+      }),
+    confirmPassword: z
+      .string()
+      .min(1, { message: "Please confirm your password." }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
+
+type PasswordFormValues = z.infer<typeof passwordFormSchema>;
+
 const AccountSettings = () => {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [initialAvatar, setInitialAvatar] = useState<string | null>(null);
   const [initialUsername, setInitialUsername] = useState<string>(""); // New state for initial username
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [isPasswordPopupOpen, setIsPasswordPopupOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { accessToken, setAuthData } = useGlobalStorage();
 
@@ -42,6 +82,15 @@ const AccountSettings = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: "",
+    },
+  });
+
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordFormSchema),
+    defaultValues: {
+      oldPassword: "",
+      password: "",
+      confirmPassword: "",
     },
   });
 
@@ -109,9 +158,17 @@ const AccountSettings = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Only JPG, PNG, WEBP, and SVG files are allowed.");
+    // Validate file type
+    const validTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/svg+xml",
+    ];
+    if (!validTypes.includes(file.type)) {
+      toast.error(
+        "Invalid file type. Please upload a JPEG, PNG, WEBP, or SVG image."
+      );
       return;
     }
 
@@ -153,6 +210,14 @@ const AccountSettings = () => {
       );
 
       const result = response.data;
+      if (!result.newToken) {
+        console.error("No new token returned from server");
+        toast.error("Profile update succeeded, but no new token received");
+      }
+
+      // Always update the accessToken if a new one is provided
+      const newAccessToken = result.newToken || accessToken;
+
       if (result.user) {
         const updatedUser = result.user;
         form.reset({ username: updatedUser.username });
@@ -164,7 +229,7 @@ const AccountSettings = () => {
           userId: updatedUser.id,
           userName: updatedUser.username,
           email: updatedUser.email,
-          accessToken: result.newToken || accessToken,
+          accessToken: newAccessToken,
           refreshToken: null,
           avatar: updatedUser.avatar || null,
         });
@@ -174,7 +239,18 @@ const AccountSettings = () => {
         if (fileInputRef.current) fileInputRef.current.value = "";
         toast.success("Profile updated successfully");
       } else {
-        toast.error("Failed to update profile");
+        // Even if profile update fails (no result.user), update accessToken
+        setAuthData({
+          userId: "",
+          userName: "",
+          email: "",
+          accessToken: newAccessToken,
+          refreshToken: null,
+          avatar: null,
+        });
+        toast.error(
+          "Failed to update profile data, but token may have been updated"
+        );
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -192,6 +268,40 @@ const AccountSettings = () => {
     }
   };
 
+   const isMinLength = password.length >= 8;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
+
+  const onPasswordSubmit = async (data: PasswordFormValues) => {
+    setLoading(true);
+    try {
+      const passwordFormData = new FormData();
+      passwordFormData.append("oldPassword", data.oldPassword);
+      if (data.password) passwordFormData.append("password", data.password);
+      if (data.confirmPassword)
+        passwordFormData.append("confirmPassword", data.confirmPassword);
+
+      const response = await fetch("http://localhost:8000/api/users/profile", {
+        method: "PUT",
+        body: passwordFormData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        passwordForm.setValue("oldPassword", "");
+        passwordForm.setValue("password", "");
+        passwordForm.setValue("confirmPassword", "");
+        setPassword("");
+      } else {
+        throw new Error(result.message || "Failed to update password");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const handleAvatarClick = () => {
     if (isEditing) {
       fileInputRef.current?.click();
@@ -202,10 +312,15 @@ const AccountSettings = () => {
     e.preventDefault();
     setIsEditing(true);
 
-    const userNameInput = document.querySelector("#username") as HTMLInputElement;
+    const userNameInput = document.querySelector(
+      "#username"
+    ) as HTMLInputElement;
     if (userNameInput) {
       userNameInput.disabled = false;
-      userNameInput.classList.remove("disabled:opacity-100", "disabled:cursor-not-allowed");
+      userNameInput.classList.remove(
+        "disabled:opacity-100",
+        "disabled:cursor-not-allowed"
+      );
       userNameInput.classList.add("text-black");
       userNameInput.focus();
     }
@@ -219,20 +334,43 @@ const AccountSettings = () => {
       fileInputRef.current.value = "";
     }
 
-    const userNameInput = document.querySelector("#username") as HTMLInputElement;
+    const userNameInput = document.querySelector(
+      "#username"
+    ) as HTMLInputElement;
     if (userNameInput) {
       userNameInput.disabled = true;
-      userNameInput.classList.add("disabled:opacity-100", "disabled:cursor-not-allowed");
+      userNameInput.classList.add(
+        "disabled:opacity-100",
+        "disabled:cursor-not-allowed"
+      );
       userNameInput.classList.remove("text-black");
     }
   };
 
   const handleChangePassword = () => {
-    toast.info("Password change functionality coming soon!");
+    setIsPasswordPopupOpen(true);
   };
 
+  const handleClosePasswordPopup = () => {
+    setIsPasswordPopupOpen(false);
+    passwordForm.reset();
+  };
+
+  // Ensure axios always uses the latest token
+  useEffect(() => {
+    const interceptor = axios.interceptors.request.use((config) => {
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+      }
+      return config;
+    });
+    return () => {
+      axios.interceptors.request.eject(interceptor);
+    };
+  }, [accessToken]);
+
   if (initialLoading) {
-        return (
+    return (
       <div className="min-h-screen flex items-center justify-center text-white font-poppins font-bold">
         <p className="text-[3vh]">Loading Profile...</p>
       </div>
@@ -412,6 +550,145 @@ const AccountSettings = () => {
           Change password
         </div>
       </button>
+
+      <Popup
+        isOpen={isPasswordPopupOpen}
+        onClose={handleClosePasswordPopup}
+        title="Change Password"
+      >
+        <div className="text-[#71717A] text-[2vw] md:text-[1.3vw]">
+          Make changes to your password here. Click save when you’re done.
+        </div>
+
+        <Form {...passwordForm}>
+          <form
+            onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
+            className="flex flex-col gap-4"
+          >
+            <FormField
+              control={passwordForm.control}
+              name="oldPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[#FFFFFF] text-[2vw] md:text-[1.1vw] mt-[2vh]">
+                    Old Password
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <OldPassword
+                        placeholder="Enter your current password"
+                        {...field}
+                        className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
+                          rounded-[1.5vh]
+                          !text-[2.5vh] md:!text-[3vh] font-normal"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-[2.5vh] text-red-500" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={passwordForm.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[#FFFFFF] text-[2vw] md:text-[1.1vw]">
+                    New Password
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <NewPassword
+                        placeholder="Enter your new password"
+                        {...field}
+                        className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
+                          rounded-[1.5vh]
+                          !text-[2.5vh] md:!text-[3vh] font-normal"
+                        onChange={(e) => {
+                          field.onChange(e);
+                          setPassword(e.target.value);
+                        }}
+                      />
+                    </div>
+                  </FormControl>
+                  <ul className="font-normal text-[2.5vh] rounded-md">
+                    <li
+                      className={
+                        isMinLength ? "text-green-500" : "text-gray-500"
+                      }
+                    >
+                      ✔ 8 characters minimum
+                    </li>
+                    <li
+                      className={
+                        hasUppercase ? "text-green-500" : "text-gray-500"
+                      }
+                    >
+                      ✔ At least 1 capital letter
+                    </li>
+                    <li
+                      className={hasNumber ? "text-green-500" : "text-gray-500"}
+                    >
+                      ✔ At least 1 digit
+                    </li>
+                    <li
+                      className={
+                        hasSpecialChar ? "text-green-500" : "text-gray-500"
+                      }
+                    >
+                      ✔ At least 1 special character
+                    </li>
+                  </ul>
+                  <FormMessage className="text-[2.5vh] text-red-500" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={passwordForm.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[#FFFFFF] text-[2vw] md:text-[1.1vw]">
+                    Confirm New Password
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <NewPasswordConfirm
+                        placeholder="Confirm your new password"
+                        {...field}
+                        className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
+                          rounded-[1.5vh]
+                          !text-[2.5vh] md:!text-[3vh] font-normal"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-[2.5vh] text-red-500" />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-4 mt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="cursor-pointer rounded-[1vh] py-[1vh] px-[1vw] font-semibold text-[#000000] bg-[#F7D27F] hover:bg-[#E9B654] transition-colors text-[2.25vw] md:text-[1.25vw] disabled:opacity-50"
+                aria-busy={loading}
+              >
+                {loading ? "Saving..." : "Save"}
+              </button>
+              <button
+                type="button"
+                onClick={handleClosePasswordPopup}
+                className="cursor-pointer rounded-[1vh] py-[1vh] px-[1vw] font-semibold text-[#000000] bg-[#CCCCCC] hover:bg-[#AAAAAA] transition-colors text-[2.25vw] md:text-[1.25vw]"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Form>
+      </Popup>
     </div>
   );
 };
