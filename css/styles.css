@@ -1,0 +1,36 @@
+@media screen and (min-width: 768px) {
+    html {
+        font-size: 1vw;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    html {
+        font-size: 1vh;
+    }
+}
+
+body {
+    background-color: #151515;
+    background-image:
+        repeating-linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px,
+            transparent 10vw
+        ),
+        repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px,
+            transparent 10vw
+        );
+    background-size: 10vw 10vw;
+    background-position: -5vw -5vw;
+}
+
+.blur {
+    filter: blur(200px);
+}

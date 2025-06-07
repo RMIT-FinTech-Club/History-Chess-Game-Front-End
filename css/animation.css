@@ -1,0 +1,57 @@
+@supports (animation-timeline: view()) {
+    @keyframes auto-blur {
+        0% {
+            filter: blur(40px);
+        }
+
+        35%,
+        65% {
+            filter: blur(0);
+        }
+
+        100% {
+            filter: blur(40px);
+        }
+    }
+
+    @keyframes color-text {
+        to {
+            background-size: 100% 100%;
+        }
+    }
+
+    @keyframes paint-text {
+        to {
+            left: 100%;
+            visibility: hidden;
+        }
+    }
+
+    @keyframes fade-in {
+        to {
+            scale: 1;
+            opacity: 1;
+        }
+    }
+
+    .auto-blur-animation {
+        animation: auto-blur linear both;
+        animation-timeline: view();
+    }
+
+    .line-animation {
+        animation: paint-text linear forwards;
+        animation-timeline: view();
+    }
+
+    .text-animation {
+        animation: color-text linear forwards;
+        animation-timeline: view();
+    }
+
+    .fade-in-animation {
+        animation: fade-in linear forwards;
+        animation-timeline: view();
+        animation-range: entry;
+    }
+}

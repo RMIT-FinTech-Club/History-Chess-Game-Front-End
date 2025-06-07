@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "../css/styles.css";
 import { ThemeProvider } from "@/src/components/ThemeProvider";
 import { Toaster } from "sonner";
+import ClientWrapper from "@/components/ui/ClientWrapper"; // Import the client component
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="light" style={{colorScheme:"light"}}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -36,7 +38,7 @@ export default function RootLayout({
           disableTransitionOnChange={true}
         >
           <Toaster richColors position="top-center" />
-          {children}
+          <ClientWrapper>{children}</ClientWrapper> {/* Use the client component */}
         </ThemeProvider>
       </body>
     </html>
