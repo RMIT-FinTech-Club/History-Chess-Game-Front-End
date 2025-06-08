@@ -23,6 +23,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       }, [setAuthData])
 
     const noFooterRoutes = [
+        '/challenge',
         '/loadout',
         '/players',
         '/profile',

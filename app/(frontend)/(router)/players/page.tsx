@@ -2,6 +2,7 @@
 
 import styles from "@/css/players.module.css"
 import Chevron from "@/public/players/chevron"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import axios from "axios"
 
@@ -14,6 +15,8 @@ interface Players {
 }
 
 export default function PlayerList() {
+  const router = useRouter()
+
   const [showFilter, setShowFilter] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState("Highest")
   const [players, setPlayers] = useState<Players[]>([])
@@ -128,7 +131,12 @@ export default function PlayerList() {
                   <p className="font-bold text-[1.3rem]">{user.rank}</p>
                 </div>
                 <div className="w-[30%] h-full flex justify-start items-center">
-                  <p className={`sm:ml-[1vw] ml-0 text-[1.4rem] sm:text-[2rem] text-[#EEFF07] cursor-pointer relative font-bold ${styles.challenge}`}>Challenge</p>
+                  <p
+                    className={`sm:ml-[1vw] ml-0 text-[1.4rem] sm:text-[2rem] text-[#EEFF07] cursor-pointer relative font-bold ${styles.challenge}`}
+                    onClick={() => router.push(`/challenge?player=${encodeURIComponent(user.username)}`)}
+                  >
+                    Challenge
+                  </p>
                 </div>
               </div>
             </div>
