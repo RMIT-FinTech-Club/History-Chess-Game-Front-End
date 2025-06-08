@@ -335,7 +335,7 @@ const ResetPassword = () => {
             ? ""
             : step === "password"
             ? "Reset Password"
-            : "Google Account"}
+            : "Google Sign In"}
         </h2>
         {step === "email" && (
           <Form {...emailForm}>
@@ -528,10 +528,9 @@ const ResetPassword = () => {
           </Form>
         )}
         {step === "google" && (
-          <div>
-            <p className="text-[2.5vh] text-[#C4C4C4] font-normal bg-[#2F2F2F] p-[2vh] rounded-[1.5vh]">
-              This account uses Google login. To reset your password, use
-              Google’s account recovery process at{" "}
+          <div className="w-[50vw] flex flex-col items-center justify-center">
+            <p className="text-white text-[2.5vw] text-center md:text-[1.5vw] my-[5vh] bg-[#2F2F2F] p-[2vh] rounded-[1.5vh]">
+              To reset your password, use Google’s account recovery process at{" "}
               <a
                 href="https://myaccount.google.com/security"
                 target="_blank"
@@ -544,7 +543,7 @@ const ResetPassword = () => {
             </p>
             <Button
               onClick={() => router.push("/sign_in")}
-              className="w-full bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+              className="w-[20vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
             >
               Back to Sign In
             </Button>
