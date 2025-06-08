@@ -1,322 +1,313 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Chessboard } from "react-chessboard";
-import "@/css/chessboard.css";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { CapturedPieces } from "@/components/CapturedPieces";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useOnlineGame } from "@/hooks/useOnlineGame";
+import { toast } from "sonner";
+import "@/css/chessboard.css";
+import YellowLight from "@/components/ui/YellowLight";
 
-function formatTime(ms?: number) {
-  if (typeof ms !== "number") return "-";
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+interface TimeControlOption {
+  label: string;
+  value: string;
+  time: number;
+  increment?: number;
 }
 
-const OnlineGamePage: React.FC = () => {
-  // User/game state
-  const [userId, setUserId] = useState("");
-  const [username, setUsername] = useState("");
-  const [gameIdInput, setGameIdInput] = useState("");
-  const [moveInput, setMoveInput] = useState("");
-  const [showOptions, setShowOptions] = useState(false);
+const timeControls = {
+  bullet: [
+    { label: "Bullet", value: "bullet", time: 60 },
+  ],
+  blitz: [
+    { label: "Blitz", value: "blitz", time: 180 },
+    ],
+  rapid: [
+    { label: "Rapid", value: "rapid", time: 600 },
+  ],
+};
 
-  // Online game hook
-  const {
-    gameState,
-    isConnected,
-    gameId,
-    message,
-    setMessage,
-    opponentId,
-    setOpponentId,
-    gameLink,
-    joinGame,
-    sendMove,
-    createGame,
-    findMatch,
-    challengeUser,
+const OnlinePage: React.FC = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [userId, setUserId] = useState("");
+  const [selectedTimeControl, setSelectedTimeControl] = useState<TimeControlOption>(
+    timeControls.blitz[0] 
+  );
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Check if there's a gameId in URL params to join directly
+  const gameIdFromUrl = searchParams.get("gameId");
+
+  const { 
+    findMatch, 
+    joinGame, 
+    isConnected, 
+    gameId, 
+    gameState, 
+    message 
   } = useOnlineGame({ userId });
 
-  // Board orientation: show from player's color if possible
-  const boardOrientation = useMemo<"white" | "black">(() => {
-    if (gameState?.players && userId) {
-      const idx = gameState.players.indexOf(userId);
-      return idx === 1 ? "black" : "white";
-    }
-    return "white";
-  }, [gameState?.players, userId]);
-
-  // Captured pieces (simple, based on FEN diff)
-  const [capturedWhite, setCapturedWhite] = useState<string[]>([]);
-  const [capturedBlack, setCapturedBlack] = useState<string[]>([]);
-
+  // Load userId from localStorage
   useEffect(() => {
-    // Reset captured pieces on new game
-    setCapturedWhite([]);
-    setCapturedBlack([]);
-  }, [gameState?.fen]);
-
-  // Chessboard move handler
-  const handleDrop = useCallback(
-    (sourceSquare: string, targetSquare: string) => {
-      if (!gameState || gameState.gameOver) return false;
-      // Only allow move if it's your turn
-      const isWhiteTurn = gameState.turn === "w";
-      const isPlayerWhite =
-        gameState.players && gameState.players[0] === userId;
-      if (
-        (isWhiteTurn && !isPlayerWhite) ||
-        (!isWhiteTurn && isPlayerWhite)
-      ) {
-        toast.error("Not your turn", { duration: 1000 });
-        return false;
+    const storedUserId = localStorage.getItem("chess_user_id");
+    if (storedUserId) {
+      setUserId(storedUserId);
+    } else {
+      // Prompt for user ID if not found
+      const newUserId = prompt("Please enter your User ID:");
+      if (newUserId) {
+        setUserId(newUserId);
+        localStorage.setItem("chess_user_id", newUserId);
       }
-      // Send move in UCI format (e.g., "e2e4")
-      const move = `${sourceSquare}${targetSquare}`;
-      sendMove(move);
-      return true;
-    },
-    [gameState, userId, sendMove]
+    }
+  }, []);
+
+  // Auto-join game if gameId in URL
+  useEffect(() => {
+    if (gameIdFromUrl && userId && isConnected) {
+      joinGame(gameIdFromUrl);
+    }
+  }, [gameIdFromUrl, userId, isConnected, joinGame]);
+
+  // Redirect to play page when game is active
+  useEffect(() => {
+    if (gameId && gameState) {
+      router.push(`/game/online/play?gameId=${gameId}`);
+    }
+  }, [gameId, gameState, router]);
+
+  const handleFindMatch = useCallback(async () => {
+    if (!userId) {
+      toast.error("Please provide a User ID first");
+      return;
+    }
+
+    if (!isConnected) {
+      toast.error("Not connected to server");
+      return;
+    }
+
+    setIsSearching(true);
+    
+    try {
+      await findMatch(selectedTimeControl.value, "random");
+      toast.success("Searching for match...");
+    } catch {
+      toast.error("Failed to start matchmaking");
+      setIsSearching(false);
+    }
+  }, [userId, isConnected, selectedTimeControl, findMatch]);
+
+  const TimeControlButton: React.FC<{ 
+    option: TimeControlOption; 
+    isSelected: boolean; 
+    onClick: () => void;
+  }> = ({ option, isSelected, onClick }) => (
+    <Button
+      variant={isSelected ? "default" : "outline"}
+      className={`h-12 min-w-[80px] text-sm font-medium transition-all ${
+        isSelected 
+          ? "bg-[#F7D27F] text-black hover:bg-[#E6C26E] border-[#F7D27F]" 
+          : "bg-[#3B3433] text-white border-[#5A524F] hover:bg-[#4A4443] hover:border-[#F7D27F]"
+      }`}
+      onClick={onClick}
+    >
+      <div className="flex items-center gap-1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+        {option.label}
+      </div>
+    </Button>
   );
 
-  // Manual move input (for debugging or SAN moves)
-  const handleManualMove = () => {
-    if (!moveInput) return;
-    sendMove(moveInput);
-    setMoveInput("");
-  };
-
-  // Move history rendering
-  const moveHistory = gameState?.moves || [];
-
-  return (
-    <div className="flex flex-col items-center w-full py-1 px-2 md:px-4 justify-between">
-      <h1 className="text-xl sm:text-2xl mb-2">Online Chess Game</h1>
-      <div className="w-full max-w-7xl">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 p-2">
-          <span className="text-sm sm:text-base font-medium text-white">
-            {gameId ? `Game ID: ${gameId}` : "No game joined"}
-          </span>
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-            <span
-              className={`w-3 h-3 rounded-full ${
-                isConnected ? "bg-green-500" : "bg-red-500"
-              }`}
-              title={isConnected ? "Connected" : "Disconnected"}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowOptions((v) => !v)}
-              className="text-xs sm:text-sm text-white border-white hover:text-[#F7D27F]"
-            >
-              {showOptions ? "Hide" : "Game Options"}
-            </Button>
-          </div>
+  // Show loading if joining from URL
+  if (gameIdFromUrl && !gameState) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#2C2420] via-[#3D3025] to-[#4A3728] flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F7D27F] mx-auto mb-4"></div>
+          <div className="text-lg font-semibold">Joining game...</div>
+          <div className="text-sm opacity-75">Game ID: {gameIdFromUrl}</div>
         </div>
       </div>
-      {showOptions && (
-        <div className="w-full max-w-2xl bg-[#222] rounded p-4 mb-4">
-          <div className="mb-2">
-            <input
-              type="text"
-              placeholder="User ID"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              className="w-full p-2 mb-2 border rounded"
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="max-w-6xl w-full flex flex-col lg:flex-row gap-8 items-center">
+        <YellowLight top="20%" left="60%" />
+        
+        {/* Chessboard Section */}
+        <div className="flex-1 flex justify-center">
+          <div className="relative">
+            <Chessboard
+              id="historyChessBoard"
+              position="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+              boardWidth={Math.min(600, typeof window !== 'undefined' ? window.innerWidth : 500)}
+              animationDuration={0}
+              arePiecesDraggable={false}
             />
-            <input
-              type="text"
-              placeholder="Username (optional)"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-2 mb-2 border rounded"
-            />
-            <input
-              type="text"
-              placeholder="Game ID"
-              value={gameIdInput}
-              onChange={(e) => setGameIdInput(e.target.value)}
-              className="w-full p-2 mb-2 border rounded"
-            />
-            <Button
-              onClick={() => {
-                joinGame(gameIdInput);
-                setShowOptions(false);
-              }}
-              className="bg-teal-500 text-white p-2 rounded hover:bg-teal-600 w-full mb-2"
-            >
-              Join Game
-            </Button>
-            <Button
-              onClick={() => {
-                createGame("blitz", "random");
-                setShowOptions(false);
-              }}
-              className="bg-purple-500 text-white p-2 rounded hover:bg-purple-600 w-full mb-2"
-            >
-              Create Game
-            </Button>
-            <Button
-              onClick={() => {
-                findMatch("blitz", "random");
-                setShowOptions(false);
-              }}
-              className="bg-orange-500 text-white p-2 rounded hover:bg-orange-600 w-full mb-2"
-            >
-              Find Match
-            </Button>
-            <input
-              type="text"
-              placeholder="Opponent ID"
-              value={opponentId}
-              onChange={(e) => setOpponentId(e.target.value)}
-              className="w-full p-2 mb-2 border rounded"
-            />
-            <Button
-              onClick={() => {
-                challengeUser(opponentId, "blitz", "random");
-                setShowOptions(false);
-              }}
-              className="bg-red-500 text-white p-2 rounded hover:bg-red-600 w-full"
-            >
-              Challenge User
-            </Button>
-            {gameLink && (
-              <p className="mt-2 text-blue-600">
-                Game Link:{" "}
-                <a href={gameLink} target="_blank" rel="noopener noreferrer">
-                  {gameLink}
-                </a>
-              </p>
+            {isSearching && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+                <div className="text-white text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F7D27F] mx-auto mb-4"></div>
+                  <div className="text-lg font-semibold">Finding Match...</div>
+                  <div className="text-sm opacity-75">Please wait</div>
+                </div>
+              </div>
             )}
           </div>
         </div>
-      )}
-      <div className="flex flex-col lg:flex-row gap-3 w-full max-w-7xl flex-1 max-h-[calc(100vh-150px)]">
-        <div className="flex flex-col justify-between w-full">
-          <div className="flex justify-center md:justify-start">
-            <CapturedPieces color="Black" pieces={capturedBlack} />
-          </div>
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="flex justify-center items-center">
-              <Chessboard
-                id="historyChessBoard"
-                position={gameState?.fen || ""}
-                onPieceDrop={handleDrop}
-                boardWidth={480}
-                animationDuration={300}
-                boardOrientation={boardOrientation}
-                arePiecesDraggable={!!userId && !!gameId && !gameState?.gameOver}
-              />
-            </div>
-            <div className="md:hidden flex justify-center md:justify-start">
-              <CapturedPieces color="White" pieces={capturedWhite} />
-            </div>
-            <div className="w-full text-black flex flex-col flex-wrap justify-between gap-3">
-              <div>
-                <h2 className="text-white text-sm font-semibold px-2">
-                  Time Remaining
-                </h2>
-                <div className="rounded shadow-md bg-[#3B3433] p-2">
-                  <div className="flex justify-between">
-                    <span className="text-white">
-                      White: {formatTime(gameState?.whiteTimeLeft)}
-                    </span>
-                    <span className="text-white">
-                      Black: {formatTime(gameState?.blackTimeLeft)}
-                    </span>
-                  </div>
-                </div>
+
+        {/* Controls Section */}
+        <div className="flex-1 max-w-md w-full">
+          <div className="bg-[#3B3433] rounded-2xl p-8 border border-[#5A524F]">
+            
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-white mb-2">
+                PLAY ONLINE MODE
+              </h1>
+              <div className="flex items-center justify-center gap-2 text-[#F7D27F]">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                <span className="text-lg font-semibold">
+                  {selectedTimeControl.time >= 600 ? Math.floor(selectedTimeControl.time / 60) + " MINS" : 
+                   selectedTimeControl.increment ? `${Math.floor(selectedTimeControl.time / 60)}|${selectedTimeControl.increment}` : 
+                   Math.floor(selectedTimeControl.time / 60) + " MINS"}
+                </span>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
               </div>
-              <div className="flex flex-col flex-grow overflow-hidden">
-                <h3 className="text-white text-sm font-semibold px-2">
-                  Move History
-                </h3>
-                <div className="rounded shadow-md bg-[#3B3433] h-96 w-full">
-                  <ScrollArea className="h-full w-full">
-                    <table className="w-full text-white">
-                      <thead className="sticky top-0 z-10 bg-[#3B3433]">
-                        <tr>
-                          <th className="py-2 px-2 sm:px-5 text-left text-xs sm:text-sm font-semibold">
-                            #
-                          </th>
-                          <th className="py-2 px-2 sm:px-5 text-left text-xs sm:text-sm font-semibold">
-                            Move
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {moveHistory.map((m, idx) => (
-                          <tr key={idx}>
-                            <td className="py-2 px-2 sm:px-5 text-xs sm:text-sm">
-                              {m.moveNumber}
-                            </td>
-                            <td className="py-2 px-2 sm:px-5 text-xs sm:text-sm">
-                              {m.move}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </ScrollArea>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 mt-2">
+            </div>
+
+            {/* User ID Input */}
+            {!userId && (
+              <div className="mb-6">
+                <label className="text-white font-semibold mb-2 block">Enter User ID</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Move (e.g., e2e4)"
-                    value={moveInput}
-                    onChange={(e) => setMoveInput(e.target.value)}
-                    className="w-full p-2 border rounded"
+                    placeholder="Your User ID"
+                    className="flex-1 px-3 py-2 bg-[#3B3433] border border-[#5A524F] rounded text-white"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        const value = (e.target as HTMLInputElement).value;
+                        if (value) {
+                          setUserId(value);
+                          localStorage.setItem("chess_user_id", value);
+                        }
+                      }
+                    }}
                   />
                   <Button
-                    onClick={handleManualMove}
-                    className="bg-indigo-500 text-white p-2 rounded hover:bg-indigo-600"
+                    onClick={() => {
+                      const input = document.querySelector('input') as HTMLInputElement;
+                      if (input?.value) {
+                        setUserId(input.value);
+                        localStorage.setItem("chess_user_id", input.value);
+                      }
+                    }}
+                    className="bg-[#F7D27F] text-black hover:bg-[#E6C26E]"
                   >
-                    Send Move
+                    Save
                   </Button>
                 </div>
               </div>
+            )}
+
+            {/* Time Control Categories */}
+            <div className="space-y-6">
+              
+              {/* Bullet Mode */}
+              <div>
+                <h3 className="text-white font-semibold mb-3 text-lg">Bullet Mode</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {timeControls.bullet.map((option) => (
+                    <TimeControlButton
+                      key={option.value}
+                      option={option}
+                      isSelected={selectedTimeControl.value === option.value}
+                      onClick={() => setSelectedTimeControl(option)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Blitz Mode */}
+              <div>
+                <h3 className="text-white font-semibold mb-3 text-lg">Blitz Mode</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {timeControls.blitz.map((option) => (
+                    <TimeControlButton
+                      key={option.value}
+                      option={option}
+                      isSelected={selectedTimeControl.value === option.value}
+                      onClick={() => setSelectedTimeControl(option)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Rapid Mode */}
+              <div>
+                <h3 className="text-white font-semibold mb-3 text-lg">Rapid Mode</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {timeControls.rapid.map((option) => (
+                    <TimeControlButton
+                      key={option.value}
+                      option={option}
+                      isSelected={selectedTimeControl.value === option.value}
+                      onClick={() => setSelectedTimeControl(option)}
+                    />
+                  ))}
+                </div>
+              </div>
+
             </div>
-          </div>
-          <div className="md:block hidden flex justify-center md:justify-start">
-            <CapturedPieces color="White" pieces={capturedWhite} />
+
+            {/* Play Button */}
+            <div className="mt-8">
+              <Button
+                onClick={handleFindMatch}
+                disabled={!isConnected || isSearching || !userId}
+                className="w-full h-16 text-2xl font-bold bg-[#F7D27F] text-black hover:bg-[#E6C26E] transition-all duration-200 rounded-xl shadow-lg"
+              >
+                {isSearching ? (
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
+                    SEARCHING...
+                  </div>
+                ) : (
+                  "PLAY"
+                )}
+              </Button>
+              
+              {!isConnected && (
+                <div className="text-center mt-3">
+                  <span className="text-red-400 text-sm">Disconnected from server</span>
+                </div>
+              )}
+              
+              {message && (
+                <div className="text-center mt-3">
+                  <span className="text-[#F7D27F] text-sm">{message}</span>
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
+
       </div>
-      {gameState?.gameOver && (
-        <div className="bg-yellow-100 text-black p-4 rounded shadow mt-4">
-          <h2 className="text-xl font-semibold mb-2">Game Over</h2>
-          <p>{gameState.result || "Game ended."}</p>
-          <Button
-            onClick={() => setShowOptions(true)}
-            className="mt-2"
-          >
-            New Game
-          </Button>
-        </div>
-      )}
-      {message && (
-        <div className="bg-yellow-100 text-black p-4 rounded shadow mt-4">
-          <p>{message}</p>
-          <Button
-            onClick={() => setMessage("")}
-            className="mt-2"
-            variant="outline"
-          >
-            Dismiss
-          </Button>
-        </div>
-      )}
     </div>
   );
 };
 
-export default OnlineGamePage;
+export default OnlinePage;
