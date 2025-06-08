@@ -435,10 +435,6 @@ const ResetPassword = () => {
                       </span>
                       )
                     </p>
-
-                    {/* {errors.resetCode &&
-                      toast.error(errors.resetCode)
-                    } */}
                   </FormItem>
                 )}
               />
