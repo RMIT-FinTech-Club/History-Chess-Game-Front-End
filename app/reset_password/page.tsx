@@ -65,6 +65,7 @@ const ResetPassword = () => {
     "email"
   );
   const [email, setEmail] = useState("");
+  const [verifiedResetCode, setVerifiedResetCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({
     email: "",
@@ -110,7 +111,6 @@ const ResetPassword = () => {
     });
     setLoading(true);
     try {
-      // Check if email is associated with Google login
       try {
         const authTypeResponse = await axios.post(
           "http://localhost:8080/users/check-auth-type",
@@ -168,6 +168,7 @@ const ResetPassword = () => {
           email,
           resetCode: data.resetCode,
         });
+        setVerifiedResetCode(data.resetCode); // Store the verified code
         setStep("password");
         toast.success("Code verified, please set your new password");
       } catch (err: any) {
@@ -200,7 +201,7 @@ const ResetPassword = () => {
           "http://localhost:8080/users/reset-password",
           {
             email,
-            resetCode: codeForm.getValues("resetCode"),
+            resetCode: verifiedResetCode, // Use the stored verified code
             newPassword: data.newPassword,
           }
         );
@@ -212,10 +213,6 @@ const ResetPassword = () => {
           accessToken: response.data.token,
           refreshToken: null,
         });
-        console.log(
-          "Stored accessToken:",
-          useGlobalStorage.getState().accessToken
-        );
         toast.success("Password reset successfully");
         router.push("/profile");
       } catch (err: any) {
@@ -234,7 +231,7 @@ const ResetPassword = () => {
         setLoading(false);
       }
     },
-    [router, email, codeForm, setAuthData]
+    [router, email, verifiedResetCode, setAuthData] 
   );
 
   // Auto-focus the first input on mount
@@ -371,11 +368,6 @@ const ResetPassword = () => {
                         />
                       </div>
                     </FormControl>
-                    {errors.email && (
-                      <p className="text-red-500 text-[2.5vh] font-bold">
-                        {errors.email}
-                      </p>
-                    )}
                   </FormItem>
                 )}
               />
