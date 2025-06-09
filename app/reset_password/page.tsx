@@ -61,12 +61,11 @@ type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 const ResetPassword = () => {
   const router = useRouter();
-  const [step, setStep] = useState<"email" | "code" | "password" | "google">(
-    "email"
-  );
+  const [step, setStep] = useState<"email" | "code" | "password" | "google">("email");
   const [email, setEmail] = useState("");
   const [verifiedResetCode, setVerifiedResetCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false); // New state to track resend action
   const [errors, setErrors] = useState({
     email: "",
     resetCode: "",
@@ -78,7 +77,7 @@ const ResetPassword = () => {
   const [timer, setTimer] = useState(60);
   const { setAuthData } = useGlobalStorage();
 
-  // Countdown timer, decrease by 1 every second
+  // Countdown timer
   useEffect(() => {
     if (timer <= 0) return;
     const interval = setInterval(() => {
@@ -111,28 +110,15 @@ const ResetPassword = () => {
     });
     setLoading(true);
     try {
-      // Check if email uses Google auth
-      try {
-        const authTypeResponse = await axios.post(
-          "http://localhost:8080/users/check-auth-type",
-          { email: data.email }
-        );
-        if (authTypeResponse.data.googleAuth) {
-          setEmail(data.email);
-          setStep("google");
-          return;
-        }
-      } catch (err: unknown) {
-        if (axios.isAxiosError(err)) {
-          if (!err.response?.data?.message?.includes("Email not found")) {
-            throw new Error(err.response?.data?.message || "Failed to check authentication type");
-          }
-        } else {
-          throw new Error("Network error while checking authentication type");
-        }
+      const authTypeResponse = await axios.post(
+        "http://localhost:8080/users/check-auth-type",
+        { email: data.email }
+      );
+      if (authTypeResponse.data.googleAuth) {
+        setEmail(data.email);
+        setStep("google");
+        return;
       }
-
-      // Request reset code
       await axios.post("http://localhost:8080/users/request-reset", {
         email: data.email,
       });
@@ -199,7 +185,6 @@ const ResetPassword = () => {
       });
       setLoading(true);
       try {
-        // Reset password
         const resetResponse = await axios.post(
           "http://localhost:8080/users/reset-password",
           {
@@ -210,8 +195,6 @@ const ResetPassword = () => {
         );
         const token = resetResponse.data.token;
         console.log("Reset password response:", resetResponse.data);
-
-        // Fetch user profile with new token
         const profileResponse = await axios.get("http://localhost:8080/users/profile", {
           headers: {
             "Content-Type": "application/json",
@@ -220,8 +203,6 @@ const ResetPassword = () => {
         });
         const user = profileResponse.data.user;
         console.log("Profile response:", profileResponse.data);
-
-        // Update GlobalStorage
         setAuthData({
           userId: user.id,
           userName: user.username,
@@ -230,7 +211,6 @@ const ResetPassword = () => {
           refreshToken: null,
           avatar: user.avatarUrl || null,
         });
-
         toast.success("Password reset successfully");
         router.push("/profile");
       } catch (err: unknown) {
@@ -253,12 +233,10 @@ const ResetPassword = () => {
     [router, email, verifiedResetCode, setAuthData]
   );
 
-  // Auto-focus the first input on mount
   useEffect(() => {
     inputRefs.current[0]?.focus();
   }, []);
 
-  // Handle single digit input change
   const handleChange = (value: string, index: number) => {
     if (!/^\d?$/.test(value)) return;
 
@@ -266,18 +244,16 @@ const ResetPassword = () => {
     newOtp[index] = value.replace(/\D/g, "").slice(0, 1);
     setOtp(newOtp);
 
-    // Move to next input if value is entered
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
 
-    // If all digits are filled, auto-submit
-    if (newOtp.every((digit) => digit !== "")) {
+    // Only auto-submit if not resending and all digits are filled
+    if (!resending && newOtp.every((digit) => digit !== "")) {
       onCodeSubmit({ resetCode: newOtp.join("") });
     }
   };
 
-  // Handle backspace, arrow key navigation
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
     index: number
@@ -299,10 +275,13 @@ const ResetPassword = () => {
       inputRefs.current[index - 1]?.focus();
     } else if (key === "ArrowRight" && index < 5) {
       inputRefs.current[index + 1]?.focus();
+    } else if (key === "Enter" && !resending && otp.every((digit) => digit !== "")) {
+      // Only submit on Enter if not resending and OTP is complete
+      e.preventDefault();
+      onCodeSubmit({ resetCode: otp.join("") });
     }
   };
 
-  // Handle paste (e.g. "123456")
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
@@ -311,12 +290,11 @@ const ResetPassword = () => {
     const nextIndex = pastedData.length >= 6 ? 5 : pastedData.length;
     inputRefs.current[nextIndex]?.focus();
 
-    if (pastedData.length === 6) {
+    if (!resending && pastedData.length === 6) {
       onCodeSubmit({ resetCode: pastedData });
     }
   };
 
-  // Format timer display (e.g. "0:45")
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -324,6 +302,7 @@ const ResetPassword = () => {
   };
 
   const handleResendOtp = async () => {
+    setResending(true);
     setLoading(true);
     setErrors({
       email: "",
@@ -349,12 +328,13 @@ const ResetPassword = () => {
       toast.error(message);
     } finally {
       setLoading(false);
+      setResending(false);
     }
   };
 
   return (
     <div className="flex flex-col justify-center items-center h-[100dvh]">
-      {/* Logo section with background blur */}
+      {/* Logo section unchanged */}
       <div className="flex justify-center items-center relative h-[30vh] aspect-square">
         <div
           className="w-full h-full bg-[#DCB410] rounded-full absolute left-0 top-0"
@@ -365,7 +345,6 @@ const ResetPassword = () => {
         ></div>
       </div>
 
-      {/* Main content */}
       <div>
         <h2 className="text-center text-[5vh] text-[#FFFFFF] mt-[4vh] font-bold">
           {step === "email"
@@ -410,7 +389,6 @@ const ResetPassword = () => {
                   </FormItem>
                 )}
               />
-
               <div className="flex flex-col items-center justify-center">
                 <Button
                   type="submit"
@@ -444,10 +422,10 @@ const ResetPassword = () => {
                             maxLength={1}
                             autoFocus={index === 0}
                             className={`
-                        w-[12vw] md:w-[14vh] aspect-square text-center rounded-[5px] text-white text-[6vw] md:text-[6vh]
-                        mt-[5vh]
-                        border-[0.2vw] border-[#27272A] bg-[#000] focus:border-yellow-400 outline-none
-                      `}
+                              w-[12vw] md:w-[14vh] aspect-square text-center rounded-[5px] text-white text-[6vw] md:text-[6vh]
+                              mt-[5vh]
+                              border-[0.2vw] border-[#27272A] bg-[#000] focus:border-yellow-400 outline-none
+                            `}
                             value={digit}
                             onPaste={handlePaste}
                             onChange={(e) =>
@@ -458,7 +436,6 @@ const ResetPassword = () => {
                         ))}
                       </div>
                     </FormControl>
-                    {/* Timer and instructions */}
                     <p className="text-white text-[2.5vw] text-center md:text-[1.5vw] mt-[5vh]">
                       Enter the OTP sent via email. (Expired in{" "}
                       <span className="text-[#E9B654]">
@@ -472,17 +449,18 @@ const ResetPassword = () => {
               <div className="flex flex-col items-center justify-center gap-[4vh] mt-[4vh] md:min-w-[30vw]">
                 <Button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || resending}
                   className="w-[20vw] bg-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#000000] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
                 >
                   {loading ? "Submitting..." : "Submit"}
                 </Button>
                 <Button
+                  type="button" // Explicitly prevent form submission
                   onClick={handleResendOtp}
-                  disabled={loading}
+                  disabled={loading || resending}
                   className="w-[20vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
                 >
-                  {loading ? "Resending..." : "Resend OTP"}
+                  {resending ? "Resending..." : "Resend OTP"}
                 </Button>
               </div>
             </form>
@@ -506,11 +484,11 @@ const ResetPassword = () => {
                         {...field}
                         autoFocus
                         className="
-                            pl-[7vw] md:pl-[3vw]
-                            py-[4vh] w-[40vw]
-                            bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
-                            !text-[3vh] font-normal rounded-[1.5vh]
-                          "
+                          pl-[7vw] md:pl-[3vw]
+                          py-[4vh] w-[40vw]
+                          bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
+                          !text-[3vh] font-normal rounded-[1.5vh]
+                        "
                       />
                     </FormControl>
                     {errors.newPassword && (
@@ -535,11 +513,11 @@ const ResetPassword = () => {
                         placeholder="Confirm new password"
                         {...field}
                         className="
-                            pl-[7vw] md:pl-[3vw]
-                            py-[4vh] w-[40vw]
-                            bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
-                            !text-[3vh] font-normal rounded-[1.5vh]
-                          "
+                          pl-[7vw] md:pl-[3vw]
+                          py-[4vh] w-[40vw]
+                          bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
+                          !text-[3vh] font-normal rounded-[1.5vh]
+                        "
                       />
                     </FormControl>
                     {errors.confirmPassword && (

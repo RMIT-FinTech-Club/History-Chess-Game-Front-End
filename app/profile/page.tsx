@@ -263,14 +263,14 @@ const ProfilePage = () => {
         >
           {profileMenu === 1 && <Matches />}
           {profileMenu === 2 && <AccountSettings />}
-          {profileMenu === 2 && (
+          {/* {profileMenu === 2 && (
             <Button
               onClick={handleLogout}
               className="w-full bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[4vh] mt-[1.75vh] rounded-[1.5vh]"
             >
               Log Out
             </Button>
-          )}
+          )} */}
         </div>
       </div>
     </div>
