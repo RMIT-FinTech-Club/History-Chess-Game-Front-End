@@ -111,39 +111,40 @@ const ResetPassword = () => {
     });
     setLoading(true);
     try {
+      // Check if email uses Google auth
       try {
         const authTypeResponse = await axios.post(
           "http://localhost:8080/users/check-auth-type",
-          {
-            email: data.email,
-          }
+          { email: data.email }
         );
         if (authTypeResponse.data.googleAuth) {
           setEmail(data.email);
           setStep("google");
           return;
         }
-      } catch (err: any) {
-        // If email not found, proceed to request-reset
-        if (!err.response?.data?.message?.includes("Email not found")) {
-          throw err;
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          if (!err.response?.data?.message?.includes("Email not found")) {
+            throw new Error(err.response?.data?.message || "Failed to check authentication type");
+          }
+        } else {
+          throw new Error("Network error while checking authentication type");
         }
       }
 
-      const response = await axios.post(
-        "http://localhost:8080/users/request-reset",
-        {
-          email: data.email,
-        }
-      );
-      console.log("Request reset response:", response.data);
+      // Request reset code
+      await axios.post("http://localhost:8080/users/request-reset", {
+        email: data.email,
+      });
+      console.log("Request reset response: Code sent");
       setEmail(data.email);
       setStep("code");
       toast.success("Verification code sent to your email");
-    } catch (err: any) {
-      const message =
-        err.response?.data?.message || "Failed to send verification code";
-      console.error("Request reset error:", err.response?.data);
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message || "Failed to send verification code"
+        : "Network error";
+      console.error("Request reset error:", err);
       setErrors((prev) => ({ ...prev, email: message }));
       document
         .getElementById("email-input")
@@ -168,13 +169,14 @@ const ResetPassword = () => {
           email,
           resetCode: data.resetCode,
         });
-        setVerifiedResetCode(data.resetCode); // Store the verified code
+        setVerifiedResetCode(data.resetCode);
         setStep("password");
         toast.success("Code verified, please set your new password");
-      } catch (err: any) {
-        const message =
-          err.response?.data?.message || "Invalid verification code";
-        console.error("Code verification error:", err.response?.data);
+      } catch (err: unknown) {
+        const message = axios.isAxiosError(err)
+          ? err.response?.data?.message || "Invalid or expired verification code"
+          : "Network error";
+        console.error("Verify code error:", err);
         setErrors((prev) => ({ ...prev, resetCode: message }));
         inputRefs.current.forEach((input) =>
           input?.classList.add("border-red-500", "border-[0.3vh]")
@@ -197,28 +199,45 @@ const ResetPassword = () => {
       });
       setLoading(true);
       try {
-        const response = await axios.post(
+        // Reset password
+        const resetResponse = await axios.post(
           "http://localhost:8080/users/reset-password",
           {
             email,
-            resetCode: verifiedResetCode, // Use the stored verified code
+            resetCode: verifiedResetCode,
             newPassword: data.newPassword,
           }
         );
-        console.log("Reset password response:", response.data);
-        setAuthData({
-          userId: response.data.user.id,
-          userName: response.data.user.username,
-          email: response.data.user.email,
-          accessToken: response.data.token,
-          refreshToken: null,
+        const token = resetResponse.data.token;
+        console.log("Reset password response:", resetResponse.data);
+
+        // Fetch user profile with new token
+        const profileResponse = await axios.get("http://localhost:8080/users/profile", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         });
+        const user = profileResponse.data.user;
+        console.log("Profile response:", profileResponse.data);
+
+        // Update GlobalStorage
+        setAuthData({
+          userId: user.id,
+          userName: user.username,
+          email: user.email,
+          accessToken: token,
+          refreshToken: null,
+          avatar: user.avatarUrl || null,
+        });
+
         toast.success("Password reset successfully");
         router.push("/profile");
-      } catch (err: any) {
-        const message =
-          err.response?.data?.message || "Failed to reset password";
-        console.error("Reset password error:", err.response?.data);
+      } catch (err: unknown) {
+        const message = axios.isAxiosError(err)
+          ? err.response?.data?.message || "Failed to reset password"
+          : "Network error";
+        console.error("Reset password error:", err);
         setErrors((prev) => ({ ...prev, newPassword: message }));
         document
           .getElementById("newPassword-input")
@@ -231,7 +250,7 @@ const ResetPassword = () => {
         setLoading(false);
       }
     },
-    [router, email, verifiedResetCode, setAuthData] 
+    [router, email, verifiedResetCode, setAuthData]
   );
 
   // Auto-focus the first input on mount
@@ -244,7 +263,7 @@ const ResetPassword = () => {
     if (!/^\d?$/.test(value)) return;
 
     const newOtp = [...otp];
-    newOtp[index] = value;
+    newOtp[index] = value.replace(/\D/g, "").slice(0, 1);
     setOtp(newOtp);
 
     // Move to next input if value is entered
@@ -286,23 +305,14 @@ const ResetPassword = () => {
   // Handle paste (e.g. "123456")
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pasteData = e.clipboardData
-      .getData("text")
-      .replace(/\D/g, "")
-      .slice(0, 6);
-    if (pasteData.length === 0) return;
-
-    const newOtp = [...otp];
-    for (let i = 0; i < pasteData.length; i++) {
-      newOtp[i] = pasteData[i];
-    }
-
+    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const newOtp = pastedData.split("").concat(new Array(6).fill("")).slice(0, 6);
     setOtp(newOtp);
-    const nextIndex = pasteData.length >= 6 ? 5 : pasteData.length;
+    const nextIndex = pastedData.length >= 6 ? 5 : pastedData.length;
     inputRefs.current[nextIndex]?.focus();
 
-    if (pasteData.length === 6) {
-      onCodeSubmit({ resetCode: pasteData });
+    if (pastedData.length === 6) {
+      onCodeSubmit({ resetCode: pastedData });
     }
   };
 
@@ -311,6 +321,35 @@ const ResetPassword = () => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const handleResendOtp = async () => {
+    setLoading(true);
+    setErrors({
+      email: "",
+      resetCode: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    try {
+      await axios.post("http://localhost:8080/users/request-reset", {
+        email,
+      });
+      console.log("Resend OTP response: Code sent");
+      setOtp(Array(6).fill(""));
+      setTimer(60);
+      inputRefs.current[0]?.focus();
+      toast.success("New verification code sent to your email");
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message || "Failed to resend verification code"
+        : "Network error";
+      console.error("Resend OTP error:", err);
+      setErrors((prev) => ({ ...prev, resetCode: message }));
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -439,15 +478,11 @@ const ResetPassword = () => {
                   {loading ? "Submitting..." : "Submit"}
                 </Button>
                 <Button
-                  onClick={() => {
-                    console.log("OTP resent");
-                    setOtp(Array(6).fill(""));
-                    setTimer(60);
-                    inputRefs.current[0]?.focus();
-                  }}
+                  onClick={handleResendOtp}
+                  disabled={loading}
                   className="w-[20vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
                 >
-                  Resend OTP
+                  {loading ? "Resending..." : "Resend OTP"}
                 </Button>
               </div>
             </form>

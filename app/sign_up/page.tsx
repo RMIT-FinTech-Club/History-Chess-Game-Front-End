@@ -84,7 +84,7 @@ const SignUp = () => {
       const validEmailRegex = /^[a-zA-Z0-9@.]+$/;
       const isValidEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email);
       if (!validEmailRegex.test(values.email) || !isValidEmailFormat || !values.email.endsWith("@gmail.com")) {
-        setErrors((prev) => ({ ...prev, email: "Please enter a valid email address." }));
+        setErrors((prev) => ({ ...prev, email: "Please enter a valid Gmail address." }));
         document.getElementById("email-input")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
@@ -138,17 +138,16 @@ const SignUp = () => {
       document.querySelector("input[name='confirmPassword']")?.classList.remove("border-red-500", "border-[0.3vh]");
 
       try {
-        const response = await axios.post("http://localhost:8080/users/register", {
+        await axios.post("http://localhost:8080/users", {
           username: values.username,
           email: values.email,
           password: values.password,
         });
-        localStorage.setItem("token", response.data.token);
         document.getElementById("username-input")?.classList.add("border-green-500", "border-[0.3vh]");
         document.getElementById("email-input")?.classList.add("border-green-500", "border-[0.3vh]");
         document.querySelector("input[name='password']")?.classList.add("border-green-500", "border-[0.3vh]");
         document.querySelector("input[name='confirmPassword']")?.classList.add("border-green-500", "border-[0.3vh]");
-        toast.success("Sign up successful!");
+        toast.success("Sign up successful! Please sign in to continue.");
         router.push("/sign_in");
       } catch (error: any) {
         const message = error.response?.data?.message || "Sign up failed";
