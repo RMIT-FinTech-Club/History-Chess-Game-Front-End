@@ -15,7 +15,7 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { MdEmail } from "react-icons/md";
 import { toast } from "sonner";
 import axios from "axios";
-import { useGlobalStorage } from "@/components/GlobalStorage";
+import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 const SignIn = () => {
   const [errors, setErrors] = useState({ identifier: "", password: "" });

@@ -19,7 +19,7 @@ import AccountSettings from "@/components/ui/account_settings";
 import { toast } from "sonner";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useGlobalStorage } from "@/components/GlobalStorage";
+import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 const ProfilePage = () => {
   const profileRef = useRef<HTMLDivElement | null>(null);
@@ -81,9 +81,8 @@ const ProfilePage = () => {
   return (
     <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3vh] mx-[5vw] md:mx-[10vw] text-white relative h-[100dvh]">
       <div
-        className={`w-full relative md:absolute ${
-          isProfileOpened ? "md:top-[3vh]" : "md:top-[calc(-12vw-2px)]"
-        } top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3vh] transition-all duration-300`}
+        className={`w-full relative md:absolute ${isProfileOpened ? "md:top-[3vh]" : "md:top-[calc(-12vw-2px)]"
+          } top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3vh] transition-all duration-300`}
       >
         <Tooltip disableHoverableContent>
           <TooltipTrigger asChild>
@@ -94,9 +93,8 @@ const ProfilePage = () => {
             >
               <FontAwesomeIcon
                 icon={faArrowUp}
-                className={`${
-                  isProfileOpened ? "rotate-none" : "rotate-[180deg]"
-                } text-[1vw]`}
+                className={`${isProfileOpened ? "rotate-none" : "rotate-[180deg]"
+                  } text-[1vw]`}
               />
             </div>
           </TooltipTrigger>
@@ -178,26 +176,22 @@ const ProfilePage = () => {
         </div>
       </div>
       <div
-        className={`w-full ${
-          isProfileOpened ? "md:mt-[calc(12vw+2px+3vh)]" : "md:mt-0"
-        } mt-0 ${
-          isProfileOpened
+        className={`w-full ${isProfileOpened ? "md:mt-[calc(12vw+2px+3vh)]" : "md:mt-0"
+          } mt-0 ${isProfileOpened
             ? "h-[calc(100vh-3vh-12vw-2px-6vh)]"
             : "h-[calc(100vh-6vh)]"
-        } transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}
+          } transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}
       >
         <div className="md:w-[30%] w-full flex flex-col">
           <div className="px-0 md:px-[2vw] py-[1vw] md:py-[2vw] w-full flex flex-row md:flex-col bg-[#1D1D1D] rounded-[2vw] mb-[3vh] relative items-center justify-around">
             <div
-              className={`absolute ${
-                profileMenu === 0
+              className={`absolute ${profileMenu === 0
                   ? "md:top-[2vw] md:left-0 top-0 left-0"
-                  : `${
-                      profileMenu === 1
-                        ? "md:top-[6vw] md:left-0 top-0 left-[30vw]"
-                        : "md:top-[10vw] md:left-0 top-0 left-[60vw]"
-                    }`
-              } left-0 md:h-[2vw] md:w-[calc(2vw/3)] w-1/3 h-[1vw] rounded-[0.5vw] md:rounded-[1vw] bg-[#DBB968] transition-all duration-200`}
+                  : `${profileMenu === 1
+                    ? "md:top-[6vw] md:left-0 top-0 left-[30vw]"
+                    : "md:top-[10vw] md:left-0 top-0 left-[60vw]"
+                  }`
+                } left-0 md:h-[2vw] md:w-[calc(2vw/3)] w-1/3 h-[1vw] rounded-[0.5vw] md:rounded-[1vw] bg-[#DBB968] transition-all duration-200`}
             ></div>
             {[
               {
@@ -215,19 +209,17 @@ const ProfilePage = () => {
             ].map((menu, index) => (
               <div
                 key={index}
-                className={`flex justify-center mr-0 md:mr-auto w-1/3 md:w-[max-content] max-w-[100%] cursor-pointer group ${
-                  index % 2 === 1 ? "my-[2vw]" : ""
-                }`}
+                className={`flex justify-center mr-0 md:mr-auto w-1/3 md:w-[max-content] max-w-[100%] cursor-pointer group ${index % 2 === 1 ? "my-[2vw]" : ""
+                  }`}
                 onClick={() => {
                   if (index !== profileMenu) setProfileMenu(index);
                 }}
               >
                 <div
-                  className={`${
-                    index === profileMenu
+                  className={`${index === profileMenu
                       ? `${styles.profile_menu_icon} border-[#DBB968]`
                       : "border-white"
-                  } h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid rounded-[50%]`}
+                    } h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid rounded-[50%]`}
                 >
                   {
                     <menu.icon
@@ -237,11 +229,10 @@ const ProfilePage = () => {
                   }
                 </div>
                 <p
-                  className={`${
-                    index === profileMenu
+                  className={`${index === profileMenu
                       ? `text-[#DBB968]`
                       : "text-white group-hover:md:left-[0.3vw]"
-                  } text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:text-[#DBB968] transition-all duration-200`}
+                    } text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:text-[#DBB968] transition-all duration-200`}
                 >
                   {menu.content}
                 </p>
@@ -251,9 +242,8 @@ const ProfilePage = () => {
           {profileMenu === 1 && <OtherPlayers isOpen={isProfileOpened} />}
         </div>
         <div
-          className={`w-full md:w-[60%] flex flex-col ${
-            profileMenu === 2 ? `h-[calc(100vh-6vh)]` : ""
-          }`}
+          className={`w-full md:w-[60%] flex flex-col ${profileMenu === 2 ? `h-[calc(100vh-6vh)]` : ""
+            }`}
         >
           {profileMenu === 1 && <Matches />}
           {profileMenu === 2 && <AccountSettings />}
