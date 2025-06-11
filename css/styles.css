@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
 * Prefixed by https://autoprefixer.github.io
 * PostCSS: v8.4.14,
@@ -5,6 +6,8 @@
 * Browsers: last 4 version
 */
 
+=======
+>>>>>>> dev
 @media screen and (min-width: 768px) {
     html {
         font-size: 1vw;
@@ -20,6 +23,7 @@
 body {
     background-color: #151515;
     background-image:
+<<<<<<< HEAD
         -o-repeating-linear-gradient(
             bottom,
             rgba(255, 255, 255, 0.1),
@@ -35,6 +39,8 @@ body {
             transparent 10vw
         );
     background-image:
+=======
+>>>>>>> dev
         repeating-linear-gradient(
             0deg,
             rgba(255, 255, 255, 0.1),
@@ -74,4 +80,8 @@ body {
 
 .list-container::-webkit-scrollbar-track {
     background-color: transparent;
+}
+
+.blur {
+    filter: blur(200px);
 }

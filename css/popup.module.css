@@ -12,14 +12,12 @@
 }
 
 .popupContainer {
-  background: #09090B;
-  border-style: solid;
-  border-color: #E4E4E7;
+  background: white;
   border-radius: 1rem;
   padding: 2rem;
-  width: 100%;
-  max-width: 600px;
-  box-shadow: 0 4px 8px #1018281A;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   position: relative;
 }
 
@@ -27,12 +25,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 1rem;
 }
 
 .popupTitle {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #FFFFFF;
+  color: #2f2f2f;
 }
 
 .closeButton {

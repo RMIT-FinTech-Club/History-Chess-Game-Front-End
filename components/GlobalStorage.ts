@@ -1,92 +1,87 @@
-"use client"
-
-import { create } from "zustand"
-import Cookies from "js-cookie"
-import CryptoJS from "crypto-js"
+import { create } from "zustand";
+import Cookies from "js-cookie";
+import CryptoJS from "crypto-js";
 
 // --- Config ---
-const SECRET_KEY = process.env.NEXT_PUBLIC_ENCRYPT_SECRET || "your-default-key"
+const SECRET_KEY = process.env.NEXT_PUBLIC_SECRET_KEY || "your-secret-key";
 
-function encryptData(data: string) {
-  return CryptoJS.AES.encrypt(data, SECRET_KEY).toString()
-}
-
-function decryptData(encryptedData: string) {
-  const bytes = CryptoJS.AES.decrypt(encryptedData, SECRET_KEY)
-  return bytes.toString(CryptoJS.enc.Utf8)
-}
-
-// --- Zustand Store ---
+// --- Types ---
 interface GlobalStorage {
-  userId: string | null
-  userName: string | null
-  avatar: string | null
-  accessToken: string | null
-  refreshToken: string | null
-
-  setAuthData: (
-    userId: string,
-    userName: string,
-    avatar: string,
-    accessToken: string,
-    refreshToken: string
-  ) => void
-
-  clearAuth: () => void
-  isLoggedIn: () => boolean
+  userId: string | null;
+  userName: string | null;
+  email: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  avatar: string | null;
+  setAuthData: (data: {
+    userId: string;
+    userName: string;
+    email: string;
+    accessToken: string;
+    refreshToken: string | null;
+    avatar?: string | null;
+  }) => void;
+  clearAuth: () => void;
 }
 
-// --- Initialize decrypted values if window exists ---
-let userIdCookie: string | null = null
-let accessTokenCookie: string | null = null
-let refreshTokenCookie: string | null = null
+// --- Store ---
+export const useGlobalStorage = create<GlobalStorage>((set) => ({
+  userId: Cookies.get("userId")
+    ? CryptoJS.AES.decrypt(Cookies.get("userId")!, SECRET_KEY).toString(CryptoJS.enc.Utf8)
+    : null,
+  userName: Cookies.get("userName")
+    ? CryptoJS.AES.decrypt(Cookies.get("userName")!, SECRET_KEY).toString(CryptoJS.enc.Utf8)
+    : null,
+  email: Cookies.get("email")
+    ? CryptoJS.AES.decrypt(Cookies.get("email")!, SECRET_KEY).toString(CryptoJS.enc.Utf8)
+    : null,
+  accessToken: Cookies.get("accessToken")
+    ? CryptoJS.AES.decrypt(Cookies.get("accessToken")!, SECRET_KEY).toString(CryptoJS.enc.Utf8)
+    : null,
+  refreshToken: Cookies.get("refreshToken")
+    ? CryptoJS.AES.decrypt(Cookies.get("refreshToken")!, SECRET_KEY).toString(CryptoJS.enc.Utf8)
+    : null,
+  avatar: Cookies.get("avatar")
+    ? CryptoJS.AES.decrypt(Cookies.get("avatar")!, SECRET_KEY).toString(CryptoJS.enc.Utf8)
+    : null,
 
-if (typeof window !== "undefined") {
-  const encryptedUserId = Cookies.get('userId')
-  const encryptedAccessToken = Cookies.get('accessToken')
-  const encryptedRefreshToken = Cookies.get('refreshToken')
+  setAuthData: ({ userId, userName, email, accessToken, refreshToken, avatar }) => {
+    Cookies.set("userId", CryptoJS.AES.encrypt(userId, SECRET_KEY).toString());
+    Cookies.set("userName", CryptoJS.AES.encrypt(userName, SECRET_KEY).toString());
+    Cookies.set("email", CryptoJS.AES.encrypt(email, SECRET_KEY).toString());
+    Cookies.set("accessToken", CryptoJS.AES.encrypt(accessToken, SECRET_KEY).toString());
+    if (refreshToken) {
+      Cookies.set("refreshToken", CryptoJS.AES.encrypt(refreshToken, SECRET_KEY).toString());
+    }
+    if (avatar) {
+      Cookies.set("avatar", CryptoJS.AES.encrypt(avatar, SECRET_KEY).toString());
+    }
 
-  userIdCookie = encryptedUserId ? decryptData(encryptedUserId) : null
-  accessTokenCookie = encryptedAccessToken ? decryptData(encryptedAccessToken) : null
-  refreshTokenCookie = encryptedRefreshToken ? decryptData(encryptedRefreshToken) : null
-}
-
-export const useGlobalStorage = create<GlobalStorage>((set, get) => ({
-  userId: userIdCookie,
-  userName: null,
-  avatar: null,
-  accessToken: accessTokenCookie,
-  refreshToken: refreshTokenCookie,
-
-  setAuthData: (userId, userName, avatar, accessToken, refreshToken) => {
-    const encryptedUserId = encryptData(userId)
-    const encryptedAccess = encryptData(accessToken)
-    const encryptedRefresh = encryptData(refreshToken)
-
-    Cookies.set('userId', encryptedUserId, { secure: true, sameSite: 'strict' })
-    Cookies.set('accessToken', encryptedAccess, { secure: true, sameSite: 'strict' })
-    Cookies.set('refreshToken', encryptedRefresh, { secure: true, sameSite: 'strict' })
-
-    set({ userId, userName, avatar, accessToken, refreshToken })
+    set({
+      userId,
+      userName,
+      email,
+      accessToken,
+      refreshToken,
+      avatar: avatar || null,
+    });
   },
 
   clearAuth: () => {
-    Cookies.remove('userId')
-    Cookies.remove('accessToken')
-    Cookies.remove('refreshToken')
+    Cookies.remove("userId");
+    Cookies.remove("userName");
+    Cookies.remove("email");
+    Cookies.remove("accessToken");
+    Cookies.remove("refreshToken");
+    Cookies.remove("avatar");
 
     set({
       userId: null,
       userName: null,
-      avatar: null,
+      email: null,
       accessToken: null,
       refreshToken: null,
-    })
+      avatar: null,
+    });
   },
-
-  isLoggedIn: () => {
-    const userExists = !!get().userId
-    const tokenExists = !!get().accessToken
-    return userExists && tokenExists
-  }
-}))
+}));

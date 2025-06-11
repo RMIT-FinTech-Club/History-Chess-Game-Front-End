@@ -1,9 +1,14 @@
-import type { Metadata } from "next"
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import "../css/styles.css";
+import { ThemeProvider } from "@/src/components/ThemeProvider";
+import { Toaster } from "sonner";
+import ClientWrapper from "@/components/ui/ClientWrapper"; // Import the client component
 
 import "@/app/globals.css"
 import '@/css/styles.css'
 
-import ClientLayout from "@/components/ClientLayout"
 import { UserProvider } from "@/context/UserContext"
 
 export const metadata: Metadata = {
@@ -17,14 +22,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <UserProvider>
-      <html lang="en">
-        <body
-          className={`min-h-[100dvh] antialiased overflow-x-hidden`}
-        >
-          <ClientLayout>{children}</ClientLayout>
-        </body>
-      </html>
-    </UserProvider>
-  )
+    <html lang="en" className="light" style={{ colorScheme: "light" }}>
+      <body>
+        <UserProvider>
+          <ThemeProvider
+            defaultTheme="system"
+            attribute="class"
+            enableSystem={true}
+            disableTransitionOnChange={true}
+          >
+            <Toaster richColors position="top-center" />
+            <ClientWrapper>{children}</ClientWrapper> {/* Use the client component */}
+          </ThemeProvider>
+        </UserProvider>
+      </body>
+    </html>
+  );
 }

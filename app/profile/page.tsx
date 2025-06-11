@@ -12,7 +12,7 @@ import CupIcon from "@/public/profile/SVG/cupIcon"
 import SettingIcon from "@/public/profile/SVG/settingIcon"
 import ProfilePlayers from "@/components/ui/profilePlayers"
 import ProfileMatches from "@/components/ui/profileMatches"
-import AccountSettings from "@/components/ui/account_setting"
+import AccountSettings from "@/components/ui/account_settings"
 import { useGlobalStorage } from "@/components/GlobalStorage"
 
 export default function ProfilePage() {
