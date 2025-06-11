@@ -62,24 +62,34 @@ const SignIn = () => {
         return;
       }
 
-      const validIdentifierRegex = /^[a-zA-Z0-9@.]+$/;
-      if (!validIdentifierRegex.test(identifier)) {
-        setErrors((prev) => ({
-          ...prev,
-          identifier: "Please enter suitable email or username.",
-        }));
-        document
-          .getElementById("identifier-input")
-          ?.classList.add("border-red-500", "border-[0.3vh]");
-        return;
-      }
-
       const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
       const isUsername = /^[a-zA-Z0-9]+$/.test(identifier);
-      if (!isEmail && !isUsername) {
+      if (isEmail) {
+        if (!identifier.endsWith("@gmail.com")) {
+          setErrors((prev) => ({
+            ...prev,
+            identifier: "Email must be a Gmail address.",
+          }));
+          document
+            .getElementById("identifier-input")
+            ?.classList.add("border-red-500", "border-[0.3vh]");
+          return;
+        }
+      } else if (isUsername) {
+        if (identifier.length < 3 || identifier.length > 50) {
+          setErrors((prev) => ({
+            ...prev,
+            identifier: "Username must be 3-50 characters, letters and numbers only.",
+          }));
+          document
+            .getElementById("identifier-input")
+            ?.classList.add("border-red-500", "border-[0.3vh]");
+          return;
+        }
+      } else {
         setErrors((prev) => ({
           ...prev,
-          identifier: "Please enter suitable email or username.",
+          identifier: "Please enter a valid email or username.",
         }));
         document
           .getElementById("identifier-input")
@@ -100,6 +110,22 @@ const SignIn = () => {
           ?.classList.add("border-red-500", "border-[0.3vh]");
         return;
       }
+      if (
+        password.length < 9 ||
+        !/[A-Z]/.test(password) ||
+        !/[0-9]/.test(password) ||
+        !/[!@#$%^&*]/.test(password)
+      ) {
+        setErrors((prev) => ({
+          ...prev,
+          password:
+            "Password must be at least 9 characters, with 1 uppercase letter, 1 number, and 1 special character (!@#$%^&*).",
+        }));
+        document
+          .querySelector("input[type='password']")
+          ?.classList.add("border-red-500", "border-[0.3vh]");
+        return;
+      }
       document
         .querySelector("input[type='password']")
         ?.classList.remove("border-red-500", "border-[0.3vh]");
@@ -109,18 +135,14 @@ const SignIn = () => {
           identifier,
           password,
         });
-        console.log("Login response:", response.data);
         setAuthData({
           userId: response.data.user.id,
           userName: response.data.user.username,
           email: response.data.user.email,
           accessToken: response.data.token,
           refreshToken: null,
+          avatar: response.data.user.avatarUrl || null,
         });
-        console.log(
-          "Stored accessToken:",
-          useGlobalStorage.getState().accessToken
-        );
         document
           .getElementById("identifier-input")
           ?.classList.add("border-green-500", "border-[0.3vh]");
@@ -129,9 +151,10 @@ const SignIn = () => {
           ?.classList.add("border-green-500", "border-[0.3vh]");
         toast.success("Sign in successful!");
         router.push("/profile");
-      } catch (err: any) {
-        const message = err.response?.data?.message || "Sign in failed";
-        console.error("Login error:", err.response?.data);
+      } catch (err: unknown) {
+        const message = axios.isAxiosError(err)
+          ? err.response?.data?.message || "Sign in failed"
+          : "Sign in failed";
         if (message.includes("User") || message.includes("email")) {
           setErrors((prev) => ({ ...prev, identifier: message }));
           document
@@ -176,20 +199,21 @@ const SignIn = () => {
             username: values.username,
           }
         );
-        console.log("Google login completion response:", response.data);
         setAuthData({
           userId: response.data.user.id,
           userName: response.data.user.username,
           email: response.data.user.email,
           accessToken: response.data.token,
           refreshToken: null,
+          avatar: response.data.user.avatarUrl || null,
         });
         toast.success("Google login successful!");
         setShowUsernamePrompt(false);
         router.push("/profile");
-      } catch (err: any) {
-        const message =
-          err.response?.data?.message || "Failed to complete Google login";
+      } catch (err: unknown) {
+        const message = axios.isAxiosError(err)
+          ? err.response?.data?.message || "Failed to complete Google login"
+          : "Failed to complete Google login";
         toast.error(message);
       }
     },
@@ -208,6 +232,7 @@ const SignIn = () => {
           email,
           accessToken: token,
           refreshToken: null,
+          avatar: null,
         });
         toast.success("Google login successful!");
         router.push("/profile");
@@ -292,7 +317,7 @@ const SignIn = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="font-bold text-[3vh]">
-                        Username or Email
+                        Username/Email
                       </FormLabel>
                       <FormControl>
                         <div className="relative">

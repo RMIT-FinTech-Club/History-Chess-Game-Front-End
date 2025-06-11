@@ -26,29 +26,35 @@ const ProfilePage = () => {
   const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true);
   const [profileMenu, setProfileMenu] = useState(1);
   const [user, setUser] = useState<{
+    id: string;
     username: string;
     email: string;
     elo: number;
-    id: string;
+    avatarUrl: string | null;
+    language: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const { accessToken } = useGlobalStorage();
+  const { accessToken, clearAuth } = useGlobalStorage();
 
   const fetchProfile = useCallback(async () => {
+    if (!accessToken) {
+      toast.error("Please sign in to view your profile.");
+      router.push("/sign_in");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      if (!accessToken) {
-        toast.error("Please sign in to view your profile.");
-        router.push("/sign_in");
-        return;
-      }
       const response = await axios.get("http://localhost:8080/users/profile", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       setUser(response.data.user);
-    } catch (err: any) {
-      const message = err.response?.data?.message || "Failed to load profile";
+    } catch (err: unknown) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message || "Failed to load profile"
+        : "Failed to load profile";
       toast.error(message);
       router.push("/sign_in");
     } finally {
@@ -64,11 +70,11 @@ const ProfilePage = () => {
     setIsProfileOpened((prev) => !prev);
   }, []);
 
-  // const handleLogout = useCallback(() => {
-  //   useGlobalStorage.getState().clearAuth();
-  //   toast.success("Logged out successfully!");
-  //   router.push("/sign_in");
-  // }, [router]);
+  const handleLogout = useCallback(() => {
+    clearAuth();
+    toast.success("Logged out successfully!");
+    router.push("/sign_in");
+  }, [router, clearAuth]);
 
   if (loading) {
     return (
@@ -109,7 +115,7 @@ const ProfilePage = () => {
         <div className="w-[35vw] md:w-[32vw] flex justify-between items-center">
           <div
             style={{
-              backgroundImage: `url(https://i.imgur.com/RoRONDn.jpeg)`,
+              backgroundImage: `url(${user?.avatarUrl || "https://i.imgur.com/RoRONDn.jpeg"})`,
             }}
             className="w-[10vw] md:w-[8vw] m-[2vw] aspect-square rounded-[50%] bg-center bg-cover bg-no-repeat border border-white border-solid"
           ></div>
