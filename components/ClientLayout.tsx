@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation"
 import { useGlobalStorage } from "@/components/GlobalStorage"
 import { useEffect } from "react"
 
-
 import Content from "@/components/content"
 import Footer from "@/components/Footer"
 

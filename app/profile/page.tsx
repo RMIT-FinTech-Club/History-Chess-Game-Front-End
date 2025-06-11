@@ -1,64 +1,28 @@
 "use client"
 
-import styles from "@/css/profile.module.css"
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowUp } from "@fortawesome/free-solid-svg-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { useGlobalStorage } from "@/components/GlobalStorage"
 import CountUp from "react-countup"
+
+import styles from "@/css/profile.module.css"
 import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
 import CupIcon from "@/public/profile/SVG/cupIcon"
 import SettingIcon from "@/public/profile/SVG/settingIcon"
-import axios from "axios"
-
-interface Match {
-    opponent: string;
-    avt: string;
-    playMode: string;
-    totalTime: number;
-    result: string;
-}
+import ProfilePlayers from "@/components/ui/profilePlayers"
+import ProfileMatches from "@/components/ui/profileMatches"
+import AccountSettings from "@/components/ui/account_setting"
+import { useGlobalStorage } from "@/components/GlobalStorage"
 
 export default function ProfilePage() {
+    const { userName, avatar } = useGlobalStorage()
+
     const profileRef = useRef<HTMLDivElement | null>(null)
     const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
     const [profileMenu, setProfileMenu] = useState(1)
-    const [matches, setMatches] = useState<Match[]>([])
-    const [error, setError] = useState<string | null>(null)
-    const { userId, userName, avatar } = useGlobalStorage()
 
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
-
-    useEffect(() => {
-        const fetchMatchHistory = async () => {
-            try {
-                // Replace with actual userId - e.g., from auth context, localStorage, or route params
-                const response = await axios.get(`http://localhost:8000/api/v1/game/history/${userId}`)
-
-                const formattedMatches = response.data.map((match: any) => {
-                    return {
-                        opponent: match.opponentName || 'Unknown',
-                        avt: match.opponentAvatar || 'https://i.imgur.com/RoRONDn.jpeg',
-                        playMode: match.gameMode,
-                        // Use the computed duration as your 'time' field
-                        totalTime: match.totalTime,
-                        // Use the derived gameResult
-                        result: match.result,
-                    };
-                });
-
-                setMatches(formattedMatches);
-                setError(null);
-            } catch (err) {
-                console.error('Error fetching match history:', err)
-                setError('Failed to load match history')
-                setMatches([])
-            }
-        }
-
-        fetchMatchHistory()
-    }, [])
     return (
         <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3dvh] mx-[5vw] md:mx-[10vw] text-white relative h-[100ddvh]">
             <div className={`w-full relative md:absolute ${isProfileOpened ? 'md:top-[3dvh]' : 'md:top-[calc(-12vw-2px)]'} top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3dvh] transition-all duration-300`}>
@@ -157,72 +121,10 @@ export default function ProfilePage() {
                             </div>
                         ))}
                     </div>
-                    {profileMenu === 1 && <div className="p-[2vw] w-full h-[100%] hidden md:flex flex-col bg-[#1D1D1D] rounded-[2vw]">
-                        <p className="text-[2vw] leading-[2vw] mb-[3vh]">Other Players</p>
-                        <div className={`flex flex-col w-full ${isProfileOpened ? 'h-[calc(100vh-12vw-3vh-2px-3vh-14vw-6vh-6vw-3vh)]' : 'h-[calc(100vh-3vh-3vh-14vw-6vh-6vw-3vh)]'} overflow-y-auto overflow-x-hidden transition-all duration-300 list-container`}>
-                            {Array.from({ length: 20 }).map((_, index) => (
-                                <div key={index} className={`flex relative ${styles.online_player} justify-start items-center ${index == 19 ? 'mb-0' : 'mb-[3dvh]'}`}>
-                                    <div
-                                        style={{ backgroundImage: `url(https://i.imgur.com/RoRONDn.jpeg)` }}
-                                        className="w-[calc(3vw-2px)] bg-center bg-cover bg-no-repeat aspect-square rounded-[50%] border border-solid border-white"
-                                    ></div>
-                                    <p className="w-full mx-[1vw] text-[1.2vw] whitespace-nowrap overflow-hidden text-ellipsis">{index == 19 ? 'Negic Legend Legend Legend' : 'Negic Legend'}</p>
-                                    <p className="text-[1.2vw] text-[#C4C4C4] md:hover:text-[#DBB968] hover:text-white cursor-pointer">Challenge</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>}
+                    {profileMenu === 1 && <ProfilePlayers isopen={isProfileOpened} />}
                 </div>
-                <div className="w-full md:w-[60%] flex flex-col">
-                    <div className="flex items-center">
-                        <GamePadIcon width="3vw" />
-                        <p className="text-[3vw] leading-[3vw] ml-[1vw]">Matches</p>
-                    </div>
-                    <div className={`flex flex-col w-full h-[calc(100ddvh-3dvh-15vw-3dvh-6vw-3dvh-3vw-2dvh+4px-6dvh)] md:h-[100%] overflow-y-auto mt-[2dvh] ${styles.list_container}`}>
-                        {error ? (
-                            <div className="w-full flex justify-center items-center py-5 text-[#EA4335]">
-                                <p>{error}</p>
-                            </div>
-                        ) : matches.length === 0 ? (
-                            <div className="w-full flex justify-center items-center py-5">
-                                <p>No match history found</p>
-                            </div>
-                        ) : (
-                            matches.map((match, index) => (
-                                <div
-                                    key={index}
-                                    className={`${index !== matches.length - 1 ? 'mb-[3dvh]' : 'mb-0'} ${styles.match} w-full rounded-[1vw] bg-[rgba(0,0,0,0.5)] border border-solid ${match.result == 'Victory' && `border-[#1CFF07] ${styles.victory}`} ${match.result == 'Draw' && `border-[#FFF700] ${styles.draw}`} ${match.result == 'Defeat' && 'border-[#EA4335]'}`}
-                                >
-                                    <div className="w-full flex items-center justify-start px-[2vw] md:px-[1vw] rounded-[1vw] overflow-y-hidden">
-                                        <div
-                                            style={{ backgroundImage: `url(${match.avt})` }}
-                                            className="w-[calc(8vw-2px)] md:w-[calc(4vw-2px)] my-[2vw] md:my-[1vw] aspect-square rounded-[50%] bg-center bg-cover bg-no-repeat border border-white border-solid mr-[2vw] md:mr-[1vw]"
-                                        ></div>
-                                        <div className="w-[100%] flex justify-between items-center mr-[3vw]">
-                                            <div className="flex flex-col justify-center items-start mr-[2vw]">
-                                                <p className="text-[1.8vw] md:text-[1vw] text-[#C4C4C4]">Opponent</p>
-                                                <p className="text-[1.8vw] md:text-[1vw] font-bold w-[30vw] md:w-[15vw] whitespace-nowrap overflow-hidden text-ellipsis">{match.opponent}</p>
-                                            </div>
-                                            <div className="flex justify-between items-center w-[100%]">
-                                                <div className="flex flex-col justify-center items-start">
-                                                    <p className="text-[1.8vw] md:text-[1vw] text-[#C4C4C4]">Game Mode</p>
-                                                    <p className="text-[1.8vw] md:text-[1vw] font-bold">{match.playMode}</p>
-                                                </div>
-                                                <div className="flex flex-col justify-center items-start">
-                                                    <p className="text-[1.8vw] md:text-[1vw] text-[#C4C4C4]">Time</p>
-                                                    <p className="text-[1.8vw] md:text-[1vw] font-bold">{`${Math.floor(match.totalTime / 60)}:${match.totalTime % 60 > 9 ? match.totalTime % 60 : '0' + match.totalTime % 60}`}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="w-[22vw] md:w-[16vw] flex justify-center items-center">
-                                            <p className={`text-[1.5vw] px-[2vw] mr-[1vw] relative ${match.result == 'Victory' && 'text-[#1CFF07]'} ${match.result == 'Defeat' && 'text-[#EA4335]'} ${match.result == 'Draw' && 'text-[#FFF700]'} font-bold ${styles.result}`}>{match.result}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
+                {profileMenu === 1 && <ProfileMatches />}
+                {profileMenu === 2 && <AccountSettings />}
             </div>
         </div>
     )
