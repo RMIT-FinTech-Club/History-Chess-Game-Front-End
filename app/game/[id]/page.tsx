@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useLayoutEffect,
-  useCallback,
-} from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect, useCallback } from "react";
 import { Chessboard } from "react-chessboard";
 import { Square } from "chess.js";
 import "@/css/chessboard.css";
@@ -19,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CapturedPieces } from "@/components/CapturedPieces";
-import { TimeCounter, TimeCounterHandle } from "@/components/TimeCounter";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { io, Socket } from "socket.io-client";
 import { Chess } from "chess.js";
@@ -101,13 +94,11 @@ const GamePage = ({ params }: { params: { id: string } }) => {
     newSocket.on("connect", () => {
       setIsConnected(true);
       toast.success("Connected to server");
-      console.log("Socket connected with ID:", newSocket.id);
     });
 
     newSocket.on("disconnect", () => {
       setIsConnected(false);
       toast.error("Disconnected from server");
-      console.log("Socket disconnected");
     });
 
     // Get game data from localStorage
@@ -124,16 +115,9 @@ const GamePage = ({ params }: { params: { id: string } }) => {
     newSocket.emit("joinGame", { gameId, userId });
 
     newSocket.on("gameState", (state) => {
-      console.log("Received game state:", state);
-      
-      // Get stored game data
       const storedGameData = JSON.parse(localStorage.getItem("gameData") || "{}");
       
       if (state.playerColor && storedGameData.playerColor && state.playerColor !== storedGameData.playerColor) {
-        console.error("Player color mismatch:", {
-          received: state.playerColor,
-          stored: storedGameData.playerColor
-        });
         toast.error("Player color verification failed");
         router.push("/game/find");
         return;
@@ -169,7 +153,6 @@ const GamePage = ({ params }: { params: { id: string } }) => {
     });
 
     newSocket.on("timeUpdate", (data) => {
-      console.log("Received time update:", data);
       setGameState((prev: any) => ({
         ...prev,
         whiteTimeLeft: data.whiteTimeLeft,
@@ -178,13 +161,11 @@ const GamePage = ({ params }: { params: { id: string } }) => {
     });
 
     newSocket.on("error", (error) => {
-      console.error("Socket error:", error);
       toast.error(error.message);
     });
 
     // Add gameStart handler
     newSocket.on("gameStart", (data) => {
-      console.log("Game starting:", data);
       const storedGameData = JSON.parse(localStorage.getItem("gameData") || "{}");
       
       // Set initial board orientation based on player color
