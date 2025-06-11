@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { NewPassword } from "@/components/ui/NewPassword";
 import { NewPasswordConfirm } from "@/components/ui/NewPasswordConfirm";
-import { useGlobalStorage } from "@/components/GlobalStorage";
+import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import { MdEmail } from "react-icons/md";
 import axios from "axios";
 import styles from "@/css/otp.module.css";

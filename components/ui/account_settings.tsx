@@ -11,7 +11,7 @@ import { Label } from "@radix-ui/react-label";
 import { MdOutlineFileUpload } from "react-icons/md";
 import Image from "next/image";
 import styles from "@/css/profile.module.css";
-import { useGlobalStorage } from "@/components/GlobalStorage";
+import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import Popup from "@/components/ui/Popup";
@@ -667,9 +667,8 @@ const AccountSettings = () => {
         >
           <div className="w-full flex flex-row items-center">
             <div
-              className={`md:w-[8vw] md:aspect-square w-[14vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative ${
-                isEditing ? "cursor-pointer" : "cursor-not-allowed"
-              }`}
+              className={`md:w-[8vw] md:aspect-square w-[14vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative ${isEditing ? "cursor-pointer" : "cursor-not-allowed"
+                }`}
               onClick={handleAvatarClick}
               role="button"
               aria-label={isEditing ? "Upload new avatar" : "Avatar display"}
