@@ -1,6 +1,6 @@
 import axios from "axios"
 import { useEffect, useState } from "react"
-import { useGlobalStorage } from "@/src/hooks/GlobalStorage"
+import { useGlobalStorage } from "@/hooks/GlobalStorage"
 import styles from "@/css/profile.module.css"
 import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
 
