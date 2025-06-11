@@ -11,7 +11,7 @@ import { Label } from "@radix-ui/react-label";
 import { MdOutlineFileUpload } from "react-icons/md";
 import Image from "next/image";
 import styles from "@/css/profile.module.css";
-import { useGlobalStorage } from "@/src/hooks/GlobalStorage";
+import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import Popup from "@/components/ui/Popup";
@@ -790,7 +790,8 @@ const AccountSettings = () => {
                   <Image
                     src="/edit_icon.svg"
                     alt="Edit icon"
-                    className="w-[1.5rem]"
+                    width={20}
+                    height={20}
                   />
                 </button>
               )}
