@@ -215,9 +215,7 @@ const OnlinePage = () => {
   const [currentTurn, setCurrentTurn] = useState<"w" | "b">("w");
   const [gameActive, setGameActive] = useState(false);
   const timerRef = useRef<TimeCounterHandle>(null);
-  const [boardOrientation, setBoardOrientation] = useState<"white" | "black">(
-    "white"
-  );
+  const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
   const [autoRotateBoard, setAutoRotateBoard] = useState(false);
   const [boardWidth, setBoardWidth] = useState(580);
   const [userId, setUserId] = useState("");
@@ -236,6 +234,8 @@ const OnlinePage = () => {
     color: string;
     time: number;
   }>>([]);
+  const [selectedGameMode, setSelectedGameMode] = useState<"blitz" | "rapid" | "bullet">("blitz");
+  const [selectedColor, setSelectedColor] = useState<"white" | "black" | "random">("random");
 
   const {
     fen,
@@ -263,26 +263,32 @@ const OnlinePage = () => {
 
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io("http://localhost:8000");
+    const newSocket = io("http://localhost:8000", {
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
       setIsConnected(true);
       toast.success("Connected to server");
+      console.log("Socket connected with ID:", newSocket.id);
     });
 
     newSocket.on("disconnect", () => {
       setIsConnected(false);
       toast.error("Disconnected from server");
+      console.log("Socket disconnected");
     });
 
     newSocket.on("gameState", (state) => {
+      console.log("Received game state:", state);
       setGameState(state);
       if (state.players && userId) {
         const playerIndex = state.players.indexOf(userId);
         const newOrientation = playerIndex === 0 ? "white" : "black";
         setBoardOrientation(newOrientation);
-        // Disable auto-rotate for online games
         setAutoRotateBoard(false);
       }
       if (state.move) {
@@ -296,7 +302,8 @@ const OnlinePage = () => {
     });
 
     newSocket.on("timeUpdate", (data) => {
-      setGameState(prev => ({
+      console.log("Received time update:", data);
+      setGameState((prev: any) => ({
         ...prev,
         whiteTimeLeft: data.whiteTimeLeft,
         blackTimeLeft: data.blackTimeLeft
@@ -304,13 +311,59 @@ const OnlinePage = () => {
     });
 
     newSocket.on("error", (error) => {
+      console.error("Socket error:", error);
       toast.error(error.message);
     });
 
+    // Add matchmaking event handlers
+    newSocket.on("inQueue", (data) => {
+      console.log("In queue:", data);
+      toast.info(data.message || "Waiting for opponent...");
+      setIsSearching(true);
+    });
+
+    newSocket.on("matchFound", (data) => {
+      console.log("Match found:", data);
+      setGameId(data.gameId);
+      setIsSearching(false);
+      toast.success("Match found! Game starting...");
+      
+      // Join the game room
+      newSocket.emit("joinGame", { gameId: data.gameId, userId });
+    });
+
+    newSocket.on("gameStart", (data) => {
+      console.log("Game starting:", data);
+      setGameState({
+        ...data.initialGameState,
+        players: data.players,
+        whiteTimeLeft: data.whiteTimeLeft,
+        blackTimeLeft: data.blackTimeLeft
+      });
+      toast.success("Game started!");
+    });
+
+    newSocket.on("matchmakingCancelled", () => {
+      console.log("Matchmaking cancelled");
+      setIsSearching(false);
+      toast.info("Matchmaking cancelled");
+    });
+
     return () => {
-      newSocket.close();
+      if (newSocket) {
+        newSocket.off("connect");
+        newSocket.off("disconnect");
+        newSocket.off("gameState");
+        newSocket.off("timeUpdate");
+        newSocket.off("error");
+        newSocket.off("inQueue");
+        newSocket.off("matchFound");
+        newSocket.off("gameStart");
+        newSocket.off("matchmakingCancelled");
+        newSocket.close();
+      }
     };
-  }, []);
+  }, [userId]);
 
   // Responsive board size
   useLayoutEffect(() => {
@@ -379,14 +432,12 @@ const OnlinePage = () => {
 
   // Add this effect to handle board orientation for online games
   useEffect(() => {
-    if (gameState?.players && userId && gameId) {
-      const playerIndex = gameState.players.indexOf(userId);
-      const newOrientation = playerIndex === 0 ? "white" : "black";
-      setBoardOrientation(newOrientation);
+    if (gameState?.playerColor) {
+      setBoardOrientation(gameState.playerColor);
       // Disable auto-rotate for online games
       setAutoRotateBoard(false);
     }
-  }, [gameState?.players, userId, gameId]);
+  }, [gameState?.playerColor]);
 
   // --- Handlers ---
 
@@ -395,45 +446,40 @@ const OnlinePage = () => {
       toast.error("Please enter your user ID");
       return;
     }
-    if (!socket) {
+    if (!socket || !isConnected) {
       toast.error("Not connected to server");
       return;
     }
-    setIsSearching(true);
+    if (isSearching) {
+      toast.info("Already searching for a match");
+      return;
+    }
 
     try {
-      // Updated endpoint to include /game prefix
-      const response = await fetch('http://localhost:8000/game/find', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          playMode: 'blitz',
-          colorPreference: 'random'
-        }),
+      console.log("Finding match with:", {
+        userId,
+        playMode: selectedGameMode,
+        colorChoice: selectedColor
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create game session');
-      }
-
-      const data = await response.json();
       
-      if (data.gameId) {
-        setGameId(data.gameId);
-        // Join the game room
-        socket.emit('joinGame', { gameId: data.gameId, userId });
-        toast.success("Game session created! Waiting for opponent...");
-      } else {
-        throw new Error("No game ID received from server");
-      }
+      socket.emit("findMatch", {
+        userId,
+        playMode: selectedGameMode,
+        colorChoice: selectedColor
+      });
     } catch (error) {
       console.error('Error finding match:', error);
       toast.error(error instanceof Error ? error.message : "Error finding match");
       setIsSearching(false);
+    }
+  };
+
+  const handleCancelMatchmaking = () => {
+    if (socket) {
+      console.log("Cancelling matchmaking for user:", userId);
+      socket.emit("cancelMatchmaking", { userId });
+      setIsSearching(false);
+      toast.info("Matchmaking cancelled");
     }
   };
 
@@ -442,7 +488,7 @@ const OnlinePage = () => {
       if (!socket || !gameId || !userId) return false;
 
       const isWhiteTurn = gameState?.turn === "w";
-      const isPlayerWhite = gameState?.players[0] === userId;
+      const isPlayerWhite = gameState?.playerColor === "white";
 
       if ((isWhiteTurn && !isPlayerWhite) || (!isWhiteTurn && isPlayerWhite)) {
         toast.error("Not your turn");
@@ -464,28 +510,28 @@ const OnlinePage = () => {
     (piece: string, sourceSquare: Square) => {
       const pieceColor = piece.charAt(0).toLowerCase();
       const isWhiteTurn = gameState?.turn === "w";
-      const isPlayerWhite = gameState?.players[0] === userId;
+      const isPlayerWhite = gameState?.playerColor === "white";
 
       if ((isWhiteTurn && pieceColor !== "w") || (!isWhiteTurn && pieceColor !== "b")) {
         return;
       }
       setSelectedPiece(sourceSquare);
     },
-    [gameState, userId]
+    [gameState]
   );
 
   const onPieceClick = useCallback(
     (piece: string, sourceSquare: Square) => {
       const pieceColor = piece.charAt(0).toLowerCase();
       const isWhiteTurn = gameState?.turn === "w";
-      const isPlayerWhite = gameState?.players[0] === userId;
+      const isPlayerWhite = gameState?.playerColor === "white";
 
       if ((isWhiteTurn && pieceColor !== "w") || (!isWhiteTurn && pieceColor !== "b")) {
         return;
       }
       setSelectedPiece(selectedPiece === sourceSquare ? null : sourceSquare);
     },
-    [gameState, userId, selectedPiece]
+    [gameState, selectedPiece]
   );
 
   const onSquareClick = useCallback(
@@ -584,7 +630,7 @@ const OnlinePage = () => {
       <h1 className="text-xl sm:text-2xl">Online Chess Game</h1>
       <div className="w-full max-w-7xl">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 p-2">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-center gap-2">
             <input
               type="text"
               placeholder="Enter User ID"
@@ -592,13 +638,40 @@ const OnlinePage = () => {
               onChange={(e) => setUserId(e.target.value)}
               className="p-2 border rounded text-black"
             />
-            <Button
-              onClick={handleFindMatch}
-              disabled={!isConnected || isSearching}
-              className="bg-[#DBB968] text-black hover:bg-[#C7A95D]"
+            <select
+              value={selectedGameMode}
+              onChange={(e) => setSelectedGameMode(e.target.value as "blitz" | "rapid" | "bullet")}
+              className="p-2 border rounded text-black"
             >
-              {isSearching ? "Finding Match..." : "Find Match"}
-            </Button>
+              <option value="blitz">Blitz</option>
+              <option value="rapid">Rapid</option>
+              <option value="bullet">Bullet</option>
+            </select>
+            <select
+              value={selectedColor}
+              onChange={(e) => setSelectedColor(e.target.value as "white" | "black" | "random")}
+              className="p-2 border rounded text-black"
+            >
+              <option value="random">Random Color</option>
+              <option value="white">White</option>
+              <option value="black">Black</option>
+            </select>
+            {isSearching ? (
+              <Button
+                onClick={handleCancelMatchmaking}
+                className="bg-red-500 text-white hover:bg-red-600"
+              >
+                Cancel
+              </Button>
+            ) : (
+              <Button
+                onClick={handleFindMatch}
+                disabled={!isConnected}
+                className="bg-[#DBB968] text-black hover:bg-[#C7A95D]"
+              >
+                Find Match
+              </Button>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <span
