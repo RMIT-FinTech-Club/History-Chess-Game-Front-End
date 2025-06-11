@@ -788,7 +788,7 @@ const AccountSettings = () => {
                   className="flex items-center gap-2 cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors"
                 >
                   <span className="text-[2.25vw] md:text-[1.25vw]">Edit</span>
-                  <img
+                  <Image
                     src="/edit_icon.svg"
                     alt="Edit icon"
                     className="w-[1.5rem]"

@@ -65,7 +65,7 @@ const ResetPassword = () => {
   const [email, setEmail] = useState("");
   const [verifiedResetCode, setVerifiedResetCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resending, setResending] = useState(false); // New state to track resend action
+  const [resending, setResending] = useState(false);
   const [errors, setErrors] = useState({
     email: "",
     resetCode: "",
@@ -248,7 +248,6 @@ const ResetPassword = () => {
       inputRefs.current[index + 1]?.focus();
     }
 
-    // Only auto-submit if not resending and all digits are filled
     if (!resending && newOtp.every((digit) => digit !== "")) {
       onCodeSubmit({ resetCode: newOtp.join("") });
     }
