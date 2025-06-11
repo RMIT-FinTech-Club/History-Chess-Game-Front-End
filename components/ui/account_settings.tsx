@@ -790,7 +790,8 @@ const AccountSettings = () => {
                   <Image
                     src="/edit_icon.svg"
                     alt="Edit icon"
-                    className="w-[1.5rem]"
+                    width={20}
+                    height={20}
                   />
                 </button>
               )}
