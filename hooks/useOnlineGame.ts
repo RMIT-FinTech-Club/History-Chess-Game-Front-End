@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import io, { Socket } from "socket.io-client";
 
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = "http://localhost:8080";
 
 export interface OnlineGameState {
   eloUpdate: number;

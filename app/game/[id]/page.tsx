@@ -84,7 +84,7 @@ const GamePage = ({ params }: { params: { id: string } }) => {
 
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io("http://localhost:8000", {
+    const newSocket = io("http://localhost:8080", {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,

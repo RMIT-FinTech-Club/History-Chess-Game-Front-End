@@ -36,7 +36,7 @@ export default function Challenge() {
     useEffect(() => {
         const fetchPlayers = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/leaderboard?limit=3&page=1&sort=elo_desc')
+                const response = await axios.get('http://localhost:8080/api/leaderboard?limit=3&page=1&sort=elo_desc')
                 const formattedPlayers = response.data.leaderboard.map((player: any) => ({
                     username: player.username || 'Unknown',
                     avt: player.avt || 'https://i.imgur.com/RoRONDn.jpeg',

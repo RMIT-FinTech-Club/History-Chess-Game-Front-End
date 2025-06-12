@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeProvider } from "../components/ThemeProvider";
 import { Toaster } from "sonner";
 import ClientWrapper from "@/components/ui/ClientWrapper"; // Import the client component
 

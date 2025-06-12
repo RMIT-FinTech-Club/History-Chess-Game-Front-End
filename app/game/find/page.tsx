@@ -5,7 +5,7 @@ import { io, Socket } from "socket.io-client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-
+import { useGlobalStorage } from "@/hooks/GlobalStorage";
 const FindMatchPage = () => {
   const [mounted, setMounted] = useState(false);
   const [userId, setUserId] = useState("");
@@ -16,9 +16,11 @@ const FindMatchPage = () => {
   const [selectedColor, setSelectedColor] = useState<"white" | "black" | "random">("random");
   const router = useRouter();
 
+   
+  // const { accessToken, userId } = useGlobalStorage();
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io("http://localhost:8000", {
+    const newSocket = io("http://localhost:8080", {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -100,6 +102,7 @@ const FindMatchPage = () => {
     }
 
     try {
+      setIsSearching(true);
       console.log("Finding match with:", {
         userId,
         playMode: selectedGameMode,
