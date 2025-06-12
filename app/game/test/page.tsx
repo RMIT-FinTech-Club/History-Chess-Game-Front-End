@@ -21,10 +21,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CapturedPieces } from "@/components/CapturedPieces";
 import type { StockfishLevel } from "@/hooks/useStockfish";
-import {
-  TimeCounter,
-  TimeCounterHandle,
-} from "@/components/TimeCounter";
+import { TimeCounter, TimeCounterHandle } from "@/components/TimeCounter";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useOfflineGame } from "@/hooks/useOfflineGame";
 import { io, Socket } from "socket.io-client";
@@ -215,7 +212,9 @@ const OnlinePage = () => {
   const [currentTurn, setCurrentTurn] = useState<"w" | "b">("w");
   const [gameActive, setGameActive] = useState(false);
   const timerRef = useRef<TimeCounterHandle>(null);
-  const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
+  const [boardOrientation, setBoardOrientation] = useState<"white" | "black">(
+    "white"
+  );
   const [autoRotateBoard, setAutoRotateBoard] = useState(false);
   const [boardWidth, setBoardWidth] = useState(580);
   const [userId, setUserId] = useState("");
@@ -228,14 +227,20 @@ const OnlinePage = () => {
   const [capturedBlack, setCapturedBlack] = useState<string[]>([]);
   const [selectedPiece, setSelectedPiece] = useState<Square | null>(null);
   const [customSquareStyles, setCustomSquareStyles] = useState({});
-  const [moveHistory, setMoveHistory] = useState<Array<{
-    moveNumber: number;
-    move: string;
-    color: string;
-    time: number;
-  }>>([]);
-  const [selectedGameMode, setSelectedGameMode] = useState<"blitz" | "rapid" | "bullet">("blitz");
-  const [selectedColor, setSelectedColor] = useState<"white" | "black" | "random">("random");
+  const [moveHistory, setMoveHistory] = useState<
+    Array<{
+      moveNumber: number;
+      move: string;
+      color: string;
+      time: number;
+    }>
+  >([]);
+  const [selectedGameMode, setSelectedGameMode] = useState<
+    "blitz" | "rapid" | "bullet"
+  >("blitz");
+  const [selectedColor, setSelectedColor] = useState<
+    "white" | "black" | "random"
+  >("random");
 
   const {
     fen,
@@ -292,12 +297,15 @@ const OnlinePage = () => {
         setAutoRotateBoard(false);
       }
       if (state.move) {
-        setMoveHistory(prev => [...prev, {
-          moveNumber: state.moveNumber,
-          move: state.move,
-          color: state.color,
-          time: state.time || 0
-        }]);
+        setMoveHistory((prev) => [
+          ...prev,
+          {
+            moveNumber: state.moveNumber,
+            move: state.move,
+            color: state.color,
+            time: state.time || 0,
+          },
+        ]);
       }
     });
 
@@ -306,7 +314,7 @@ const OnlinePage = () => {
       setGameState((prev: any) => ({
         ...prev,
         whiteTimeLeft: data.whiteTimeLeft,
-        blackTimeLeft: data.blackTimeLeft
+        blackTimeLeft: data.blackTimeLeft,
       }));
     });
 
@@ -327,7 +335,7 @@ const OnlinePage = () => {
       setGameId(data.gameId);
       setIsSearching(false);
       toast.success("Match found! Game starting...");
-      
+
       // Join the game room
       newSocket.emit("joinGame", { gameId: data.gameId, userId });
     });
@@ -338,7 +346,7 @@ const OnlinePage = () => {
         ...data.initialGameState,
         players: data.players,
         whiteTimeLeft: data.whiteTimeLeft,
-        blackTimeLeft: data.blackTimeLeft
+        blackTimeLeft: data.blackTimeLeft,
       });
       toast.success("Game started!");
     });
@@ -411,19 +419,21 @@ const OnlinePage = () => {
       chess.load(gameState.fen);
       const moves = chess.moves({ square: selectedPiece, verbose: true });
       const newStyles: Record<string, React.CSSProperties> = {};
-      
+
       // Highlight the selected piece
       newStyles[selectedPiece] = {
-        backgroundColor: 'rgba(255, 255, 0, 0.4)'
+        backgroundColor: "rgba(255, 255, 0, 0.4)",
       };
-      
+
       // Highlight possible moves
-      moves.forEach(move => {
+      moves.forEach((move) => {
         newStyles[move.to] = {
-          backgroundColor: chess.get(move.to) ? 'rgba(255, 0, 0, 0.4)' : 'rgba(0, 255, 0, 0.4)'
+          backgroundColor: chess.get(move.to)
+            ? "rgba(255, 0, 0, 0.4)"
+            : "rgba(0, 255, 0, 0.4)",
         };
       });
-      
+
       setCustomSquareStyles(newStyles);
     } else {
       setCustomSquareStyles({});
@@ -459,17 +469,19 @@ const OnlinePage = () => {
       console.log("Finding match with:", {
         userId,
         playMode: selectedGameMode,
-        colorChoice: selectedColor
+        colorChoice: selectedColor,
       });
-      
+
       socket.emit("findMatch", {
         userId,
         playMode: selectedGameMode,
-        colorChoice: selectedColor
+        colorChoice: selectedColor,
       });
     } catch (error) {
-      console.error('Error finding match:', error);
-      toast.error(error instanceof Error ? error.message : "Error finding match");
+      console.error("Error finding match:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Error finding match"
+      );
       setIsSearching(false);
     }
   };
@@ -512,7 +524,10 @@ const OnlinePage = () => {
       const isWhiteTurn = gameState?.turn === "w";
       const isPlayerWhite = gameState?.playerColor === "white";
 
-      if ((isWhiteTurn && pieceColor !== "w") || (!isWhiteTurn && pieceColor !== "b")) {
+      if (
+        (isWhiteTurn && pieceColor !== "w") ||
+        (!isWhiteTurn && pieceColor !== "b")
+      ) {
         return;
       }
       setSelectedPiece(sourceSquare);
@@ -526,7 +541,10 @@ const OnlinePage = () => {
       const isWhiteTurn = gameState?.turn === "w";
       const isPlayerWhite = gameState?.playerColor === "white";
 
-      if ((isWhiteTurn && pieceColor !== "w") || (!isWhiteTurn && pieceColor !== "b")) {
+      if (
+        (isWhiteTurn && pieceColor !== "w") ||
+        (!isWhiteTurn && pieceColor !== "b")
+      ) {
         return;
       }
       setSelectedPiece(selectedPiece === sourceSquare ? null : sourceSquare);
@@ -640,7 +658,11 @@ const OnlinePage = () => {
             />
             <select
               value={selectedGameMode}
-              onChange={(e) => setSelectedGameMode(e.target.value as "blitz" | "rapid" | "bullet")}
+              onChange={(e) =>
+                setSelectedGameMode(
+                  e.target.value as "blitz" | "rapid" | "bullet"
+                )
+              }
               className="p-2 border rounded text-black"
             >
               <option value="blitz">Blitz</option>
@@ -649,7 +671,9 @@ const OnlinePage = () => {
             </select>
             <select
               value={selectedColor}
-              onChange={(e) => setSelectedColor(e.target.value as "white" | "black" | "random")}
+              onChange={(e) =>
+                setSelectedColor(e.target.value as "white" | "black" | "random")
+              }
               className="p-2 border rounded text-black"
             >
               <option value="random">Random Color</option>
@@ -717,10 +741,18 @@ const OnlinePage = () => {
                 </h2>
                 <div className="rounded shadow-md bg-[#3B3433] p-2">
                   <div className="flex justify-between">
-                    <span className={`text-white ${currentTurn === 'w' ? 'font-bold' : ''}`}>
+                    <span
+                      className={`text-white ${
+                        currentTurn === "w" ? "font-bold" : ""
+                      }`}
+                    >
                       White: {formatTime(gameState?.whiteTimeLeft)}
                     </span>
-                    <span className={`text-white ${currentTurn === 'b' ? 'font-bold' : ''}`}>
+                    <span
+                      className={`text-white ${
+                        currentTurn === "b" ? "font-bold" : ""
+                      }`}
+                    >
                       Black: {formatTime(gameState?.blackTimeLeft)}
                     </span>
                   </div>
@@ -751,15 +783,18 @@ const OnlinePage = () => {
                       </thead>
                       <tbody>
                         {moveHistory.map((move, index) => (
-                          <tr key={index} className="hover:bg-[#4A4443] transition-colors duration-200">
+                          <tr
+                            key={index}
+                            className="hover:bg-[#4A4443] transition-colors duration-200"
+                          >
                             <td className="py-2 px-2 sm:px-5 text-xs sm:text-sm">
                               {Math.floor(index / 2) + 1}.
                             </td>
                             <td className="py-2 px-2 sm:px-5 text-xs sm:text-sm">
-                              {move.color === 'white' ? move.move : ''}
+                              {move.color === "white" ? move.move : ""}
                             </td>
                             <td className="py-2 px-2 sm:px-5 text-xs sm:text-sm">
-                              {move.color === 'black' ? move.move : ''}
+                              {move.color === "black" ? move.move : ""}
                             </td>
                             <td className="py-2 px-2 sm:px-5 text-xs">
                               {formatTime(move.time)}
