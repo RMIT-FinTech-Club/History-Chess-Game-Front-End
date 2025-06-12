@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 const FindMatchPage = () => {
   const [mounted, setMounted] = useState(false);
-  const [userId, setUserId] = useState("");
+  // const [userId, setUserId] = useState("");
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -17,7 +17,7 @@ const FindMatchPage = () => {
   const router = useRouter();
 
    
-  // const { accessToken, userId } = useGlobalStorage();
+  const { accessToken, userId } = useGlobalStorage();
   // Initialize socket connection
   useEffect(() => {
     const newSocket = io("http://localhost:8080", {
@@ -142,7 +142,7 @@ const FindMatchPage = () => {
       
       <div className="w-full max-w-md space-y-6">
         <div className="space-y-4">
-          <div>
+          {/* <div>
             <label htmlFor="userId" className="block text-sm font-medium mb-2">
               User ID
             </label>
@@ -154,7 +154,7 @@ const FindMatchPage = () => {
               onChange={(e) => setUserId(e.target.value)}
               className="w-full p-2 border rounded text-black"
             />
-          </div>
+          </div> */}
 
           <div>
             <label htmlFor="gameMode" className="block text-sm font-medium mb-2">
