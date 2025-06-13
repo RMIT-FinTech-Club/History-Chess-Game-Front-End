@@ -93,19 +93,20 @@ export default function Navbar() {
                 onClick={() => {
                   router.push('/game/offline');
                 }}
-                className="px-4 py-2 w-[124px] h-[35px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-[#F7D447] via-[#D6A900] to-[#A68E3C] flex justify-center items-center"
-              >
+                className="px-4 py-2 w-[124px] h-[35px] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] hover:text-white transition-colors duration-300 flex justify-center items-center">
                 New Game
             </button>
 
             </div>
           ) : (
             <div className="flex items-center gap-4">
-              <button onClick={() => router.push('/sign_in')} className="px-4 py-2 w-[100px] h-[35px] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#F7D447] via-[#D6A900] to-[#A68E3C] flex justify-center items-center hover:brightness-110">
+              <button onClick={() => router.push('/sign_in')} 
+                  className="px-4 py-2 w-[100px] h-[35px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] hover:text-black transition-colors duration-300 flex justify-center items-center">
                 Sign In
               </button>
 
-              <button onClick={() => router.push('/sign_up')} className="px-4 py-2 w-[100px] h-[35px] text-white border border-[#E9B654] rounded-[6px] font-semibold flex justify-center items-center">
+              <button onClick={() => router.push('/sign_up')}   
+                className=" w-[100px] h-[35px] text-black bg-white hover:bg-black hover:text-white rounded-[6px] font-semibold border border-white transition-colors duration-300 flex justify-center items-center">
                 Sign Up
               </button>
             </div>
@@ -145,29 +146,29 @@ export default function Navbar() {
             </div>
           )}
 
-          <span onClick={() => { router.push('/home'); setMobileOpen(false); }} className="text-xl font-semibold cursor-pointer text-center w-full">
+          <span onClick={() => { router.push('/home'); setMobileOpen(false); }} className="text-[3.5vh] font-semibold cursor-pointer text-center w-full">
             Home
           </span>
-          <span onClick={() => { router.push('/market'); setMobileOpen(false); }} className="text-xl font-semibold cursor-pointer text-center w-full">
+          <span onClick={() => { router.push('/market'); setMobileOpen(false); }} className="text-[3.5vh] font-semibold cursor-pointer text-center w-full">
             Our Market
           </span>
           {isLoggedIn && (
-            <span onClick={() => { router.push('/skins'); setMobileOpen(false); }} className="text-xl font-semibold cursor-pointer text-center w-full">
+            <span onClick={() => { router.push('/skins'); setMobileOpen(false); }} className="text-[3.5vh] font-semibold cursor-pointer text-center w-full">
               My Skins
             </span>
           )}
 
           <div className="w-full flex flex-col gap-3 mt-4 items-center">
             {isLoggedIn ? (
-              <button onClick={() => setShowConfirmLogout(true)} className="w-[352px] h-[40px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#9E7C00] to-[#605715] flex justify-center items-center">
+              <button onClick={() => setShowConfirmLogout(true)} className="w-[352px] h-[40px] text-[3.5vh] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#9E7C00] to-[#605715] flex justify-center items-center">
                 Log Out
               </button>
             ) : (
               <>
-                <button onClick={() => router.push('/sign_in')} className="w-[100px] h-[30px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-[#F7D447] via-[#D6A900] to-[#A68E3C] flex justify-center items-center">
-                  Log in
+                <button onClick={() => router.push('/sign_in')} className="w-[200px] h-[40px] text-[3.5vh] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#F7D447] via-[#D6A900] to-[#A68E3C] flex justify-center items-center">
+                  Sign In
                 </button>
-                <button onClick={() => router.push('/sign_up')} className="w-[100px] h-[30px] text-white border border-[#E9B654] rounded-[6px] font-semibold flex justify-center items-center">
+                <button onClick={() => router.push('/sign_up')} className="w-[200px] h-[40px] text-[3.5vh] text-black bg-white hover:bg-black hover:text-white rounded-[6px] font-semibold border border-white transition-colors duration-300 flex justify-center items-center">
                   Sign Up
                 </button>
               </>
