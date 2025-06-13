@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation"
 import Content from "@/components/content"
 import Footer from "@/components/Footer"
-
+import NavBar from "@/components/NavBar"
 export default function ClientWrapper({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
@@ -32,6 +32,7 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
 
   return (
     <>
+      <NavBar />
       <Content>{children}</Content>
       {showFooter && <Footer />}
     </>
