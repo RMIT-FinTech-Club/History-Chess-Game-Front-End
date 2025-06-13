@@ -1,0 +1,7 @@
+@import "../animation.css";
+
+@supports (animation-timeline: view()) {
+    .auto_blur {
+        composes: auto-blur-animation;
+    }
+}

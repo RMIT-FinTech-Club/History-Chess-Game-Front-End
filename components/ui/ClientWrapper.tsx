@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
+import { usePathname } from "next/navigation"
+import Content from "@/components/content"
+import Footer from "@/components/Footer"
+import NavBar from "@/components/NavBar"
 export default function ClientWrapper({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
@@ -13,5 +16,25 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
     return null; // Prevent rendering until the component is mounted
   }
 
-  return <>{children}</>;
+  const pathname = usePathname()
+
+  const noFooterRoutes = [
+    '/challenge',
+    '/loadout',
+    '/players',
+    '/profile',
+    '/otp',
+    '/sign_in',
+    '/sign_up'
+  ]
+
+  const showFooter = !noFooterRoutes.includes(pathname)
+
+  return (
+    <>
+      <NavBar />
+      <Content>{children}</Content>
+      {showFooter && <Footer />}
+    </>
+  )
 }

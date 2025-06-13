@@ -1,0 +1,58 @@
+.SVG path {
+    fill: transparent;
+    stroke: #fff;
+    stroke-width: 2;
+    stroke-dasharray: 800;
+    stroke-dashoffset: 800;
+    animation: fill-text 3s ease-in-out forwards;
+}
+
+@keyframes fill-text {
+    0% {
+        stroke-dashoffset: 800;
+    }
+
+    80% {
+        fill: transparent;
+    }
+
+    100% {
+        stroke-dashoffset: 0;
+        fill: #fff;
+    }
+}
+
+@supports (animation-timeline: view()) {
+    .bg {
+        filter: brightness(0.5);
+        animation: fading-image linear forwards;
+        animation-timeline: view();
+        animation-range: exit;
+    }
+
+    .content {
+        animation: fade-out linear forwards;
+        animation-timeline: view();
+        animation-range: exit -30vh;
+    }
+
+    @keyframes fade-out {
+        to {
+            opacity: 0;
+        }
+    }
+
+    @keyframes fading-image {
+        25% {
+            filter: brightness(1);
+            opacity: 1;
+        }
+
+        85%,
+        100% {
+            filter: brightness(0.2);
+            opacity: 0;
+            scale: 3;
+        }
+    }
+}

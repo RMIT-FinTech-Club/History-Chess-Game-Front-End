@@ -119,6 +119,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
@@ -126,6 +127,7 @@
 
   a {
     color: var(--primary);
+
     &:hover {
       color: var(--accent);
     }
@@ -147,7 +149,8 @@ button:hover {
   color: var(--card-foreground);
 }
 
-input, select {
+input,
+select {
   background-color: var(--input);
   color: var(--foreground);
   border: 1px solid var(--border);
@@ -155,7 +158,8 @@ input, select {
   padding: 0.5rem;
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
   border-color: var(--primary);
   outline: none;
 }
@@ -184,6 +188,7 @@ footer {
 
 footer a {
   color: var(--primary);
+
   &:hover {
     color: var(--accent);
   }
