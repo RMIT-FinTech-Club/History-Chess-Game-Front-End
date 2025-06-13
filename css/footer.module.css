@@ -1,0 +1,60 @@
+/*
+* Prefixed by https://autoprefixer.github.io
+* PostCSS: v8.4.14,
+* Autoprefixer: v10.4.7
+* Browsers: last 4 version
+*/
+
+@keyframes moving {
+    0% {
+        -webkit-transform: translateY(0);
+                transform: translateY(0);
+    }
+
+    50% {
+        -webkit-transform: translateY(3vh);
+                transform: translateY(3vh);
+    }
+
+    100% {
+        -webkit-transform: translateY(0);
+                transform: translateY(0);
+    }
+}
+
+@media(hover: hover) {
+    .link {
+        text-decoration: none;
+        background-image: -o-linear-gradient(#FFF, #FFF);
+        background-image: -webkit-gradient(linear, left top, left bottom, from(#FFF), to(#FFF));
+        background-image: linear-gradient(#FFF, #FFF);
+        background-repeat: no-repeat;
+        -webkit-transition: background-size 0.2s linear;
+        -o-transition: background-size 0.2s linear;
+        transition: background-size 0.2s linear;
+        background-position: 0 100%;
+        background-size: 0% 8%;
+    }
+
+    .link:hover {
+        background-size: 100% 8%;
+    }
+}
+
+.FTC_logo {
+    background-image: url('../public/footer/white_logo.svg');
+}
+
+.lc_ic {
+    background-image: url('../public/footer/loc_icon.svg');
+}
+
+.em_ic {
+    background-image: url('../public/footer/eml_icon.svg');
+}
+
+.bear {
+    -webkit-animation: moving infinite 5s;
+            animation: moving infinite 5s;
+    background-image: url('../public//footer/footer_bear.svg');
+}

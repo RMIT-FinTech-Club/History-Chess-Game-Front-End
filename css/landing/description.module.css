@@ -1,0 +1,38 @@
+@import "../animation.css";
+
+@supports (animation-timeline: view()) {
+    .line {
+        background-color: #DBB968;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1vw;
+        height: 100%;
+        composes: line-animation;
+    }
+
+    .content {
+        background-image: linear-gradient(180deg, white, white);
+        background-size: 100% 0;
+    }
+
+    .title {
+        background-image: linear-gradient(90deg, #D2A742, #D2A742);
+        background-size: 0 100%;
+    }
+
+    .content,
+    .title {
+        color: rgba(255, 255, 255, 0.2);
+        background-repeat: no-repeat;
+        background-clip: text;
+        composes: text-animation;
+    }
+
+    .content,
+    .line,
+    .title {
+        animation-range-start: cover 40vh;
+        animation-range-end: cover 60vh;
+    }
+}
