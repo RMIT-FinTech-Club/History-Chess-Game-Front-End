@@ -1,62 +1,176 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useRef } from "react"
-import { useSearchParams } from "next/navigation"
-import axios from "axios"
+import { useEffect, useState, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import axios from "axios";
+import io from "socket.io-client";
 
-import styles from "@/css/challenge.module.css"
-import Clock from "@/public/challenge/SVG/clock"
-import Pieces from "@/public/challenge/SVG/pieces"
-
+import styles from "@/css/challenge.module.css";
+import Clock from "@/public/challenge/SVG/clock";
+import Pieces from "@/public/challenge/SVG/pieces";
+import { useGlobalStorage } from "@/hooks/GlobalStorage";
+import { toast } from "sonner";
 interface Players {
-    username: string
-    avt: string
-    elo: number
+    id: string;
+    username: string;
+    avt: string;
+    elo: number;
 }
 
 export default function Challenge() {
     const searchParams = useSearchParams()
+    const router = useRouter()
     const usernameFromURL = searchParams.get("player")
 
     const [players, setPlayers] = useState<Players[]>([])
     const [error, setError] = useState<string | null>(null)
+    const [socket, setSocket] = useState<any>(null)
+    const [isConnected, setIsConnected] = useState(false)
+    // const [userId, setUserId] = useState<string>("")
+    const { accessToken, userId } = useGlobalStorage();
 
-    const [selectedMode, setSelectedMode] = useState<string | null>(null)
-    const [selectedSide, setSelectedSide] = useState<'white' | 'black' | 'random' | null>(null)
+    const [selectedMode, setSelectedMode] = useState<"blitz" | "rapid" | "bullet">("blitz");
+    const [selectedSide, setSelectedSide] = useState<"white" | "black" | "random">("random");
+    const [isChallenging, setIsChallenging] = useState(false)
 
     const [showPlayerSelect, setShowPlayerSelect] = useState(false)
     const [selectedPlayer, setSelectedPlayer] = useState<Players>({
+        id: '',
         username: 'Unknown',
         avt: 'https://i.imgur.com/RoRONDn.jpeg',
         elo: 0
     })
 
     const playerListRef = useRef<HTMLDivElement>(null)
+    const [showChallengeModal, setShowChallengeModal] = useState(false);
+    const [challengeData, setChallengeData] = useState<{
+        challengerId: string;
+        challengerName: string;
+        playMode: string;
+        colorPreference: string;
+    } | null>(null);
 
     useEffect(() => {
-        const fetchPlayers = async () => {
-            try {
-                const response = await axios.get('http://localhost:8000/api/leaderboard?limit=3&page=1&sort=elo_desc')
-                const formattedPlayers = response.data.leaderboard.map((player: any) => ({
-                    username: player.username || 'Unknown',
-                    avt: player.avt || 'https://i.imgur.com/RoRONDn.jpeg',
-                    elo: player.elo || 0
-                }))
-                setPlayers(formattedPlayers)
-                if (usernameFromURL) {
-                    const target = formattedPlayers.find((p: Players) => p.username === usernameFromURL)
-                    if (target) {
-                        setSelectedPlayer(target)
-                    }
-                }
-                setError(null)
-            } catch (err) {
-                console.error('Error fetching player list:', err)
-                setError('Failed to load player list')
+        if (!userId) return;
+
+        const newSocket = io("http://localhost:8080", {
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+        });
+        setSocket(newSocket);
+
+        newSocket.on("connect", () => {
+            setIsConnected(true);
+            console.log("Socket connected with ID:", newSocket.id);
+            newSocket.emit("identify", userId);
+            newSocket.emit("getOnlineUsers");
+        });
+
+        newSocket.on("disconnect", () => {
+            setIsConnected(false);
+            console.log("Socket disconnected");
+        });
+
+        // Add challenge response handler
+        newSocket.on("challengeResponse", (data: { opponentId: string, accepted: boolean }) => {
+            console.log("Received challenge response:", data);
+            if (data.accepted) {
+                // Handle accepted challenge
+                console.log("Challenge accepted!");
+                toast.success("Challenge accepted! Waiting for game to start...");
+            } else {
+                // Handle declined challenge
+                console.log("Challenge declined");
+                setIsChallenging(false);
+                toast.info("Challenge was declined");
             }
-        }
-        fetchPlayers()
-    }, [])
+        });
+
+        // Add challenge error handler
+        newSocket.on("challengeError", (error: { message: string }) => {
+            console.error("Challenge error:", error.message);
+            setIsChallenging(false);
+            toast.error(error.message);
+        });
+
+        // Add game challenge received handler
+        newSocket.on("gameChallenge", (data: { 
+            challengerId: string, 
+            challengerName: string, 
+            playMode: string, 
+            colorPreference: string 
+        }) => {
+            console.log("Received game challenge:", data);
+            setChallengeData(data);
+            setShowChallengeModal(true);
+            console.log("Modal state after update:", { showChallengeModal: true, challengeData: data });
+        });
+
+        // Add game starting handler
+        newSocket.on("gameStarting", (data: { 
+            gameId: string, 
+            playMode: string, 
+            colorPreference: string 
+        }) => {
+            console.log("Game starting:", data);
+            toast.success("Game starting! Redirecting...");
+
+
+
+            localStorage.setItem("gameData", JSON.stringify({
+                gameId: data.gameId,
+                gameMode: data.playMode,
+                colorPreference: data.colorPreference,
+                userId: userId
+            }));
+                router.push(`/game/${data.gameId}`);
+        });
+
+        newSocket.on("onlineUsers", (users: string[]) => {
+            console.log("Online users:", users);
+            // Fetch user details for each online user
+            const fetchUserDetails = async () => {
+                try {
+                    const userDetailsPromises = users.map(userId => 
+                        axios.get(`http://localhost:8080/users/${userId}`)
+                    );
+                    
+                    const responses = await Promise.all(userDetailsPromises);
+                    const formattedPlayers = responses
+                        .map(response => ({
+                            id: response.data.id,
+                            username: response.data.username || 'Unknown',
+                            avt: response.data.avt || 'https://i.imgur.com/RoRONDn.jpeg',
+                            elo: response.data.elo || 0
+                        }))
+                        .filter(player => player.id !== userId); 
+                    
+                    setPlayers(formattedPlayers);
+                    
+                    if (usernameFromURL) {
+                        const target = formattedPlayers.find((p: Players) => p.username === usernameFromURL);
+                        if (target) {
+                            setSelectedPlayer(target);
+                        }
+                    }
+                    setError(null);
+                } catch (err) {
+                    console.error('Error fetching user details:', err);
+                    setError('Failed to load player details');
+                }
+            };
+
+
+            fetchUserDetails();
+        });
+
+        return () => {
+            if (newSocket) {
+                newSocket.disconnect();
+            }
+        };
+    }, [userId, usernameFromURL, router]);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -77,16 +191,10 @@ export default function Challenge() {
     }, [showPlayerSelect])
 
 
-    const modeOptions = [
-        { label: '1 min', value: '1min' },
-        { label: '1 | 1', value: '1|1' },
-        { label: '2 | 1', value: '2|1' },
-        { label: '3 min', value: '3min' },
-        { label: '3 | 2', value: '3|2' },
-        { label: '5 mins', value: '5min' },
-        { label: '10 min', value: '10min' },
-        { label: '15 | 10', value: '15|10' },
-        { label: '30 mins', value: '30min' }
+    const modeOptions: { label: string; value: "blitz" | "rapid" | "bullet" }[] = [
+        { label: 'blitz', value: 'blitz' },
+        { label: 'rapid', value: 'rapid' },
+        { label: 'bullet', value: 'bullet' },
     ]
 
     const sideOptions = [
@@ -179,12 +287,64 @@ export default function Challenge() {
 
                     <div
                         className="bg-[#F7D27F] text-black text-center text-[2rem] font-bold py-[1vh] rounded-[2vh] cursor-pointer transition-colors duration-200 hover:text-white"
-                        onClick={() => alert(`Selected mode: ${selectedMode}\nSelected side: ${selectedSide}\nSelected player: ${selectedPlayer.username}`)}
+                        onClick={() => {
+                            if (!selectedMode || !selectedSide || !selectedPlayer) {
+                                alert("Please select all options before sending a challenge");
+                                return;
+                            }
+                            if (isChallenging) {
+                                alert("Already sending a challenge");
+                                return;
+                            }
+                            setIsChallenging(true);
+                            socket?.emit("challengeUser", {
+                                opponentId: selectedPlayer.id,
+                                playMode: selectedMode,
+                                colorPreference: selectedSide
+                            });
+                        }}
                     >
-                        Send Invitation
+                        {isChallenging ? "Sending Challenge..." : "Send Invitation"}
                     </div>
                 </div>
             </div>
+
+
+            {/* Challenge Modal */}
+            {showChallengeModal && challengeData && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
+                    <div className="bg-[#3B3433] rounded-[2vh] p-[3vh] max-w-[500px] w-full mx-4 border border-[#DBB968] relative z-[10000]">
+                        <h2 className="text-[#DBB968] text-[1.5rem] font-bold mb-[2vh]">Game Challenge</h2>
+                        <p className="text-white text-[1.2rem] mb-[3vh]">
+                            {challengeData.challengerName} wants to play a {challengeData.playMode} game with {challengeData.colorPreference} color preference.
+                        </p>
+                        <div className="flex gap-[2vh]">
+                            <button
+                                onClick={() => {
+                                    console.log("Accepting challenge");
+                                    setShowChallengeModal(false);
+                                    toast.info("Accepting challenge...");
+                                    socket?.emit("respondToChallenge", { accept: true });
+                                }}
+                                className="flex-1 bg-[#DBB968] text-black text-[1.2rem] font-bold py-[1.5vh] rounded-[1vh] hover:bg-[#C4A55A] transition-colors"
+                            >
+                                Accept
+                            </button>
+                            <button
+                                onClick={() => {
+                                    console.log("Declining challenge");
+                                    setShowChallengeModal(false);
+                                    toast.info("Declining challenge...");
+                                    socket?.emit("respondToChallenge", { accept: false });
+                                }}
+                                className="flex-1 bg-[#2F2A29] text-white text-[1.2rem] font-bold py-[1.5vh] rounded-[1vh] border border-[#DBB968] hover:bg-[#3B3433] transition-colors"
+                            >
+                                Decline
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
