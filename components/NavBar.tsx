@@ -30,9 +30,7 @@ export default function Navbar() {
   const displayName = userName || "User 1";
   const avatarUrl = avatar || "/img/DefaultUser.png";
 
-  return (
-    
-    
+  return (    
     <nav className="w-full bg-black text-white font-[Poppins] px-6 py-4">
       {toast && (
         <Toast

@@ -255,15 +255,15 @@ const SignIn = () => {
   }, [router, setAuthData]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center md:justify-start text-white font-poppins font-bold relative">
-      <div className="w-[40vw] aspect-[1/1] ml-[5vw] mr-[3vw] relative md:block hidden">
+    <div className="text-white font-poppins font-bold relative md:flex md:justify-around md:items-center">
+      <div className="w-[35vw] aspect-[1/1] relative md:block hidden">
         <div className="w-full absolute aspect-[1/1] bg-[#DBB968] rounded-[50%] blur-[15vw] left-0 top-[50%] -translate-y-[50%]"></div>
         <div
           className="w-full absolute aspect-[1/1] bg-no-repeat bg-center bg-contain left-0 top-[50%] -translate-y-[50%]"
           style={{ backgroundImage: "url('/FTC_Logo.png')" }}
         ></div>
       </div>
-      <div className="p-7">
+      <div className="flex flex-col items-center justify-center">
         <h2 className="text-center text-[7vh]">Sign In</h2>
         {showUsernamePrompt ? (
           <Form {...usernameForm}>
