@@ -51,7 +51,7 @@ export const useMatchmaking = ({ userId, selectedGameMode }: UseMatchmakingProps
         gameMode: selectedGameMode,
         userId: userId
       }));
-      
+
       router.push(`/game/${data.gameId}`);
     });
 
