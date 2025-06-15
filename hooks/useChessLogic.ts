@@ -194,6 +194,7 @@ export function useChessLogic() {
     fen,
     history, // Array of Move objects
     gameState,
+    setGameState, // Add this line to expose the setter
     checkSquares,
     makeLocalMove,
     undoLocalMove,
