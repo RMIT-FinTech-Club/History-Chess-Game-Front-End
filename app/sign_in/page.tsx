@@ -79,7 +79,8 @@ const SignIn = () => {
         if (identifier.length < 3 || identifier.length > 50) {
           setErrors((prev) => ({
             ...prev,
-            identifier: "Username must be 3-50 characters, letters and numbers only.",
+            identifier:
+              "Username must be 3-50 characters, letters and numbers only.",
           }));
           document
             .getElementById("identifier-input")
@@ -264,7 +265,7 @@ const SignIn = () => {
         ></div>
       </div>
       <div className="flex flex-col items-center justify-center">
-        <h2 className="text-center text-[7vh]">Sign In</h2>
+        <h2 className="text-center text-[4vh] md:text-[7vh]">Sign In</h2>
         {showUsernamePrompt ? (
           <Form {...usernameForm}>
             <form
@@ -316,16 +317,13 @@ const SignIn = () => {
                   name="identifier"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold text-[3vh]">
+                      <FormLabel className="font-bold text-[2.5vh] md:text-[3vh]">
                         Username/Email
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <MdEmail
-                            className="
-                              absolute text-black cursor-pointer
-                              top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
-                            "
+                            className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[3vh] md:text-[5vh] cursor-pointer"
                             onClick={() =>
                               document
                                 .getElementById("identifier-input")
@@ -337,13 +335,10 @@ const SignIn = () => {
                             placeholder="Enter your username or email"
                             {...field}
                             className="
-                              pl-[7.5vw]
-                              sm:pl-[5.85vw]
-                              md:pl-[4.5vw]
-                              lg:pl-[3.75vw]
-                              py-[4vh] w-full
+                              pl-[7.5vw] sm:pl-[5.85vw] md:pl-[4.5vw] lg:pl-[3.75vw]
+                              py-[12vh] md:py-[4vh] w-full
                               bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
-                              !text-[3vh] font-normal rounded-[1.5vh]
+                              text-[2vh] md:text-[3vh] font-normal rounded-[1.5vh]
                             "
                             autoComplete="off"
                           />
@@ -362,7 +357,7 @@ const SignIn = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold text-[3vh]">
+                      <FormLabel className="font-bold text-[2.5vh] md:text-[3vh]">
                         Password
                       </FormLabel>
                       <FormControl>
@@ -371,13 +366,9 @@ const SignIn = () => {
                             placeholder="Enter your password"
                             {...field}
                             className="
-                              pl-[7.5vw]
-                              sm:pl-[5.85vw]
-                              md:pl-[4.5vw]
-                              lg:pl-[3.75vw]
-                              py-[4vh] w-full
+                              py-[12vh] md:py-[4vh] w-full
                               bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
-                              !text-[3vh] font-normal rounded-[1.5vh]
+                              text-[2vh] md:text-[3vh] font-normal rounded-[1.5vh]
                             "
                           />
                         </div>
@@ -407,13 +398,13 @@ const SignIn = () => {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+                  className="w-full border-none bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[10vh] md:py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
                 >
                   Sign In
                 </Button>
               </form>
             </Form>
-            <div className="text-center text-[#C4C4C4] text-[3vh] font-normal">
+            <div className="text-center text-[#C4C4C4] text-[2.75vh] md:text-[3vh] font-normal">
               or continue with
             </div>
             <div className="space-y-2 sm:space-y-3 md:space-y-4">
@@ -429,7 +420,7 @@ const SignIn = () => {
                 Continue with Google
               </button>
             </div>
-            <div className="text-center text-[#C4C4C4] text-[3vh] font-normal">
+            <div className="text-center text-[#C4C4C4] text-[2.75vh] md:text-[3vh] font-normal">
               Don’t have an account?{" "}
               <a
                 href="/sign_up"

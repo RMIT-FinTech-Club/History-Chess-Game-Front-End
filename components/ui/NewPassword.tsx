@@ -17,8 +17,7 @@ const NewPassword = React.forwardRef<
     <div className="relative">
       {/* Left-side Key Icon */}
       <FaKey
-        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 
-                    text-[#2F2F2F] text-[3vh] cursor-pointer"
+        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[4vh] cursor-pointer"
         onClick={() => {
           document.getElementById("new-password")?.focus();
         }}
