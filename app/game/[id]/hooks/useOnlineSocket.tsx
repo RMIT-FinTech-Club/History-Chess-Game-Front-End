@@ -3,6 +3,7 @@ import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { GameState, UseOnlineSocketProps } from "../types";
+import { Chess } from 'chess.js';
 
 export const useOnlineSocket = ({
   gameId,
@@ -19,14 +20,57 @@ export const useOnlineSocket = ({
   const [disconnectionMessage, setDisconnectionMessage] = useState("");
   const router = useRouter();
   
-  // Track if current user is leaving the game
-  const isLeavingGame = useRef(false);
   
   // Track previous time states to calculate move duration
   const prevTimesRef = useRef<{
     whiteTimeLeft?: number;
     blackTimeLeft?: number;
   }>({});
+
+  // Recalculate all captured pieces from current position
+  const recalculateAllCapturedPieces = (fen: string) => {
+    try {
+      const chess = new Chess(fen);
+      const board = chess.board();
+      
+      // Count remaining pieces
+      const remainingPieces: Record<string, number> = {};
+      board.flat().forEach(piece => {
+        if (piece) {
+          const key = `${piece.color}${piece.type.toUpperCase()}`;
+          remainingPieces[key] = (remainingPieces[key] || 0) + 1;
+        }
+      });
+      
+      // Starting pieces count
+      const startingPieces = {
+        wP: 8, wR: 2, wN: 2, wB: 2, wQ: 1, wK: 1,
+        bP: 8, bR: 2, bN: 2, bB: 2, bQ: 1, bK: 1
+      };
+      
+      // Calculate captured
+      const capturedWhite: string[] = [];
+      const capturedBlack: string[] = [];
+      
+      Object.entries(startingPieces).forEach(([piece, startCount]) => {
+        const remaining = remainingPieces[piece] || 0;
+        const captured = startCount - remaining;
+        
+        for (let i = 0; i < captured; i++) {
+          if (piece.startsWith('w')) {
+            capturedWhite.push(piece);
+          } else {
+            capturedBlack.push(piece);
+          }
+        }
+      });
+      
+      setCapturedWhite(capturedWhite);
+      setCapturedBlack(capturedBlack);
+    } catch (error) {
+      console.error("Error recalculating captured pieces:", error);
+    }
+  };
 
   useEffect(() => {
     const newSocket = io("http://localhost:8080", {
@@ -72,6 +116,11 @@ export const useOnlineSocket = ({
     // Handle game state updates from backend
     newSocket.on("gameState", (state) => {
       console.log("Received gameState:", state);
+      
+      // Recalculate captured pieces from current position
+      if (state.fen) {
+        recalculateAllCapturedPieces(state.fen);
+      }
       
       const storedGameData = JSON.parse(localStorage.getItem("gameData") || "{}");
       
@@ -205,12 +254,8 @@ export const useOnlineSocket = ({
     // Handle opponent disconnection
     newSocket.on("opponentDisconnected", ({ message }: { message: string }) => {
       console.log("Opponent disconnected:", message);
-      
-      // Only show disconnection warning if current user is not leaving the game
-      if (!isLeavingGame.current) {
-        setOpponentDisconnected(true);
-        setDisconnectionMessage(message);
-      }
+      setOpponentDisconnected(true);
+      setDisconnectionMessage(message);
     });
 
     // Handle opponent reconnection
@@ -276,7 +321,7 @@ export const useOnlineSocket = ({
     };
   }, [gameId, router, autoRotateBoard, setGameState, setBoardOrientation, setMoveHistory, setCapturedWhite, setCapturedBlack]);
 
-  // Function to send moves (not used directly in move handler anymore)
+  // Function to send moves 
   const sendMove = (move: string) => {
     if (!socket || !isConnected) {
       toast.error("Not connected to server");
