@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { GameState, UseOnlineSocketProps } from "../types";
 import { Chess } from 'chess.js';
+import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 export const useOnlineSocket = ({
   gameId,
@@ -14,6 +15,9 @@ export const useOnlineSocket = ({
   setCapturedWhite,
   setCapturedBlack,
 }: UseOnlineSocketProps) => {
+  // Get userId from GlobalStorage instead of localStorage
+  const { userId } = useGlobalStorage();
+  
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [opponentDisconnected, setOpponentDisconnected] = useState(false);
@@ -84,14 +88,10 @@ export const useOnlineSocket = ({
       setIsConnected(true);
       console.log("Connected to server with socket ID:", newSocket.id);
       
-      // Get game data and rejoin if disconnected
-      const gameData = localStorage.getItem("gameData");
-      if (gameData) {
-        const { userId } = JSON.parse(gameData);
-        if (userId && gameId) {
-          console.log("Rejoining game:", gameId);
-          newSocket.emit("rejoinGame", { gameId, userId });
-        }
+      // Use userId from GlobalStorage instead of localStorage
+      if (userId && gameId) {
+        console.log("Rejoining game:", gameId);
+        newSocket.emit("rejoinGame", { gameId, userId });
       }
     });
 
@@ -100,7 +100,7 @@ export const useOnlineSocket = ({
       console.log("Disconnected from server");
     });
 
-    // Initial game join
+    // Get gameId from localStorage but userId from GlobalStorage
     const gameData = localStorage.getItem("gameData");
     if (!gameData) {
       toast.error("No game data found");
@@ -108,9 +108,9 @@ export const useOnlineSocket = ({
       return;
     }
 
-    const { gameId: storedGameId, userId } = JSON.parse(gameData);
+    const { gameId: storedGameId } = JSON.parse(gameData); // Remove userId from here
 
-    // Join the game
+    // Join the game using GlobalStorage userId
     newSocket.emit("joinGame", { gameId: storedGameId, userId });
 
     // Handle game state updates from backend
@@ -319,7 +319,7 @@ export const useOnlineSocket = ({
         newSocket.close();
       }
     };
-  }, [gameId, router, autoRotateBoard, setGameState, setBoardOrientation, setMoveHistory, setCapturedWhite, setCapturedBlack]);
+  }, [gameId, router, autoRotateBoard, setGameState, setBoardOrientation, setMoveHistory, setCapturedWhite, setCapturedBlack, userId]); // Add userId to dependencies
 
   // Function to send moves 
   const sendMove = (move: string) => {
@@ -328,13 +328,11 @@ export const useOnlineSocket = ({
       return false;
     }
 
-    const gameData = localStorage.getItem("gameData");
-    if (!gameData) {
-      toast.error("No game data found");
+    if (!userId) {
+      toast.error("User not authenticated");
       return false;
     }
 
-    const { userId } = JSON.parse(gameData);
     console.log("Sending move:", { gameId, move, userId });
     
     socket.emit("move", { gameId, move, userId });
@@ -343,13 +341,8 @@ export const useOnlineSocket = ({
 
   // Function to leave game
   const leaveGame = () => {
-    if (socket && isConnected) {
-      const gameData = localStorage.getItem("gameData");
-      if (gameData) {
-        const { userId } = JSON.parse(gameData);
-        // Note: You may need to implement leaveGame event in your backend
-        socket.emit("leaveGame", { gameId, userId });
-      }
+    if (socket && isConnected && userId) {
+      socket.emit("leaveGame", { gameId, userId });
     }
     
     // Clear local data and redirect
