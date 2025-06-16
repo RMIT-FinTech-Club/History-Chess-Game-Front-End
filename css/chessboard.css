@@ -1,0 +1,97 @@
+:root {
+    --black: #c0c0c0;
+  }
+
+  body {
+    background-color: #151515;
+    background-image:
+        -o-repeating-linear-gradient(
+            bottom,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px,
+            transparent 10vw
+        ),
+        -o-repeating-linear-gradient(
+            left,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px,
+            transparent 10vw
+        );
+    background-image:
+        repeating-linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px,
+            transparent 10vw
+        ),
+        repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.1) 1px,
+            transparent 1px,
+            transparent 10vw
+        );
+    background-size: 10vw 10vw;
+    background-position: -5vw -5vw;
+}
+
+[data-boardid="historyChessBoard"] {
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    background-image: linear-gradient(#E9B654, #363624);
+}
+
+[data-boardid="historyChessBoard"] .board-square {
+    transition: background-color 0.3s ease-in-out;
+}
+
+[title="Choose promotion piece"] [data-piece*="Q"], [title="Choose promotion piece"] [data-piece*="B"] {
+    background-image: linear-gradient(#E9B654, #83662F)  !important;
+}
+
+[title="Choose promotion piece"] [data-piece*="R"], [title="Choose promotion piece"] [data-piece*="N"] {
+    background-color: var(--black) !important;
+}
+
+/* Custom pieces fixed size */
+[data-boardid="historyChessBoard"] img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
+
+/* Change square colors */
+[data-boardid="historyChessBoard"] [data-square-color="white"] {
+  background: transparent !important;
+}
+
+[data-boardid="historyChessBoard"] [data-square-color="black"] {
+  background-color: var(--black) !important;
+}
+
+/* AI thinking animation */
+@keyframes pulseBorder {
+  0% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 204, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); }
+}
+
+[data-boardid="historyChessBoard"].ai-thinking {
+  animation: pulseBorder 2s infinite;
+}
+
+/* Custom animation for thinking indicator */
+.thinking-indicator {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
