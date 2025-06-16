@@ -15,10 +15,12 @@ export const useOnlineSocket = ({
 }: UseOnlineSocketProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  // Add opponent connection state
   const [opponentDisconnected, setOpponentDisconnected] = useState(false);
   const [disconnectionMessage, setDisconnectionMessage] = useState("");
   const router = useRouter();
+  
+  // Track if current user is leaving the game
+  const isLeavingGame = useRef(false);
   
   // Track previous time states to calculate move duration
   const prevTimesRef = useRef<{
@@ -36,15 +38,25 @@ export const useOnlineSocket = ({
 
     newSocket.on("connect", () => {
       setIsConnected(true);
-      toast.success("Connected to server");
+      console.log("Connected to server with socket ID:", newSocket.id);
+      
+      // Get game data and rejoin if disconnected
+      const gameData = localStorage.getItem("gameData");
+      if (gameData) {
+        const { userId } = JSON.parse(gameData);
+        if (userId && gameId) {
+          console.log("Rejoining game:", gameId);
+          newSocket.emit("rejoinGame", { gameId, userId });
+        }
+      }
     });
 
     newSocket.on("disconnect", () => {
       setIsConnected(false);
-      toast.error("Disconnected from server");
+      console.log("Disconnected from server");
     });
 
-    // Get game data from localStorage
+    // Initial game join
     const gameData = localStorage.getItem("gameData");
     if (!gameData) {
       toast.error("No game data found");
@@ -54,21 +66,16 @@ export const useOnlineSocket = ({
 
     const { gameId: storedGameId, userId } = JSON.parse(gameData);
 
-    // Join the game with verification
+    // Join the game
     newSocket.emit("joinGame", { gameId: storedGameId, userId });
 
+    // Handle game state updates from backend
     newSocket.on("gameState", (state) => {
-      console.log("Full gameState received:", JSON.stringify(state, null, 2));
+      console.log("Received gameState:", state);
       
       const storedGameData = JSON.parse(localStorage.getItem("gameData") || "{}");
       
-      if (state.playerColor && storedGameData.playerColor && state.playerColor !== storedGameData.playerColor) {
-        toast.error("Player color verification failed");
-        router.push("/game/find");
-        return;
-      }
-      
-      // Set board orientation based on player color and auto-rotate setting
+      // Set board orientation based on player color
       const playerColor = state.playerColor || storedGameData.playerColor;
       if (playerColor) {
         if (autoRotateBoard) {
@@ -83,150 +90,70 @@ export const useOnlineSocket = ({
         ...state,
         playerColor: prev?.playerColor || state.playerColor || storedGameData.playerColor
       }));
-      
-      // Calculate move time based on time difference
-      let moveTime = 0;
-      if (state.move && prevTimesRef.current.whiteTimeLeft !== undefined && prevTimesRef.current.blackTimeLeft !== undefined) {
-        if (state.color === "white") {
-          // White player made the move, calculate time spent
-          moveTime = prevTimesRef.current.whiteTimeLeft - (state.whiteTimeLeft || 0);
-        } else if (state.color === "black") {
-          // Black player made the move, calculate time spent
-          moveTime = prevTimesRef.current.blackTimeLeft - (state.blackTimeLeft || 0);
-        }
-        
-        // Ensure positive time and convert to reasonable values
-        moveTime = Math.max(moveTime, 100); // Minimum 100ms
-        moveTime = Math.min(moveTime, 60000); // Maximum 60 seconds
-      } else {
-        // Default time for first moves or when calculation fails
-        moveTime = 3000; // 3 seconds default
-      }
 
-      // Handle move history - check multiple possible formats
-      if (state.history && Array.isArray(state.history)) {
-        console.log("Found state.history:", state.history);
-        const formattedHistory = state.history.map((move: any, index: number) => ({
-          moveNumber: index + 1,
-          move: typeof move === 'string' ? move : move.san || move.move || move.notation,
-          color: index % 2 === 0 ? "white" : "black",
-          time: move.time || move.duration || moveTime
-        }));
-        setMoveHistory(formattedHistory);
-      } else if (state.moves && Array.isArray(state.moves)) {
-        console.log("Found state.moves:", state.moves);
-        const formattedHistory = state.moves.map((move: any, index: number) => ({
-          moveNumber: index + 1,
-          move: typeof move === 'string' ? move : move.san || move.move || move.notation,
-          color: index % 2 === 0 ? "white" : "black",
-          time: move.time || move.duration || moveTime
-        }));
-        setMoveHistory(formattedHistory);
-      } else if (state.moveHistory && Array.isArray(state.moveHistory)) {
-        console.log("Found state.moveHistory:", state.moveHistory);
-        setMoveHistory(state.moveHistory);
-      } else if (state.completeHistory && Array.isArray(state.completeHistory)) {
-        console.log("Found state.completeHistory:", state.completeHistory);
-        setMoveHistory(state.completeHistory);
-      } else if (state.move) {
-        // Handle individual move updates
-        console.log("Adding individual move with calculated time:", {
-          move: state.move,
-          calculatedTime: moveTime,
-          color: state.color,
-          previousWhiteTime: prevTimesRef.current.whiteTimeLeft,
-          previousBlackTime: prevTimesRef.current.blackTimeLeft,
-          currentWhiteTime: state.whiteTimeLeft,
-          currentBlackTime: state.blackTimeLeft
-        });
+      // Handle move history from individual moves
+      if (state.move && state.moveNumber) {
+        const moveTime = calculateMoveTime(state);
         
         setMoveHistory(prev => {
+          // Check if this move already exists
+          const existingMove = prev.find(m => m.moveNumber === state.moveNumber);
+          if (existingMove) {
+            return prev; // Don't duplicate moves
+          }
+
           const newMove = {
-            moveNumber: prev.length + 1,
+            moveNumber: state.moveNumber,
             move: state.move,
-            color: state.color || (state.turn === "w" ? "black" : "white"),
+            color: state.color || (state.turn === "w" ? "black" : "white"), // Previous player's color
             time: moveTime
           };
           
-          console.log("Adding move to history:", newMove);
           return [...prev, newMove];
         });
       }
 
-      // Update previous times for next calculation
+      // Update time tracking
       if (state.whiteTimeLeft !== undefined && state.blackTimeLeft !== undefined) {
         prevTimesRef.current = {
           whiteTimeLeft: state.whiteTimeLeft,
           blackTimeLeft: state.blackTimeLeft
         };
       }
-
-      // Update captured pieces
-      if (state.capturedPieces) {
-        setCapturedWhite(state.capturedPieces.white || []);
-        setCapturedBlack(state.capturedPieces.black || []);
-      } else if (state.captured) {
-        setCapturedWhite(state.captured.white || []);
-        setCapturedBlack(state.captured.black || []);
-      }
     });
 
-    // Listen for individual move events
-    newSocket.on("move", (moveData) => {
-      console.log("Received move event:", moveData);
-      
-      // Calculate time for standalone move events
-      let moveTime = 3000; // Default 3 seconds
-      if (moveData.timeSpent !== undefined) {
-        moveTime = moveData.timeSpent;
-      } else if (moveData.duration !== undefined) {
-        moveTime = moveData.duration;
-      }
-      
-      setMoveHistory(prev => {
-        const newMove = {
-          moveNumber: prev.length + 1,
-          move: moveData.move || moveData.san || moveData.notation,
-          color: moveData.color || (moveData.turn === "w" ? "white" : "black"),
-          time: moveTime
-        };
-        
-        console.log("Adding move from move event:", newMove);
-        return [...prev, newMove];
-      });
-    });
-
-    newSocket.on("timeUpdate", (data) => {
-      setGameState((prev: any) => ({
-        ...prev,
-        whiteTimeLeft: data.whiteTimeLeft,
-        blackTimeLeft: data.blackTimeLeft
-      }));
-    });
-
-    newSocket.on("error", (error) => {
-      toast.error(error.message);
-    });
-
+    // Handle game start event
     newSocket.on("gameStart", (data) => {
       console.log("Game started:", data);
       
       const storedGameData = JSON.parse(localStorage.getItem("gameData") || "{}");
       
-      if (storedGameData.playerColor) {
-        setBoardOrientation(storedGameData.playerColor);
+      // Determine player color based on player IDs
+      let playerColor = storedGameData.playerColor;
+      if (!playerColor && data.whitePlayerId && data.blackPlayerId) {
+        const { userId } = storedGameData;
+        playerColor = userId === data.whitePlayerId ? "white" : "black";
+        
+        // Update stored game data
+        localStorage.setItem("gameData", JSON.stringify({
+          ...storedGameData,
+          playerColor
+        }));
       }
       
+      setBoardOrientation(playerColor || "white");
+      
       setGameState({
-        fen: data.initialGameState || data.fen,
+        fen: data.initialGameState,
         turn: "w",
-        playerColor: storedGameData.playerColor,
+        playerColor,
         gameId: data.gameId,
         whiteTimeLeft: data.whiteTimeLeft,
-        blackTimeLeft: data.blackTimeLeft
+        blackTimeLeft: data.blackTimeLeft,
+        gameOver: false
       });
       
-      // Reset move history and time tracking for new game
+      // Reset game state
       setMoveHistory([]);
       setCapturedWhite([]);
       setCapturedBlack([]);
@@ -234,44 +161,154 @@ export const useOnlineSocket = ({
         whiteTimeLeft: data.whiteTimeLeft,
         blackTimeLeft: data.blackTimeLeft
       };
+      
+      toast.success("Game started!");
     });
 
-    // Add opponent connection handlers
-    const handleOpponentDisconnected = ({ message }: { message: string }) => {
-      console.log("Opponent disconnected:", message);
-      setOpponentDisconnected(true);
-      setDisconnectionMessage(message);
-    };
+    // Handle time updates
+    newSocket.on("timeUpdate", (data) => {
+      console.log("Time update:", data);
+      setGameState((prev: any) => ({
+        ...prev,
+        whiteTimeLeft: data.whiteTimeLeft,
+        blackTimeLeft: data.blackTimeLeft
+      }));
+      
+      // Update time tracking for move calculation
+      prevTimesRef.current = {
+        whiteTimeLeft: data.whiteTimeLeft,
+        blackTimeLeft: data.blackTimeLeft
+      };
+    });
 
-    const handleOpponentReconnected = () => {
-      console.log("Opponent reconnected");
+    // Handle game over
+    newSocket.on("gameOver", (data) => {
+      console.log("Game over:", data);
+      
+      setGameState((prev: any) => ({
+        ...prev,
+        gameOver: true,
+        result: data.result,
+        eloUpdate: data.eloUpdate
+      }));
+      
+      toast.success(`Game Over: ${data.result}`);
+      
+      // Clear game data after a delay
+      setTimeout(() => {
+        localStorage.removeItem("gameData");
+      }, 5000);
+    });
+
+    // Handle opponent disconnection
+    newSocket.on("opponentDisconnected", ({ message }: { message: string }) => {
+      console.log("Opponent disconnected:", message);
+      
+      // Only show disconnection warning if current user is not leaving the game
+      if (!isLeavingGame.current) {
+        setOpponentDisconnected(true);
+        setDisconnectionMessage(message);
+        toast.warning(message);
+      }
+    });
+
+    // Handle opponent reconnection
+    newSocket.on("gameResumed", ({ message }: { message: string }) => {
+      console.log("Game resumed:", message);
       setOpponentDisconnected(false);
       setDisconnectionMessage("");
-    };
+      toast.success(message || "Opponent reconnected");
+    });
 
-    newSocket.on('opponentDisconnected', handleOpponentDisconnected);
-    newSocket.on('gameResumed', handleOpponentReconnected);
+    // Handle errors
+    newSocket.on("error", (error) => {
+      console.error("Socket error:", error);
+      toast.error(error.message || "An error occurred");
+    });
+
+    // Helper function to calculate move time
+    const calculateMoveTime = (state: any): number => {
+      if (!state.move || !prevTimesRef.current.whiteTimeLeft || !prevTimesRef.current.blackTimeLeft) {
+        return 3000; // Default 3 seconds
+      }
+
+      let moveTime = 0;
+      if (state.color === "white") {
+        moveTime = prevTimesRef.current.whiteTimeLeft - (state.whiteTimeLeft || 0);
+      } else if (state.color === "black") {
+        moveTime = prevTimesRef.current.blackTimeLeft - (state.blackTimeLeft || 0);
+      }
+      
+      // Ensure reasonable time bounds
+      return Math.max(100, Math.min(moveTime, 60000));
+    };
 
     return () => {
       if (newSocket) {
+        console.log("Cleaning up socket connection");
         newSocket.off("connect");
         newSocket.off("disconnect");
         newSocket.off("gameState");
-        newSocket.off("move");
-        newSocket.off("timeUpdate");
-        newSocket.off("error");
         newSocket.off("gameStart");
-        newSocket.off('opponentDisconnected', handleOpponentDisconnected);
-        newSocket.off('gameResumed', handleOpponentReconnected);
+        newSocket.off("timeUpdate");
+        newSocket.off("gameOver");
+        newSocket.off("opponentDisconnected");
+        newSocket.off("gameResumed");
+        newSocket.off("error");
         newSocket.close();
       }
     };
-  }, [gameId, router, autoRotateBoard]);
+  }, [gameId, router, autoRotateBoard, setGameState, setBoardOrientation, setMoveHistory, setCapturedWhite, setCapturedBlack]);
+
+  // Function to send moves (not used directly in move handler anymore)
+  const sendMove = (move: string) => {
+    if (!socket || !isConnected) {
+      toast.error("Not connected to server");
+      return false;
+    }
+
+    const gameData = localStorage.getItem("gameData");
+    if (!gameData) {
+      toast.error("No game data found");
+      return false;
+    }
+
+    const { userId } = JSON.parse(gameData);
+    console.log("Sending move:", { gameId, move, userId });
+    
+    socket.emit("move", { gameId, move, userId });
+    return true;
+  };
+
+  // Function to leave game
+  const leaveGame = () => {
+    // Set flag to indicate current user is leaving
+    isLeavingGame.current = true;
+    
+    // Clear any existing disconnection warnings
+    setOpponentDisconnected(false);
+    setDisconnectionMessage("");
+    
+    if (socket && isConnected) {
+      const gameData = localStorage.getItem("gameData");
+      if (gameData) {
+        const { userId } = JSON.parse(gameData);
+        // Note: You may need to implement leaveGame event in your backend
+        socket.emit("leaveGame", { gameId, userId });
+      }
+    }
+    
+    // Clear local data and redirect
+    localStorage.removeItem("gameData");
+    router.push("/game/find");
+  };
 
   return { 
     socket, 
     isConnected,
     opponentDisconnected,
     disconnectionMessage,
+    sendMove,
+    leaveGame
   };
 };

@@ -1,33 +1,23 @@
 import { useCallback } from "react";
 import { Square } from "chess.js";
-import { Socket } from "socket.io-client";
 import { GameState } from "../types";
 
 interface UseMoveHandlerProps {
-  socket: Socket | null;
   gameState: GameState | null;
-  gameId: string;
-  userId: string | null;
   timeoutGameOver: boolean;
   setSelectedPiece: (piece: Square | null) => void;
+  sendMove: (move: string) => boolean; // Use the socket's sendMove function
 }
 
 export const useMoveHandler = ({
-  socket,
   gameState,
-  gameId,
-  userId,
   timeoutGameOver,
   setSelectedPiece,
+  sendMove, // Passed from useOnlineSocket
 }: UseMoveHandlerProps) => {
   const makeMove = useCallback((sourceSquare: Square, targetSquare: Square, promotionPiece?: "q" | "r" | "b" | "n") => {
-    if (!socket || !gameState || timeoutGameOver) {
-      console.log("Cannot make move: socket, gameState missing, or game timed out");
-      return false;
-    }
-
-    if (!userId) {
-      console.log("Cannot make move: no userId available");
+    if (!gameState || timeoutGameOver) {
+      console.log("Cannot make move: gameState missing or game timed out");
       return false;
     }
 
@@ -46,21 +36,15 @@ export const useMoveHandler = ({
       moveString += promotionPiece;
     }
 
-    console.log("Emitting move:", {
-      gameId: gameId,
-      move: moveString,
-      userId,
-    });
-
-    socket.emit("move", {
-      gameId: gameId,
-      move: moveString,
-      userId,
-    });
-
-    setSelectedPiece(null);
-    return true;
-  }, [socket, gameState, gameId, timeoutGameOver, userId, setSelectedPiece]);
+    // Use the socket's sendMove function
+    const success = sendMove(moveString);
+    
+    if (success) {
+      setSelectedPiece(null);
+    }
+    
+    return success;
+  }, [gameState, timeoutGameOver, setSelectedPiece, sendMove]);
 
   return { makeMove };
 };

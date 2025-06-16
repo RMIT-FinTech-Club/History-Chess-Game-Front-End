@@ -1,4 +1,4 @@
-import { StockfishLevel } from "@/hooks/useStockfish";
+import { StockfishLevel } from "@/app/game/offline/hooks/useStockfish";
 import { Square } from "chess.js";
 
 export type MoveHistoryPair = {
@@ -154,3 +154,5 @@ export interface GameLayoutProps {
   moveHistoryPairs: any[];
   handleNewGame: () => void;
 }
+
+

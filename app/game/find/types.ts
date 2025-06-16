@@ -1,17 +1,3 @@
-
-export interface ChallengeModalProps {
-  isOpen: boolean;
-  challengeData: {
-      challengerId: string;
-      challengerName: string;
-      playMode: string;
-      colorPreference: string;
-  } | null;
-  onAcceptAction: () => void;
-  onCloseAction: () => void;
-  onDeclineAction: () => void;
-}
-
 export interface Player {
   id: string;
   username: string;

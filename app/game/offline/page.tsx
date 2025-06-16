@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Chessboard } from "react-chessboard";
 import "@/css/chessboard.css";
 import { PlayerSection } from "@/app/game/offline/components/PlayerSection";
-import { useOfflineGame } from "@/hooks/useOfflineGame";
+import { useOfflineGame } from "@/app/game/offline/hooks/useOfflineGame";
 import { useBoardSize } from "./hooks/useBoardSize";
 import { useMoveHistory } from "./hooks/useMoveHistory";
 import { useChessHandlers } from "./hooks/useChessHandlers";
@@ -13,7 +13,7 @@ import { GameOverDialog } from "./components/GameOverDialog";
 import { GameModeDialog } from "./components/GameModeDialog";
 import { MoveHistoryTable } from "./components/MoveHistoryTable";
 import { GameControls } from "./components/GameControls";
-import type { StockfishLevel } from "@/hooks/useStockfish";
+import type { StockfishLevel } from "@/app/game/offline/hooks/useStockfish";
 import { TimeCounterHandle } from "./types";
 import YellowLight from "@/components/decor/YellowLight";
 

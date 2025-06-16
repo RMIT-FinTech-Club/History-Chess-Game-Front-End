@@ -5,9 +5,11 @@ import GameSetupPanel from "./components/GameSetupPanel";
 import { Chessboard } from "react-chessboard";
 import "@/css/chessboard.css"; 
 import YellowLight from "@/components/decor/YellowLight";
+import { useBoardSize } from "./hooks/useBoardSize";
 
 const FindMatchPage = () => {
   const [mounted, setMounted] = useState(false);
+  const boardWidth = useBoardSize();
 
   useEffect(() => {
     setMounted(true);
@@ -21,7 +23,7 @@ const FindMatchPage = () => {
       <Chessboard
           id="historyChessBoard"
           position="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-          boardWidth={700}
+          boardWidth={boardWidth}
           animationDuration={0}
           arePiecesDraggable={false}
       />

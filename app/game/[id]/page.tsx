@@ -15,7 +15,6 @@ import { useGameState } from "./hooks/useGameState";
 import { useTimeoutHandler } from "./hooks/useTimeoutHandler";
 import { useMoveHandler } from "./hooks/useMoveHandler";
 import { useSquareHighlight } from "./hooks/useSquareHighlight";
-import { useGameCleanup } from "./hooks/useGameCleanup";
 
 // Import components
 import { ConnectionStatus } from "./components/ConnectionStatus";
@@ -54,7 +53,14 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   } = useGameState();
 
   // Use online-specific socket hook
-  const { socket, isConnected, opponentDisconnected, disconnectionMessage } = useOnlineSocket({
+  const { 
+    socket, 
+    isConnected, 
+    opponentDisconnected, 
+    disconnectionMessage, 
+    sendMove,  // Get sendMove from socket
+    leaveGame 
+  } = useOnlineSocket({
     gameId: gameId,
     autoRotateBoard,
     setGameState,
@@ -67,14 +73,12 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   // Use timeout handler
   const { timeoutGameOver, timeoutResult, resetTimeout } = useTimeoutHandler(gameState);
 
-  // Use move handler
+  // Use move handler with socket's sendMove function
   const { makeMove } = useMoveHandler({
-    socket,
     gameState,
-    gameId,
-    userId,
     timeoutGameOver,
     setSelectedPiece,
+    sendMove,  // Pass socket's sendMove function
   });
 
   // Use chess handlers hook
@@ -94,13 +98,19 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
     timeoutGameOver
   );
 
-  // Use game cleanup
-  const { handleNewGame: cleanupAndNewGame } = useGameCleanup(socket, gameId);
-
-  // Enhanced handleNewGame with timeout reset
+  // Enhanced handleNewGame with proper cleanup
   const handleNewGame = () => {
     resetTimeout();
-    cleanupAndNewGame();
+    
+    // Reset all game state
+    setGameState(null);
+    setMoveHistory([]);
+    setCapturedWhite([]);
+    setCapturedBlack([]);
+    setSelectedPiece(null);
+    
+    // Leave current game and redirect
+    leaveGame();
   };
 
   // Use online move history hook
