@@ -2,17 +2,35 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import io, { Socket } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
 import { UseSocketProps } from "./types";
+import axios from "axios";
 
-export function useSocket({ userId, onPlayersUpdateAction, onChallengeReceivedAction, setIsChallengingAction }: UseSocketProps) {
+export function useSocket({
+    userId,
+    accessToken,
+    onPlayersUpdateAction,
+    onChallengeReceivedAction,
+    setIsChallengingAction,
+}: UseSocketProps) {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
-        if (!userId) return;
+        if (!userId) {
+            console.warn("Skipping socket initialization: userId missing", { userId });
+            toast.error("Cannot connect to server: Please log in");
+            return;
+        }
+        if (!accessToken) {
+            console.warn("Skipping socket initialization: accessToken missing", { accessToken });
+            toast.error("Cannot connect to server: Authentication required");
+            return;
+        }
+
+        console.log("Creating new Socket.IO instance with userId:", userId);
 
         const newSocket = io("http://localhost:8080", {
             reconnection: true,
@@ -28,18 +46,22 @@ export function useSocket({ userId, onPlayersUpdateAction, onChallengeReceivedAc
             newSocket.emit("getOnlineUsers");
         });
 
+        newSocket.on("connect_error", (error) => {
+            console.error("Socket connection error:", error.message);
+            setIsConnected(false);
+            toast.error(`Failed to connect to server: ${error.message}`);
+        });
+
         newSocket.on("disconnect", () => {
             setIsConnected(false);
             console.log("Socket disconnected");
         });
 
-        newSocket.on("challengeResponse", (data: { opponentId: string, accepted: boolean }) => {
+        newSocket.on("challengeResponse", (data: { opponentId: string; accepted: boolean }) => {
             console.log("Received challenge response:", data);
             if (data.accepted) {
-                console.log("Challenge accepted!");
                 toast.success("Challenge accepted! Waiting for game to start...");
             } else {
-                console.log("Challenge declined");
                 setIsChallengingAction(false);
                 toast.info("Challenge was declined");
             }
@@ -53,53 +75,62 @@ export function useSocket({ userId, onPlayersUpdateAction, onChallengeReceivedAc
 
         newSocket.on("gameChallenge", onChallengeReceivedAction);
 
-        newSocket.on("gameStarting", (data: {
-            gameId: string,
-            playMode: string,
-            colorPreference: string
-        }) => {
+        newSocket.on("gameStarting", (data: { gameId: string; playMode: string; colorPreference: string }) => {
             console.log("Game starting:", data);
             toast.success("Game starting! Redirecting...");
-
-            localStorage.setItem("gameData", JSON.stringify({
-                gameId: data.gameId,
-                gameMode: data.playMode,
-                colorPreference: data.colorPreference,
-                userId: userId
-            }));
+            localStorage.setItem(
+                "gameData",
+                JSON.stringify({
+                    gameId: data.gameId,
+                    gameMode: data.playMode,
+                    colorPreference: data.colorPreference,
+                    userId: userId,
+                })
+            );
             router.push(`/game/${data.gameId}`);
         });
 
         newSocket.on("onlineUsers", async (users: string[]) => {
-            console.log("Online users:", users);
+            console.log("Received onlineUsers event with users:", users);
             try {
-                const userDetailsPromises = users.map(userId =>
-                    fetch(`http://localhost:8080/users/${userId}`).then(res => res.json())
-                );
+                const userDetailsPromises = users.map((userId) => {
+                    console.log(`Fetching details for userId: ${userId}`);
+                    return axios.get(`http://localhost:8080/users/${userId}`, {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`,
+                        },
+                    }).then((res) => {
+                        console.log(`Received user data for ${userId}:`, res.data);
+                        return res.data;
+                    });
+                });
 
                 const responses = await Promise.all(userDetailsPromises);
-                const formattedPlayers = responses
-                    .map(response => ({
-                        id: response.id,
-                        username: response.username || 'Unknown',
-                        avt: response.avt || 'https://i.imgur.com/RoRONDn.jpeg',
-                        elo: response.elo || 0
-                    }))
-                    .filter(player => player.id !== userId);
+                console.log("All user responses:", responses);
 
+                const formattedPlayers = responses
+                    .map((response) => ({
+                        id: response.id,
+                        username: response.username || "Unknown",
+                        avt: response.avt || "https://i.imgur.com/RoRONDn.jpeg",
+                        elo: response.elo || 0,
+                    }))
+                    .filter((player) => player.id !== userId);
+
+                console.log("Formatted players to be sent to onPlayersUpdateAction:", formattedPlayers);
                 onPlayersUpdateAction(formattedPlayers);
             } catch (err) {
-                console.error('Error fetching user details:', err);
-                toast.error('Failed to load player details');
+                console.error("Error fetching user details:", err);
+                toast.error("Failed to load player details");
             }
         });
 
         return () => {
-            if (newSocket) {
-                newSocket.disconnect();
-            }
+            console.log("Cleaning up socket with ID:", newSocket.id);
+            newSocket.disconnect();
+            setSocket(null);
         };
-    }, [userId, router, onPlayersUpdateAction, onChallengeReceivedAction, setIsChallengingAction]);
+    }, [userId, accessToken, router, onPlayersUpdateAction, onChallengeReceivedAction, setIsChallengingAction]);
 
     return { socket, isConnected };
 }

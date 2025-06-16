@@ -15,6 +15,7 @@ export interface ChallengeData {
 
 export interface UseSocketProps {
   userId: string | null;
+  accessToken: string | null;
   onPlayersUpdateAction: (players: Player[]) => void;
   onChallengeReceivedAction: (data: ChallengeData) => void;
   setIsChallengingAction: (value: boolean) => void;
