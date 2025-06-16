@@ -153,16 +153,20 @@ export const useOnlineSocket = ({
         gameOver: false
       });
       
-      // Reset game state
-      setMoveHistory([]);
-      setCapturedWhite([]);
-      setCapturedBlack([]);
+      // Only reset move history for truly new games
+      if (data.isNewGame) {
+        setMoveHistory([]);
+        setCapturedWhite([]);
+        setCapturedBlack([]);
+        toast.success("Game started!");
+      } else {
+        toast.success("Game resumed!");
+      }
+      
       prevTimesRef.current = {
         whiteTimeLeft: data.whiteTimeLeft,
         blackTimeLeft: data.blackTimeLeft
       };
-      
-      toast.success("Game started!");
     });
 
     // Handle time updates
@@ -191,9 +195,7 @@ export const useOnlineSocket = ({
         result: data.result,
         eloUpdate: data.eloUpdate
       }));
-      
-      toast.success(`Game Over: ${data.result}`);
-      
+            
       // Clear game data after a delay
       setTimeout(() => {
         localStorage.removeItem("gameData");
@@ -208,7 +210,6 @@ export const useOnlineSocket = ({
       if (!isLeavingGame.current) {
         setOpponentDisconnected(true);
         setDisconnectionMessage(message);
-        toast.warning(message);
       }
     });
 
@@ -224,6 +225,21 @@ export const useOnlineSocket = ({
     newSocket.on("error", (error) => {
       console.error("Socket error:", error);
       toast.error(error.message || "An error occurred");
+    });
+
+    // Add this event handler after the existing event handlers
+    newSocket.on("moveHistory", (data) => {
+      console.log("Received move history:", data.moves);
+      if (data.moves && Array.isArray(data.moves)) {
+        const formattedMoves = data.moves.map((move: { moveNumber: number; move: string; color: 'white' | 'black'; }) => ({
+          moveNumber: move.moveNumber,
+          move: move.move,
+          color: move.color,
+          time: 3000 // Default time since we don't store move times in DB yet
+        }));
+        setMoveHistory(formattedMoves);
+        console.log("Move history restored:", formattedMoves);
+      }
     });
 
     // Helper function to calculate move time
@@ -282,13 +298,6 @@ export const useOnlineSocket = ({
 
   // Function to leave game
   const leaveGame = () => {
-    // Set flag to indicate current user is leaving
-    isLeavingGame.current = true;
-    
-    // Clear any existing disconnection warnings
-    setOpponentDisconnected(false);
-    setDisconnectionMessage("");
-    
     if (socket && isConnected) {
       const gameData = localStorage.getItem("gameData");
       if (gameData) {

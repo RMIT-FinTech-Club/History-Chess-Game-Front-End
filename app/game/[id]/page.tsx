@@ -168,7 +168,7 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
 
       {/* Opponent Disconnection Warning */}
       <OpponentDisconnectionWarning 
-        isDisconnected={opponentDisconnected}
+        isDisconnected={opponentDisconnected && !isGameOver}
         message={disconnectionMessage}
       />
 
@@ -198,6 +198,7 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
         title={gameOverTitle}
         message={gameOverMessage}
         onNewGame={handleNewGame}
+        eloUpdate={gameState?.eloUpdate}
       />
     </div>
   );

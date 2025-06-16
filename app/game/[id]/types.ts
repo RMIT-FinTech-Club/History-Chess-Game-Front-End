@@ -28,6 +28,10 @@ export type GameOverDialogProps = {
   title: string;
   message: string;
   onNewGame: () => void;
+  eloUpdate?: {
+    whiteElo?: number;
+    blackElo?: number;
+  };
 };
 
 export type UseChessHandlersProps = {
@@ -103,6 +107,10 @@ export type GameState = {
     white: string[];
     black: string[];
   };
+  eloUpdate?: {
+    whiteElo?: number;
+    blackElo?: number;
+  }
 };
 
 export interface UseOnlineSocketProps {
