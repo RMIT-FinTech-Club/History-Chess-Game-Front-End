@@ -95,11 +95,11 @@ export default function Challenge() {
         });
 
         // Add game challenge received handler
-        newSocket.on("gameChallenge", (data: { 
-            challengerId: string, 
-            challengerName: string, 
-            playMode: string, 
-            colorPreference: string 
+        newSocket.on("gameChallenge", (data: {
+            challengerId: string,
+            challengerName: string,
+            playMode: string,
+            colorPreference: string
         }) => {
             console.log("Received game challenge:", data);
             setChallengeData(data);
@@ -108,10 +108,10 @@ export default function Challenge() {
         });
 
         // Add game starting handler
-        newSocket.on("gameStarting", (data: { 
-            gameId: string, 
-            playMode: string, 
-            colorPreference: string 
+        newSocket.on("gameStarting", (data: {
+            gameId: string,
+            playMode: string,
+            colorPreference: string
         }) => {
             console.log("Game starting:", data);
             toast.success("Game starting! Redirecting...");
@@ -124,7 +124,7 @@ export default function Challenge() {
                 colorPreference: data.colorPreference,
                 userId: userId
             }));
-                router.push(`/game/${data.gameId}`);
+            router.push(`/game/${data.gameId}`);
         });
 
         newSocket.on("onlineUsers", (users: string[]) => {
@@ -132,10 +132,10 @@ export default function Challenge() {
             // Fetch user details for each online user
             const fetchUserDetails = async () => {
                 try {
-                    const userDetailsPromises = users.map(userId => 
+                    const userDetailsPromises = users.map(userId =>
                         axios.get(`http://localhost:8080/users/${userId}`)
                     );
-                    
+
                     const responses = await Promise.all(userDetailsPromises);
                     const formattedPlayers = responses
                         .map(response => ({
@@ -144,10 +144,10 @@ export default function Challenge() {
                             avt: response.data.avt || 'https://i.imgur.com/RoRONDn.jpeg',
                             elo: response.data.elo || 0
                         }))
-                        .filter(player => player.id !== userId); 
-                    
+                        .filter(player => player.id !== userId);
+
                     setPlayers(formattedPlayers);
-                    
+
                     if (usernameFromURL) {
                         const target = formattedPlayers.find((p: Players) => p.username === usernameFromURL);
                         if (target) {
@@ -189,6 +189,12 @@ export default function Challenge() {
             document.removeEventListener("mousedown", handleClickOutside)
         }
     }, [showPlayerSelect])
+
+    const modeDescriptions: Record<"blitz" | "rapid" | "bullet", string> = {
+        blitz: 'Blitz is a fast-paced chess mode where each player gets only a few minutes for the entire game. It requires quick thinking, sharp instincts, and rapid decision-making. Ideal for players who enjoy pressure and fast action.',
+        rapid: 'Rapid offers a balanced experience with moderate time controls. It gives you enough time to plan deeper strategies without feeling rushed. Perfect for those who want a thoughtful yet dynamic game.',
+        bullet: 'Bullet is the ultimate test of speed, with games often lasting just one minute per side. There\'s little time to calculate—pure instinct and lightning reflexes rule. Great for adrenaline seekers and quick-handed tacticians.',
+    };
 
 
     const modeOptions: { label: string; value: "blitz" | "rapid" | "bullet" }[] = [
@@ -256,20 +262,26 @@ export default function Challenge() {
                             )}
                         </div>
 
-                        {Array.from({ length: 3 }, (_, i) => (
-                            <div key={i} className="h-[calc(100%/8)] flex items-center justify-between w-full">
-                                {modeOptions.slice(i * 3, i * 3 + 3).map((opt) => (
-                                    <div
-                                        key={opt.value}
-                                        onClick={() => setSelectedMode(opt.value)}
-                                        className={`h-full w-1/4 flex items-center justify-around px-[2vh] cursor-pointer border-[1vh] group border-[#3B3433] border-solid rounded-[2vh] ${selectedMode === opt.value ? 'bg-[#DBB968] text-black' : 'bg-[#3B3433]'}`}
-                                    >
-                                        <Clock fill={selectedMode === opt.value ? '#000' : '#DBB968'} classes={`h-1/2 aspect-square bg-center ${selectedMode !== opt.value && 'group-hover:rotate-20'} transition-transform duration-200`} />
-                                        <p className="ml-[1vh] text-[1.1rem] font-extrabold uppercase w-full text-nowrap">{opt.label}</p>
-                                    </div>
-                                ))}
+                        <div className="h-[calc(100%/8)] flex items-center justify-between w-full">
+                            {modeOptions.map((opt) => (
+                                <div
+                                    key={opt.value}
+                                    onClick={() => setSelectedMode(opt.value)}
+                                    className={`h-full w-1/4 flex items-center justify-around px-[2vh] cursor-pointer border-[1vh] group border-[#3B3433] border-solid rounded-[2vh] ${selectedMode === opt.value ? 'bg-[#DBB968] text-black' : 'bg-[#3B3433]'}`}
+                                >
+                                    <Clock fill={selectedMode === opt.value ? '#000' : '#DBB968'} classes={`h-1/2 aspect-square bg-center ${selectedMode !== opt.value && 'group-hover:rotate-20'} transition-transform duration-200`} />
+                                    <p className="ml-[1vh] text-[1.1rem] font-extrabold uppercase w-full text-nowrap">{opt.label}</p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {selectedMode && (
+                            <div
+                                className={`transition-all duration-300 ease-out transform scale-100 opacity-100 flex justify-center items-center ${selectedMode ? 'min-h-[calc(100%/3)] max-h-[40vh] opacity-100 scale-100' : 'max-h-0 opacity-0 scale-95'} w-full bg-[#3B3433] rounded-[2vh] text-[1.2rem] font-bold text-justify leading-[3rem] p-[2vh] mt-[1vh]`}
+                            >
+                                {modeDescriptions[selectedMode]}
                             </div>
-                        ))}
+                        )}
 
                         <div className="h-[calc(100%/8)] flex items-center justify-between w-full">
                             {sideOptions.map((opt) => (
