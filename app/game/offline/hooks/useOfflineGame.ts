@@ -9,6 +9,7 @@ export function useOfflineGame() {
     fen,
     history,
     gameState,
+    setGameState, // Add this line
     checkSquares,
     makeLocalMove,
     undoLocalMove,
@@ -91,6 +92,16 @@ export function useOfflineGame() {
     },
     [lastMoveTime]
   );
+
+  // Update the handleTimeOut function
+  const handleTimeOut = useCallback((player: "w" | "b") => {
+    const winner = player === "w" ? "Black" : "White";
+    setGameState({
+      isGameOver: true,
+      title: "Time's Up!",
+      message: `${winner} wins on time!`
+    });
+  }, [setGameState]);
 
   const executeAiMove = useCallback(
     (bestMove: string) => {
@@ -274,5 +285,6 @@ export function useOfflineGame() {
     startTwoPlayerGame,
     aiLevel,
     isAiReady,
+    handleTimeOut, // Add this line
   };
 }
