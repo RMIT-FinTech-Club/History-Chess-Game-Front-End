@@ -247,7 +247,7 @@ const SignUp = () => {
         ></div>
       </div>
       <div className="flex flex-col items-center justify-center">
-        <h2 className="text-center text-[7vh]">Sign Up</h2>
+        <h2 className="text-center text-[5.5vh] mt-[1vh]">Sign Up</h2>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -274,10 +274,7 @@ const SignUp = () => {
                         placeholder="Enter your username"
                         {...field}
                         className="
-                          pl-[7.5vw]
-                          sm:pl-[5.85vw]
-                          md:pl-[4.5vw]
-                          lg:pl-[3.75vw]
+                          !pl-[3.75vw]
                           py-[4vh] w-full
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -313,10 +310,7 @@ const SignUp = () => {
                         placeholder="Enter your email"
                         {...field}
                         className="
-                          pl-[7.5vw]
-                          sm:pl-[5.85vw]
-                          md:pl-[4.5vw]
-                          lg:pl-[3.75vw]
+                          !pl-[3.75vw]
                           py-[4vh] w-full
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -347,10 +341,7 @@ const SignUp = () => {
                         placeholder="Enter your password"
                         {...field}
                         className="
-                          pl-[7.5vw]
-                          sm:pl-[5.85vw]
-                          md:pl-[4.5vw]
-                          lg:pl-[3.75vw]
+                          !pl-[3.75vw]
                           py-[4vh] w-full
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -398,10 +389,7 @@ const SignUp = () => {
                         placeholder="Confirm your password"
                         {...field}
                         className="
-                          pl-[7.5vw]
-                          sm:pl-[5.85vw]
-                          md:pl-[4.5vw]
-                          lg:pl-[3.75vw]
+                          !pl-[3.75vw]
                           py-[4vh] w-full
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -420,7 +408,7 @@ const SignUp = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[4vh] mt-[1.75vh] rounded-[1.5vh]"
+              className="w-full bg-[#000000] mt-[1.75vh] mb-[1.75vh] !py-[3.5vh] !rounded-[1.5vh] !text-[3vh] !font-semibold hover:!bg-[#DBB968] !cursor-pointer"
             >
               {loading ? "Signing Up..." : "Sign Up"}
             </Button>

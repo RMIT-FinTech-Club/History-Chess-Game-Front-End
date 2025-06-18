@@ -24,7 +24,7 @@ const PasswordInput = React.forwardRef<
         id="password-input"
         type={showPassword ? "text" : "password"}
         className={cn(
-          "pl-10 pr-10 bg-[#C4C4C4] border-gray-600 text-[#000000]",
+          "pl-10 pr-10 bg-[#C4C4C4] border-gray-600 text-[#000000] focus:border-[0.2rem] focus:border-[#DBB968]",
           className
         )}
         ref={ref}
@@ -34,7 +34,7 @@ const PasswordInput = React.forwardRef<
       {/* Toggle Password Visibility */}
       <button
         type="button"
-        className="absolute top-1/2 right-6 md:right-4 transform -translate-y-1/2 bg-transparent border-none p-0 cursor-pointer"
+        className="absolute top-1/2 right-6 md:right-4 transform -translate-y-1/2 !bg-transparent border-none p-0 cursor-pointer"
         onClick={() => setShowPassword(!showPassword)}
         disabled={props.disabled}
         aria-label={showPassword ? "Hide password" : "Show password"}

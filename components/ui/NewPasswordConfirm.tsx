@@ -38,8 +38,8 @@ const NewPasswordConfirm = React.forwardRef<
         type="button"
         className={cn(
           "absolute top-1/2 right-6 md:right-4 transform -translate-y-1/2",
-          "bg-transparent border-none p-0",
-          "text-[#2F2F2F] text-[3vh] cursor-pointer",
+          "!bg-transparent border-none p-0",
+          "!text-[#2F2F2F] text-[3vh] cursor-pointer",
           props.disabled && "opacity-50 cursor-not-allowed"
         )}
         onClick={() => setShowPassword(!showPassword)}

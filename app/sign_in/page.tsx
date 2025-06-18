@@ -151,7 +151,7 @@ const SignIn = () => {
           .querySelector("input[type='password']")
           ?.classList.add("border-green-500", "border-[0.3vh]");
         toast.success("Sign in successful!");
-        router.push("/profile");
+        router.push("/home");
       } catch (err: unknown) {
         const message = axios.isAxiosError(err)
           ? err.response?.data?.message || "Sign in failed"
@@ -210,7 +210,7 @@ const SignIn = () => {
         });
         toast.success("Google login successful!");
         setShowUsernamePrompt(false);
-        router.push("/profile");
+        router.push("/home");
       } catch (err: unknown) {
         const message = axios.isAxiosError(err)
           ? err.response?.data?.message || "Failed to complete Google login"
@@ -264,7 +264,7 @@ const SignIn = () => {
           style={{ backgroundImage: "url('/FTC_Logo.png')" }}
         ></div>
       </div>
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center">
         <h2 className="text-center text-[4vh] md:text-[7vh]">Sign In</h2>
         {showUsernamePrompt ? (
           <Form {...usernameForm}>
@@ -335,7 +335,7 @@ const SignIn = () => {
                             placeholder="Enter your username or email"
                             {...field}
                             className="
-                              pl-[7.5vw] sm:pl-[5.85vw] md:pl-[4.5vw] lg:pl-[3.75vw]
+                              !pl-[4vw] 
                               py-[12vh] md:py-[4vh] w-full
                               bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                               text-[2vh] md:text-[3vh] font-normal rounded-[1.5vh]
@@ -366,6 +366,7 @@ const SignIn = () => {
                             placeholder="Enter your password"
                             {...field}
                             className="
+                              !pl-[4vw]
                               py-[12vh] md:py-[4vh] w-full
                               bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                               text-[2vh] md:text-[3vh] font-normal rounded-[1.5vh]
@@ -398,7 +399,7 @@ const SignIn = () => {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full border-none bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[10vh] md:py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+                  className="w-full bg-[#000000] mt-[1.75vh] mb-[1.75vh] !py-[3.5vh] !rounded-[1.5vh] !text-[3vh] !font-semibold hover:!bg-[#DBB968] !cursor-pointer"
                 >
                   Sign In
                 </Button>
@@ -407,10 +408,10 @@ const SignIn = () => {
             <div className="text-center text-[#C4C4C4] text-[2.75vh] md:text-[3vh] font-normal">
               or continue with
             </div>
-            <div className="space-y-2 sm:space-y-3 md:space-y-4">
-              <button
+            <div className="md:w-full">
+              <Button
                 onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center bg-[#ECECEC] cursor-pointer text-[#000000] font-bold text-[3vh] py-[1.5vh] md:py-[2.45vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+                className="md:w-full w-[80vw] !bg-[#ECECEC] mt-[1.75vh] mb-[1.75vh] !py-[3.5vh] !rounded-[1.5vh] !text-[3vh] !text-[#000000] !font-semibold hover:!bg-[#DBB968] !cursor-pointer"
               >
                 <img
                   src="/Google-Logo.svg"
@@ -418,7 +419,7 @@ const SignIn = () => {
                   className="mr-[1vw] md:mr-[0.5vw] w-[4vh] h-[4vh]"
                 />
                 Continue with Google
-              </button>
+              </Button>
             </div>
             <div className="text-center text-[#C4C4C4] text-[2.75vh] md:text-[3vh] font-normal">
               Don’t have an account?{" "}

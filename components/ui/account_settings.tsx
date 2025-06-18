@@ -635,14 +635,6 @@ const AccountSettings = () => {
     };
   }, [accessToken]);
 
-  if (initialLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-white font-poppins font-bold">
-        <p className="text-[3vh]">Loading Profile...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="h-full">
       <div className="flex items-center">
@@ -721,7 +713,7 @@ const AccountSettings = () => {
               />
             </div>
 
-            <div className="ml-[2vw]">
+            <div className="!mx-[4vw]">
               <div>
                 <Label className="text-[2.25vw] md:text-[1.25vw]">
                   User Information
@@ -738,7 +730,7 @@ const AccountSettings = () => {
                       <Input
                         id="username"
                         disabled={!isEditing}
-                        className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                        className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
                         autoComplete="off"
                         aria-disabled={!isEditing}
                         {...field}
@@ -755,7 +747,7 @@ const AccountSettings = () => {
                   disabled
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                  className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
                   aria-disabled="true"
                 />
               </div>
@@ -784,7 +776,7 @@ const AccountSettings = () => {
                 <button
                   type="button"
                   onClick={handleEditClick}
-                  className="flex items-center gap-2 cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors"
+                  className="flex items-center gap-2 cursor-pointer border border-[#E9B654] hover:!bg-[#DBB968] rounded-[1vh] py-[1vh] px-[1vw] transition-colors"
                 >
                   <span className="text-[2.25vw] md:text-[1.25vw]">Edit</span>
                   <Image
@@ -858,7 +850,7 @@ const AccountSettings = () => {
                       <OldPassword
                         placeholder="Enter your current password"
                         {...field}
-                        className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
+                        className="!w-full !pl-[3.5vw] py-[3vh] md:py-[3.5vh] 
                           rounded-[1.5vh]
                           !text-[2.5vh] md:!text-[3vh] font-normal"
                       />
@@ -882,7 +874,7 @@ const AccountSettings = () => {
                       <NewPassword
                         placeholder="Enter your new password"
                         {...field}
-                        className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
+                        className="!w-full py-[3vh] !pl-[3.5vw] md:py-[3.5vh] 
                           rounded-[1.5vh]
                           !text-[2.5vh] md:!text-[3vh] font-normal"
                         onChange={(e) => {
@@ -938,7 +930,7 @@ const AccountSettings = () => {
                       <NewPasswordConfirm
                         placeholder="Confirm your new password"
                         {...field}
-                        className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
+                        className="!w-full py-[3vh] !pl-[3.5vw] md:py-[3.5vh] 
                           rounded-[1.5vh]
                           !text-[2.5vh] md:!text-[3vh] font-normal"
                       />
