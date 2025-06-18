@@ -236,7 +236,7 @@ const SignIn = () => {
           avatar: null,
         });
         toast.success("Google login successful!");
-        router.push("/profile");
+        router.push("/home");
       } else if (type === "google-auth-prompt-username") {
         setGoogleEmail(email);
         setTempToken(tempToken);
