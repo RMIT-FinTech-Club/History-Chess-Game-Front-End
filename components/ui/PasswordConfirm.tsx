@@ -17,10 +17,7 @@ const PasswordConfirm = React.forwardRef<
     <div className="relative">
       {/* Left-side Key Icon */}
       <FaKey
-        className="
-        absolute text-black cursor-pointer
-        top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
-        "
+        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[4vh] cursor-pointer"
         onClick={() => document.getElementById("password-confirm")?.focus()}
       />
 

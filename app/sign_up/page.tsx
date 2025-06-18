@@ -54,12 +54,21 @@ const SignUp = () => {
 
       // Client-side validation
       if (!values.username) {
-        setErrors((prev) => ({ ...prev, username: "Please enter your username." }));
-        document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
+        setErrors((prev) => ({
+          ...prev,
+          username: "Please enter your username.",
+        }));
+        document
+          .getElementById("username-input")
+          ?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      if (!/^[a-zA-Z0-9]+$/.test(values.username) || values.username.length < 3 || values.username.length > 50) {
+      if (
+        !/^[a-zA-Z0-9]+$/.test(values.username) ||
+        values.username.length < 3 ||
+        values.username.length > 50
+      ) {
         setErrors((prev) => ({
           ...prev,
           username:
@@ -69,31 +78,55 @@ const SignUp = () => {
               ? "Username must not exceed 50 characters."
               : "Username must contain only letters and numbers.",
         }));
-        document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
+        document
+          .getElementById("username-input")
+          ?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      document.getElementById("username-input")?.classList.remove("border-red-500", "border-[0.3vh]");
+      document
+        .getElementById("username-input")
+        ?.classList.remove("border-red-500", "border-[0.3vh]");
 
       if (!values.email) {
         setErrors((prev) => ({ ...prev, email: "Please enter your email." }));
-        document.getElementById("email-input")?.classList.add("border-red-500", "border-[0.3vh]");
+        document
+          .getElementById("email-input")
+          ?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
       const validEmailRegex = /^[a-zA-Z0-9@.]+$/;
-      const isValidEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email);
-      if (!validEmailRegex.test(values.email) || !isValidEmailFormat || !values.email.endsWith("@gmail.com")) {
-        setErrors((prev) => ({ ...prev, email: "Please enter a valid Gmail address." }));
-        document.getElementById("email-input")?.classList.add("border-red-500", "border-[0.3vh]");
+      const isValidEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+        values.email
+      );
+      if (
+        !validEmailRegex.test(values.email) ||
+        !isValidEmailFormat ||
+        !values.email.endsWith("@gmail.com")
+      ) {
+        setErrors((prev) => ({
+          ...prev,
+          email: "Please enter a valid Gmail address.",
+        }));
+        document
+          .getElementById("email-input")
+          ?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      document.getElementById("email-input")?.classList.remove("border-red-500", "border-[0.3vh]");
+      document
+        .getElementById("email-input")
+        ?.classList.remove("border-red-500", "border-[0.3vh]");
 
       if (!values.password) {
-        setErrors((prev) => ({ ...prev, password: "Please enter your password." }));
-        document.querySelector("input[name='password']")?.classList.add("border-red-500", "border-[0.3vh]");
+        setErrors((prev) => ({
+          ...prev,
+          password: "Please enter your password.",
+        }));
+        document
+          .querySelector("input[name='password']")
+          ?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
@@ -117,25 +150,41 @@ const SignUp = () => {
               ? "Password must contain at least one number."
               : "Password must contain at least one special character (!@#$%^&*).",
         }));
-        document.querySelector("input[name='password']")?.classList.add("border-red-500", "border-[0.3vh]");
+        document
+          .querySelector("input[name='password']")
+          ?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      document.querySelector("input[name='password']")?.classList.remove("border-red-500", "border-[0.3vh]");
+      document
+        .querySelector("input[name='password']")
+        ?.classList.remove("border-red-500", "border-[0.3vh]");
 
       if (!values.confirmPassword) {
-        setErrors((prev) => ({ ...prev, confirmPassword: "Please confirm your password." }));
-        document.querySelector("input[name='confirmPassword']")?.classList.add("border-red-500", "border-[0.3vh]");
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: "Please confirm your password.",
+        }));
+        document
+          .querySelector("input[name='confirmPassword']")
+          ?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
       if (values.password !== values.confirmPassword) {
-        setErrors((prev) => ({ ...prev, confirmPassword: "Passwords do not match." }));
-        document.querySelector("input[name='confirmPassword']")?.classList.add("border-red-500", "border-[0.3vh]");
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: "Passwords do not match.",
+        }));
+        document
+          .querySelector("input[name='confirmPassword']")
+          ?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      document.querySelector("input[name='confirmPassword']")?.classList.remove("border-red-500", "border-[0.3vh]");
+      document
+        .querySelector("input[name='confirmPassword']")
+        ?.classList.remove("border-red-500", "border-[0.3vh]");
 
       try {
         await axios.post("http://localhost:8080/users", {
@@ -143,26 +192,42 @@ const SignUp = () => {
           email: values.email,
           password: values.password,
         });
-        document.getElementById("username-input")?.classList.add("border-green-500", "border-[0.3vh]");
-        document.getElementById("email-input")?.classList.add("border-green-500", "border-[0.3vh]");
-        document.querySelector("input[name='password']")?.classList.add("border-green-500", "border-[0.3vh]");
-        document.querySelector("input[name='confirmPassword']")?.classList.add("border-green-500", "border-[0.3vh]");
+        document
+          .getElementById("username-input")
+          ?.classList.add("border-green-500", "border-[0.3vh]");
+        document
+          .getElementById("email-input")
+          ?.classList.add("border-green-500", "border-[0.3vh]");
+        document
+          .querySelector("input[name='password']")
+          ?.classList.add("border-green-500", "border-[0.3vh]");
+        document
+          .querySelector("input[name='confirmPassword']")
+          ?.classList.add("border-green-500", "border-[0.3vh]");
         toast.success("Sign up successful! Please sign in to continue.");
         router.push("/sign_in");
       } catch (error: any) {
         const message = error.response?.data?.message || "Sign up failed";
         if (message.includes("username")) {
           setErrors((prev) => ({ ...prev, username: message }));
-          document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
+          document
+            .getElementById("username-input")
+            ?.classList.add("border-red-500", "border-[0.3vh]");
         } else if (message.includes("email")) {
           setErrors((prev) => ({ ...prev, email: message }));
-          document.getElementById("email-input")?.classList.add("border-red-500", "border-[0.3vh]");
+          document
+            .getElementById("email-input")
+            ?.classList.add("border-red-500", "border-[0.3vh]");
         } else if (message.includes("password")) {
           setErrors((prev) => ({ ...prev, password: message }));
-          document.querySelector("input[name='password']")?.classList.add("border-red-500", "border-[0.3vh]");
+          document
+            .querySelector("input[name='password']")
+            ?.classList.add("border-red-500", "border-[0.3vh]");
         } else {
           setErrors((prev) => ({ ...prev, username: message }));
-          document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
+          document
+            .getElementById("username-input")
+            ?.classList.add("border-red-500", "border-[0.3vh]");
         }
         toast.error(message);
       } finally {
@@ -173,16 +238,16 @@ const SignUp = () => {
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center md:justify-start text-white font-poppins font-bold relative">
-      <div className="w-[40vw] aspect-[1/1] ml-[5vw] mr-[3vw] relative md:block hidden">
-        <div className="w-full absolute aspect-[1/1] bg-[#DCB968] rounded-[50%] blur-[15vw] left-0 top-[50%] -translate-y-[50%]"></div>
+    <div className="text-white font-poppins font-bold relative md:flex md:justify-around md:items-center">
+      <div className="w-[35vw] aspect-[1/1] relative md:block hidden">
+        <div className="w-full absolute aspect-[1/1] bg-[#DBB968] rounded-[50%] blur-[15vw] left-0 top-[50%] -translate-y-[50%]"></div>
         <div
           className="w-full absolute aspect-[1/1] bg-no-repeat bg-center bg-contain left-0 top-[50%] -translate-y-[50%]"
           style={{ backgroundImage: "url('/FTC_Logo.png')" }}
         ></div>
       </div>
-      <div className="p-7">
-        <h2 className="text-center text-[7vh]">Sign Up</h2>
+      <div className="flex flex-col items-center justify-center">
+        <h2 className="text-center text-[5.5vh] mt-[1vh]">Sign Up</h2>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -199,10 +264,7 @@ const SignUp = () => {
                   <FormControl>
                     <div className="relative">
                       <MdPerson
-                        className="
-                          absolute text-black cursor-pointer
-                          top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
-                        "
+                        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[5vh] cursor-pointer"
                         onClick={() =>
                           document.getElementById("username-input")?.focus()
                         }
@@ -212,10 +274,7 @@ const SignUp = () => {
                         placeholder="Enter your username"
                         {...field}
                         className="
-                          pl-[7.5vw]
-                          sm:pl-[5.85vw]
-                          md:pl-[4.5vw]
-                          lg:pl-[3.75vw]
+                          !pl-[3.75vw]
                           py-[4vh] w-full
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -225,7 +284,9 @@ const SignUp = () => {
                     </div>
                   </FormControl>
                   {errors.username && (
-                    <p className="text-red-500 text-[2.5vh] font-bold">{errors.username}</p>
+                    <p className="text-red-500 text-[2.5vh] font-bold">
+                      {errors.username}
+                    </p>
                   )}
                 </FormItem>
               )}
@@ -235,16 +296,11 @@ const SignUp = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold text-[3vh]">
-                    Email
-                  </FormLabel>
+                  <FormLabel className="font-bold text-[3vh]">Email</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <MdEmail
-                        className="
-                          absolute text-black cursor-pointer
-                          top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
-                        "
+                        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[5vh] cursor-pointer"
                         onClick={() =>
                           document.getElementById("email-input")?.focus()
                         }
@@ -254,10 +310,7 @@ const SignUp = () => {
                         placeholder="Enter your email"
                         {...field}
                         className="
-                          pl-[7.5vw]
-                          sm:pl-[5.85vw]
-                          md:pl-[4.5vw]
-                          lg:pl-[3.75vw]
+                          !pl-[3.75vw]
                           py-[4vh] w-full
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -267,7 +320,9 @@ const SignUp = () => {
                     </div>
                   </FormControl>
                   {errors.email && (
-                    <p className="text-red-500 text-[2.5vh] font-bold">{errors.email}</p>
+                    <p className="text-red-500 text-[2.5vh] font-bold">
+                      {errors.email}
+                    </p>
                   )}
                 </FormItem>
               )}
@@ -286,10 +341,7 @@ const SignUp = () => {
                         placeholder="Enter your password"
                         {...field}
                         className="
-                          pl-[7.5vw]
-                          sm:pl-[5.85vw]
-                          md:pl-[4.5vw]
-                          lg:pl-[3.75vw]
+                          !pl-[3.75vw]
                           py-[4vh] w-full
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -316,7 +368,9 @@ const SignUp = () => {
                     </li>
                   </ul>
                   {errors.password && (
-                    <p className="text-red-500 text-[2.5vh] font-bold">{errors.password}</p>
+                    <p className="text-red-500 text-[2.5vh] font-bold">
+                      {errors.password}
+                    </p>
                   )}
                 </FormItem>
               )}
@@ -335,10 +389,7 @@ const SignUp = () => {
                         placeholder="Confirm your password"
                         {...field}
                         className="
-                          pl-[7.5vw]
-                          sm:pl-[5.85vw]
-                          md:pl-[4.5vw]
-                          lg:pl-[3.75vw]
+                          !pl-[3.75vw]
                           py-[4vh] w-full
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -347,7 +398,9 @@ const SignUp = () => {
                     </div>
                   </FormControl>
                   {errors.confirmPassword && (
-                    <p className="text-red-500 text-[2.5vh] font-bold">{errors.confirmPassword}</p>
+                    <p className="text-red-500 text-[2.5vh] font-bold">
+                      {errors.confirmPassword}
+                    </p>
                   )}
                 </FormItem>
               )}
@@ -355,15 +408,18 @@ const SignUp = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[4vh] mt-[1.75vh] rounded-[1.5vh]"
+              className="w-full bg-[#000000] mt-[1.75vh] mb-[1.75vh] !py-[3.5vh] !rounded-[1.5vh] !text-[3vh] !font-semibold hover:!bg-[#DBB968] !cursor-pointer"
             >
               {loading ? "Signing Up..." : "Sign Up"}
             </Button>
           </form>
         </Form>
-        <div className="text-center text-[#C4C4C4] text-[3vh] font-normal mt-[2vh]">
+        <div className="text-center text-[#C4C4C4] text-[3vh] font-normal my-[2vh]">
           Already have an account?{" "}
-          <a href="/sign_in" className="text-[#184BF2] font-bold hover:underline">
+          <a
+            href="/sign_in"
+            className="text-[#184BF2] font-bold hover:underline"
+          >
             Sign In
           </a>
         </div>

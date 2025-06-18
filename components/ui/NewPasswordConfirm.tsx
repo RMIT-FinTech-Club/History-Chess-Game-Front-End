@@ -17,8 +17,7 @@ const NewPasswordConfirm = React.forwardRef<
     <div className="relative">
       {/* Left-side Key Icon */}
       <FaKey
-        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 
-        text-[#2F2F2F] text-[3vh] cursor-pointer"
+        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[4vh] cursor-pointer"
         onClick={() => document.getElementById("password-confirm")?.focus()}
       />
 
@@ -39,8 +38,8 @@ const NewPasswordConfirm = React.forwardRef<
         type="button"
         className={cn(
           "absolute top-1/2 right-6 md:right-4 transform -translate-y-1/2",
-          "bg-transparent border-none p-0",
-          "text-[#2F2F2F] text-[3vh] cursor-pointer",
+          "!bg-transparent border-none p-0",
+          "!text-[#2F2F2F] text-[3vh] cursor-pointer",
           props.disabled && "opacity-50 cursor-not-allowed"
         )}
         onClick={() => setShowPassword(!showPassword)}
