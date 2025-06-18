@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { FaUser, FaPuzzlePiece, FaSignOutAlt, FaWallet, FaChevronDown } from 'react-icons/fa';
 import { HiOutlineMenuAlt3, HiX } from 'react-icons/hi';
 import { useGlobalStorage } from '@/hooks/GlobalStorage';
-import Toast from '././ui/Toast'; 
+import Toast from '././ui/Toast';
 import ConfirmModal from './ui/ConfirmModal';
+import { Button } from './ui/button';
 
 export default function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -25,15 +26,15 @@ export default function Navbar() {
 
   const isLoggedIn = !!userId && !!accessToken;
 
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null); 
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const handleAvatarClick = () => setShowDropdown(prev => !prev);
   const displayName = userName || "User 1";
   const avatarUrl = avatar || "/img/DefaultUser.png";
 
   return (
-    
-    
-    <nav className="w-full bg-black text-white font-[Poppins] px-6 py-4">
+
+
+    <nav className="w-full bg-black text-white px-6 py-4">
       {toast && (
         <Toast
           type={toast.type}
@@ -61,7 +62,7 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-6 text-[18px] font-semibold">
-          <span onClick={() => router.push('/home')} className="cursor-pointer hover:text-[#E9B654]">Home</span>
+          <span onClick={() => router.push('/home')} className="cursor-pointer hover:text-[#E9B654]">Play Game</span>
           <span onClick={() => router.push('/market')} className="cursor-pointer hover:text-[#E9B654]">Our Market</span>
 
           {isLoggedIn ? (
@@ -89,29 +90,29 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
-             <button
+              <Button
                 onClick={() => {
                   router.push('/game/offline');
                 }}
                 className="px-4 py-2 w-[124px] h-[35px] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] hover:text-white transition-colors duration-300 flex justify-center items-center">
-                New Game
-            </button>
+                AI Practice
+              </Button>
 
             </div>
           ) : (
             <div className="flex items-center gap-4">
-              <button onClick={() => router.push('/sign_in')} 
-                  className="px-4 py-2 w-[100px] h-[35px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] hover:text-black transition-colors duration-300 flex justify-center items-center">
+              <Button onClick={() => router.push('/sign_in')}
+                className="px-4 py-2 w-[100px] h-[35px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] hover:text-black transition-colors duration-300 flex justify-center items-center">
                 Sign In
-              </button>
+              </Button>
 
-              <button onClick={() => router.push('/sign_up')}   
+              <Button onClick={() => router.push('/sign_up')}
                 className=" w-[100px] h-[35px] text-black bg-white hover:bg-black hover:text-white rounded-[6px] font-semibold border border-white transition-colors duration-300 flex justify-center items-center">
                 Sign Up
-              </button>
+              </Button>
             </div>
           )}
-        </div>  
+        </div>
       </div>
 
       {/* Mobile */}
@@ -123,7 +124,7 @@ export default function Navbar() {
         <p onClick={() => setMobileOpen(!mobileOpen)} className="text-white text-[34px]">
           {mobileOpen ? <HiX className="text-white text-[34px]" /> : <HiOutlineMenuAlt3 className="text-white text-[30px]" />}
         </p>
-      </div>  
+      </div>
 
       {/* Mobile Drawer */}
       {mobileOpen && (
@@ -160,17 +161,17 @@ export default function Navbar() {
 
           <div className="w-full flex flex-col gap-3 mt-4 items-center">
             {isLoggedIn ? (
-              <button onClick={() => setShowConfirmLogout(true)} className="w-[352px] h-[40px] text-[3.5vh] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#9E7C00] to-[#605715] flex justify-center items-center">
+              <Button onClick={() => setShowConfirmLogout(true)} className="w-[352px] h-[40px] text-[3.5vh] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#9E7C00] to-[#605715] flex justify-center items-center">
                 Log Out
-              </button>
+              </Button>
             ) : (
               <>
-                <button onClick={() => router.push('/sign_in')} className="w-[200px] h-[40px] text-[3.5vh] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#F7D447] via-[#D6A900] to-[#A68E3C] flex justify-center items-center">
+                <Button onClick={() => router.push('/sign_in')} className="w-[200px] h-[40px] text-[3.5vh] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#F7D447] via-[#D6A900] to-[#A68E3C] flex justify-center items-center">
                   Sign In
-                </button>
-                <button onClick={() => router.push('/sign_up')} className="w-[200px] h-[40px] text-[3.5vh] text-black bg-white hover:bg-black hover:text-white rounded-[6px] font-semibold border border-white transition-colors duration-300 flex justify-center items-center">
+                </Button>
+                <Button onClick={() => router.push('/sign_up')} className="w-[200px] h-[40px] text-[3.5vh] text-black bg-white hover:bg-black hover:text-white rounded-[6px] font-semibold border border-white transition-colors duration-300 flex justify-center items-center">
                   Sign Up
-                </button>
+                </Button>
               </>
             )}
           </div>
