@@ -256,7 +256,7 @@ const SignIn = () => {
   }, [router, setAuthData]);
 
   return (
-    <div className="text-white font-poppins font-bold relative md:flex md:justify-around md:items-center">
+    <div className=" min-h-screen text-white font-poppins font-bold relative md:flex md:justify-around md:items-center ">
       <div className="w-[35vw] aspect-[1/1] relative md:block hidden">
         <div className="w-full absolute aspect-[1/1] bg-[#DBB968] rounded-[50%] blur-[15vw] left-0 top-[50%] -translate-y-[50%]"></div>
         <div

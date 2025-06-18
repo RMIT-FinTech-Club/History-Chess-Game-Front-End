@@ -75,8 +75,8 @@ const SignUp = () => {
             values.username.length < 3
               ? "Username must be at least 3 characters."
               : values.username.length > 50
-              ? "Username must not exceed 50 characters."
-              : "Username must contain only letters and numbers.",
+                ? "Username must not exceed 50 characters."
+                : "Username must contain only letters and numbers.",
         }));
         document
           .getElementById("username-input")
@@ -143,12 +143,12 @@ const SignUp = () => {
             values.password.length < 9
               ? "Password must be at least 9 characters."
               : values.password.length > 128
-              ? "Password must not exceed 128 characters."
-              : !/[A-Z]/.test(values.password)
-              ? "Password must contain at least one uppercase letter."
-              : !/[0-9]/.test(values.password)
-              ? "Password must contain at least one number."
-              : "Password must contain at least one special character (!@#$%^&*).",
+                ? "Password must not exceed 128 characters."
+                : !/[A-Z]/.test(values.password)
+                  ? "Password must contain at least one uppercase letter."
+                  : !/[0-9]/.test(values.password)
+                    ? "Password must contain at least one number."
+                    : "Password must contain at least one special character (!@#$%^&*).",
         }));
         document
           .querySelector("input[name='password']")
@@ -238,7 +238,7 @@ const SignUp = () => {
   );
 
   return (
-    <div className="text-white font-poppins font-bold relative md:flex md:justify-around md:items-center">
+    <div className="min-h-screen text-white font-poppins font-bold relative md:flex md:justify-around md:items-center">
       <div className="w-[35vw] aspect-[1/1] relative md:block hidden">
         <div className="w-full absolute aspect-[1/1] bg-[#DBB968] rounded-[50%] blur-[15vw] left-0 top-[50%] -translate-y-[50%]"></div>
         <div
