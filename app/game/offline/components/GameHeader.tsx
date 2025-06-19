@@ -40,14 +40,6 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
             {autoRotateBoard ? "Auto-rotate: ON" : "Auto-rotate: OFF"}
           </Button>
         )}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onChangeGameMode}
-          className="!text-md !font-medium !py-[1.25rem]"
-        >
-          Change
-        </Button>
       </div>
     </div>
   </div>

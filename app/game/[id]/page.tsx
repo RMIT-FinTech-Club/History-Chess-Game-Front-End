@@ -7,7 +7,7 @@ import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import YellowLight from "@/components/decor/YellowLight";
 
 // Import hooks
-import { useBoardSize } from "./hooks/useBoardSize";
+import { useBoardSize } from "@/hooks/useBoardSize";
 import { useChessHandlers } from "./hooks/useChessHandlers";
 import { useOnlineMoveHistory } from "./hooks/useOnlineMoveHistory";
 import { useOnlineSocket } from "./hooks/useOnlineSocket";

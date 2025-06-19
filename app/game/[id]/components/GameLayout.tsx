@@ -27,7 +27,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
     <div className="flex flex-col lg:flex-row gap-3 w-full max-w-7xl flex-1">
       <div className="flex flex-col justify-between w-full min-h-0">
         {/* Top Player */}
-        <div className="flex justify-center md:justify-start">
+        <div className="flex justify-center w-full md:justify-start">
           <PlayerSection 
             color={boardOrientation === "white" ? "Black" : "White"}
             pieces={boardOrientation === "white" ? capturedBlack : capturedWhite}
@@ -61,7 +61,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
           />
           
           {/* Right Side - Move History and Controls */}
-          <div className="w-full text-black flex flex-col flex-wrap justify-between gap-3">
+          <div className="w-full text-black flex flex-col justify-between gap-3">
             <MoveHistoryTable moveHistoryPairs={moveHistoryPairs} />
             
             <GameControls
