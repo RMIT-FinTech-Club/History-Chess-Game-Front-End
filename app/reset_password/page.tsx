@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -193,7 +193,7 @@ const ResetPassword = () => {
             newPassword: data.newPassword,
           }
         );
-        const token = resetResponse.data.token;
+        const { token, data: userData } = resetResponse.data;
         console.log("Reset password response:", resetResponse.data);
         const profileResponse = await axios.get("http://localhost:8080/users/profile", {
           headers: {
@@ -201,7 +201,7 @@ const ResetPassword = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        const user = profileResponse.data.user;
+        const user = profileResponse.data.data;
         console.log("Profile response:", profileResponse.data);
         setAuthData({
           userId: user.id,
@@ -218,7 +218,17 @@ const ResetPassword = () => {
           ? err.response?.data?.message || "Failed to reset password"
           : "Network error";
         console.error("Reset password error:", err);
-        setErrors((prev) => ({ ...prev, newPassword: message }));
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 404) {
+            setErrors((prev) => ({ ...prev, newPassword: "User not found" }));
+          } else if (err.response?.status === 400) {
+            setErrors((prev) => ({ ...prev, newPassword: "Invalid reset code" }));
+          } else {
+            setErrors((prev) => ({ ...prev, newPassword: message }));
+          }
+        } else {
+          setErrors((prev) => ({ ...prev, newPassword: message }));
+        }
         document
           .getElementById("newPassword-input")
           ?.classList.add("border-red-500", "border-[0.3vh]");
@@ -275,7 +285,6 @@ const ResetPassword = () => {
     } else if (key === "ArrowRight" && index < 5) {
       inputRefs.current[index + 1]?.focus();
     } else if (key === "Enter" && !resending && otp.every((digit) => digit !== "")) {
-      // Only submit on Enter if not resending and OTP is complete
       e.preventDefault();
       onCodeSubmit({ resetCode: otp.join("") });
     }
@@ -333,7 +342,6 @@ const ResetPassword = () => {
 
   return (
     <div className="flex flex-col justify-center items-center h-[100dvh]">
-      {/* Logo section unchanged */}
       <div className="flex justify-center items-center relative h-[30vh] aspect-square">
         <div
           className="w-full h-full bg-[#DCB410] rounded-full absolute left-0 top-0"
@@ -385,6 +393,9 @@ const ResetPassword = () => {
                         />
                       </div>
                     </FormControl>
+                    {errors.email && (
+                      <p className="text-red-500 text-[2.5vh] font-bold">{errors.email}</p>
+                    )}
                   </FormItem>
                 )}
               />
@@ -435,6 +446,9 @@ const ResetPassword = () => {
                         ))}
                       </div>
                     </FormControl>
+                    {errors.resetCode && (
+                      <p className="text-red-500 text-[2.5vh] font-bold">{errors.resetCode}</p>
+                    )}
                     <p className="text-white text-[2.5vw] text-center md:text-[1.5vw] mt-[5vh]">
                       Enter the OTP sent via email. (Expired in{" "}
                       <span className="text-[#E9B654]">
@@ -454,7 +468,7 @@ const ResetPassword = () => {
                   {loading ? "Submitting..." : "Submit"}
                 </Button>
                 <Button
-                  type="button" // Explicitly prevent form submission
+                  type="button"
                   onClick={handleResendOtp}
                   disabled={loading || resending}
                   className="w-[20vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
