@@ -83,7 +83,6 @@ const AccountSettings = () => {
   const [initialAvatar, setInitialAvatar] = useState<string | null>(null);
   const [initialUsername, setInitialUsername] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [isPasswordPopupOpen, setIsPasswordPopupOpen] = useState(false);
   const [isGoogleAuth, setIsGoogleAuth] = useState(false);
@@ -183,11 +182,9 @@ const AccountSettings = () => {
       console.error("No access token found", { accessToken });
       toast.error("Authentication required. Please sign in.");
       router.push("/sign_in");
-      setInitialLoading(false);
       return;
     }
 
-    setInitialLoading(true);
     try {
       console.log("Fetching profile with token:", accessToken);
       const decoded = jwtDecode<JwtPayload>(accessToken);
@@ -236,8 +233,6 @@ const AccountSettings = () => {
         console.error("Unexpected error fetching profile:", error);
         toast.error("An unexpected error occurred while fetching profile");
       }
-    } finally {
-      if (isMounted) setInitialLoading(false);
     }
   }, [accessToken, form, router, isMounted]);
 
@@ -590,14 +585,6 @@ const AccountSettings = () => {
     };
   }, [accessToken]);
 
-  if (initialLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-white font-poppins font-bold">
-        <p className="text-[3vh]">Loading Profile...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="h-full">
       <div className="flex items-center">
@@ -693,7 +680,7 @@ const AccountSettings = () => {
                       <Input
                         id="username"
                         disabled={!isEditing}
-                        className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                        className="w-full !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
                         autoComplete="off"
                         aria-disabled={!isEditing}
                         {...field}
@@ -710,7 +697,7 @@ const AccountSettings = () => {
                   disabled
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                  className="w-full !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
                   aria-disabled="true"
                 />
               </div>
