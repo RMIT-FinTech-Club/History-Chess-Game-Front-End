@@ -79,8 +79,7 @@ const SignIn = () => {
         if (identifier.length < 3 || identifier.length > 50) {
           setErrors((prev) => ({
             ...prev,
-            identifier:
-              "Username must be 3-50 characters, letters and numbers only.",
+            identifier: "Username must be 3-50 characters, letters and numbers only.",
           }));
           document
             .getElementById("identifier-input")
@@ -136,13 +135,14 @@ const SignIn = () => {
           identifier,
           password,
         });
+        const { token, data } = response.data;
         setAuthData({
-          userId: response.data.user.id,
-          userName: response.data.user.username,
-          email: response.data.user.email,
-          accessToken: response.data.token,
+          userId: data.id,
+          userName: data.username,
+          email: data.email,
+          accessToken: token,
           refreshToken: null,
-          avatar: response.data.user.avatarUrl || null,
+          avatar: data.avatarUrl || null,
         });
         document
           .getElementById("identifier-input")
@@ -181,7 +181,7 @@ const SignIn = () => {
   const handleGoogleLogin = () => {
     const state = Math.random().toString(36).substring(2);
     const popup = window.open(
-      `http://localhost:8080/users/google-auth?state=${state}`,
+      `http://localhost:8080/users/google-auth?state=${state}&prompt=consent`,
       "google-auth",
       "width=500,height=600"
     );
@@ -200,17 +200,18 @@ const SignIn = () => {
             username: values.username,
           }
         );
+        const { token, data } = response.data;
         setAuthData({
-          userId: response.data.user.id,
-          userName: response.data.user.username,
-          email: response.data.user.email,
-          accessToken: response.data.token,
+          userId: data.id,
+          userName: data.username,
+          email: data.email,
+          accessToken: token,
           refreshToken: null,
-          avatar: response.data.user.avatarUrl || null,
+          avatar: data.avatarUrl || null,
         });
         toast.success("Google login successful!");
         setShowUsernamePrompt(false);
-        router.push("/home");
+        router.push("/profile");
       } catch (err: unknown) {
         const message = axios.isAxiosError(err)
           ? err.response?.data?.message || "Failed to complete Google login"

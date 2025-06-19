@@ -15,6 +15,7 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { MdEmail, MdPerson } from "react-icons/md";
 import { toast } from "sonner";
 import axios from "axios";
+import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 const SignUp = () => {
   const [errors, setErrors] = useState({
@@ -26,6 +27,7 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { setAuthData } = useGlobalStorage();
   const form = useForm({
     defaultValues: {
       username: "",
@@ -54,79 +56,46 @@ const SignUp = () => {
 
       // Client-side validation
       if (!values.username) {
-        setErrors((prev) => ({
-          ...prev,
-          username: "Please enter your username.",
-        }));
-        document
-          .getElementById("username-input")
-          ?.classList.add("border-red-500", "border-[0.3vh]");
+        setErrors((prev) => ({ ...prev, username: "Please enter your username." }));
+        document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      if (
-        !/^[a-zA-Z0-9]+$/.test(values.username) ||
-        values.username.length < 3 ||
-        values.username.length > 50
-      ) {
+      if (!/^[a-zA-Z0-9]+$/.test(values.username) || values.username.length < 3 || values.username.length > 50) {
         setErrors((prev) => ({
           ...prev,
           username:
             values.username.length < 3
               ? "Username must be at least 3 characters."
               : values.username.length > 50
-                ? "Username must not exceed 50 characters."
-                : "Username must contain only letters and numbers.",
+              ? "Username must not exceed 50 characters."
+              : "Username must contain only letters and numbers.",
         }));
-        document
-          .getElementById("username-input")
-          ?.classList.add("border-red-500", "border-[0.3vh]");
+        document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      document
-        .getElementById("username-input")
-        ?.classList.remove("border-red-500", "border-[0.3vh]");
+      document.getElementById("username-input")?.classList.remove("border-red-500", "border-[0.3vh]");
 
       if (!values.email) {
         setErrors((prev) => ({ ...prev, email: "Please enter your email." }));
-        document
-          .getElementById("email-input")
-          ?.classList.add("border-red-500", "border-[0.3vh]");
+        document.getElementById("email-input")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
       const validEmailRegex = /^[a-zA-Z0-9@.]+$/;
-      const isValidEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-        values.email
-      );
-      if (
-        !validEmailRegex.test(values.email) ||
-        !isValidEmailFormat ||
-        !values.email.endsWith("@gmail.com")
-      ) {
-        setErrors((prev) => ({
-          ...prev,
-          email: "Please enter a valid Gmail address.",
-        }));
-        document
-          .getElementById("email-input")
-          ?.classList.add("border-red-500", "border-[0.3vh]");
+      const isValidEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email);
+      if (!validEmailRegex.test(values.email) || !isValidEmailFormat || !values.email.endsWith("@gmail.com")) {
+        setErrors((prev) => ({ ...prev, email: "Please enter a valid Gmail address." }));
+        document.getElementById("email-input")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      document
-        .getElementById("email-input")
-        ?.classList.remove("border-red-500", "border-[0.3vh]");
+      document.getElementById("email-input")?.classList.remove("border-red-500", "border-[0.3vh]");
 
       if (!values.password) {
-        setErrors((prev) => ({
-          ...prev,
-          password: "Please enter your password.",
-        }));
-        document
-          .querySelector("input[name='password']")
-          ?.classList.add("border-red-500", "border-[0.3vh]");
+        setErrors((prev) => ({ ...prev, password: "Please enter your password." }));
+        document.querySelector("input[name='password']")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
@@ -143,98 +112,77 @@ const SignUp = () => {
             values.password.length < 9
               ? "Password must be at least 9 characters."
               : values.password.length > 128
-                ? "Password must not exceed 128 characters."
-                : !/[A-Z]/.test(values.password)
-                  ? "Password must contain at least one uppercase letter."
-                  : !/[0-9]/.test(values.password)
-                    ? "Password must contain at least one number."
-                    : "Password must contain at least one special character (!@#$%^&*).",
+              ? "Password must not exceed 128 characters."
+              : !/[A-Z]/.test(values.password)
+              ? "Password must contain at least one uppercase letter."
+              : !/[0-9]/.test(values.password)
+              ? "Password must contain at least one number."
+              : "Password must contain at least one special character (!@#$%^&*).",
         }));
-        document
-          .querySelector("input[name='password']")
-          ?.classList.add("border-red-500", "border-[0.3vh]");
+        document.querySelector("input[name='password']")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      document
-        .querySelector("input[name='password']")
-        ?.classList.remove("border-red-500", "border-[0.3vh]");
+      document.querySelector("input[name='password']")?.classList.remove("border-red-500", "border-[0.3vh]");
 
       if (!values.confirmPassword) {
-        setErrors((prev) => ({
-          ...prev,
-          confirmPassword: "Please confirm your password.",
-        }));
-        document
-          .querySelector("input[name='confirmPassword']")
-          ?.classList.add("border-red-500", "border-[0.3vh]");
+        setErrors((prev) => ({ ...prev, confirmPassword: "Please confirm your password." }));
+        document.querySelector("input[name='confirmPassword']")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
       if (values.password !== values.confirmPassword) {
-        setErrors((prev) => ({
-          ...prev,
-          confirmPassword: "Passwords do not match.",
-        }));
-        document
-          .querySelector("input[name='confirmPassword']")
-          ?.classList.add("border-red-500", "border-[0.3vh]");
+        setErrors((prev) => ({ ...prev, confirmPassword: "Passwords do not match." }));
+        document.querySelector("input[name='confirmPassword']")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      document
-        .querySelector("input[name='confirmPassword']")
-        ?.classList.remove("border-red-500", "border-[0.3vh]");
+      document.querySelector("input[name='confirmPassword']")?.classList.remove("border-red-500", "border-[0.3vh]");
 
       try {
-        await axios.post("http://localhost:8080/users", {
+        const response = await axios.post("http://localhost:8080/users", {
           username: values.username,
           email: values.email,
           password: values.password,
         });
-        document
-          .getElementById("username-input")
-          ?.classList.add("border-green-500", "border-[0.3vh]");
-        document
-          .getElementById("email-input")
-          ?.classList.add("border-green-500", "border-[0.3vh]");
-        document
-          .querySelector("input[name='password']")
-          ?.classList.add("border-green-500", "border-[0.3vh]");
-        document
-          .querySelector("input[name='confirmPassword']")
-          ?.classList.add("border-green-500", "border-[0.3vh]");
-        toast.success("Sign up successful! Please sign in to continue.");
-        router.push("/sign_in");
-      } catch (error: any) {
-        const message = error.response?.data?.message || "Sign up failed";
+        const { token, data } = response.data;
+        setAuthData({
+          userId: data.id,
+          userName: data.username,
+          email: data.email,
+          accessToken: token,
+          refreshToken: null,
+          avatar: data.avatarUrl || null,
+        });
+        document.getElementById("username-input")?.classList.add("border-green-500", "border-[0.3vh]");
+        document.getElementById("email-input")?.classList.add("border-green-500", "border-[0.3vh]");
+        document.querySelector("input[name='password']")?.classList.add("border-green-500", "border-[0.3vh]");
+        document.querySelector("input[name='confirmPassword']")?.classList.add("border-green-500", "border-[0.3vh]");
+        toast.success("Sign up successful!");
+        router.push("/profile");
+      } catch (error: unknown) {
+        const message = axios.isAxiosError(error)
+          ? error.response?.data?.message || "Sign up failed"
+          : "Sign up failed";
         if (message.includes("username")) {
           setErrors((prev) => ({ ...prev, username: message }));
-          document
-            .getElementById("username-input")
-            ?.classList.add("border-red-500", "border-[0.3vh]");
+          document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
         } else if (message.includes("email")) {
           setErrors((prev) => ({ ...prev, email: message }));
-          document
-            .getElementById("email-input")
-            ?.classList.add("border-red-500", "border-[0.3vh]");
+          document.getElementById("email-input")?.classList.add("border-red-500", "border-[0.3vh]");
         } else if (message.includes("password")) {
           setErrors((prev) => ({ ...prev, password: message }));
-          document
-            .querySelector("input[name='password']")
-            ?.classList.add("border-red-500", "border-[0.3vh]");
+          document.querySelector("input[name='password']")?.classList.add("border-red-500", "border-[0.3vh]");
         } else {
           setErrors((prev) => ({ ...prev, username: message }));
-          document
-            .getElementById("username-input")
-            ?.classList.add("border-red-500", "border-[0.3vh]");
+          document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
         }
         toast.error(message);
       } finally {
         setLoading(false);
       }
     },
-    [router]
+    [router, setAuthData]
   );
 
   return (
