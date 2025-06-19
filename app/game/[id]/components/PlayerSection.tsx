@@ -2,6 +2,7 @@ import { defaultPieces } from "../../../../components/Pieces";
 import { useState } from "react";
 import Image from "next/image";
 import { PlayerSectionProps } from "../types";
+import { useBoardSize } from "@/hooks/useBoardSize";
 
 export const PlayerSection = ({ 
   color, 
@@ -36,8 +37,14 @@ export const PlayerSection = ({
     return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
+  // Get the board width from the custom hook
+  const boardWidth = useBoardSize()
+
   return (
-    <div className="w-[650px] py-3 rounded-md flex items-center gap-4">
+    <div 
+      className="py-3 rounded-md flex items-center gap-4"
+      style={{ width: `${boardWidth}px` }}
+    >
       {/* Avatar */}
       <div className="flex-shrink-0">
         <Image
