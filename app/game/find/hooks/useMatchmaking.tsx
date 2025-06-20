@@ -16,6 +16,7 @@ export const useMatchmaking = ({ userId, selectedGameMode }: UseMatchmakingProps
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      withCredentials: true
     });
     setSocket(newSocket);
 

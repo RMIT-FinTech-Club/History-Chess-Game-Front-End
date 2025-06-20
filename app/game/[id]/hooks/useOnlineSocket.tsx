@@ -82,6 +82,7 @@ export const useOnlineSocket = ({
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      withCredentials: true,
     });
     setSocket(newSocket);
 
