@@ -18,7 +18,7 @@ interface EnvConfig {
 const env: EnvConfig = {
     PRODUCTION: process.env.NEXT_PUBLIC_PRODUCTION || '1',
     LOCALHOST: process.env.NEXT_PUBLIC_LOCALHOST || 'http://localhost:8080',
-    PROD: process.env.NEXT_PUBLIC_PROD || 'https://history-chess-game-back-end.vercel.app',
+    PROD: process.env.NEXT_PUBLIC_PROD || 'https://history-chess-game-back-end.onrender.com',
 };
 
 // Create Axios instance with direct backend URL
