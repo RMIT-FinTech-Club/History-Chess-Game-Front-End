@@ -104,16 +104,17 @@ export default function Challenge() {
     };
 
     return (
-        <div className="w-full h-[100dvh] p-[2vw] text-white gap-[2vh]">
-            <div className="h-auto grid grid-cols-2 flex items-center justify-between gap-16">
-                <Chessboard
-                    id="historyChessBoard"
-                    position="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-                    boardWidth={700}
-                    animationDuration={0}
-                    arePiecesDraggable={false}
-                />
-
+        <div className="w-full min-h-max p-[2vw] text-white gap-[2vh] overflow-hidden">
+            <div className="h-full grid grid-cols-1 md:grid-cols-2 gap-4 items-start justify-between">
+                <div className="w-full max-w-full">
+                    <Chessboard
+                        id="historyChessBoard"
+                        position="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+                        boardWidth={window.innerWidth > 768 ? 600 : window.innerWidth > 480 ? 400 : 300}
+                        animationDuration={0}
+                        arePiecesDraggable={false}
+                    />
+                </div>
                 <div className="h-full col-span-1 flex flex-col justify-between">
                     <div className="h-full mb-[2vw] text-white flex flex-col justify-start gap-[4vh]">
                         <PlayerSelector

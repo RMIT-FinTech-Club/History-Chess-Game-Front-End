@@ -8,6 +8,7 @@ import { useGlobalStorage } from '@/hooks/GlobalStorage';
 import Toast from '././ui/Toast';
 import ConfirmModal from './ui/ConfirmModal';
 import { Button } from './ui/button';
+import Image from 'next/image';
 
 export default function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -57,7 +58,7 @@ export default function Navbar() {
       {/* Desktop */}
       <div className="hidden md:flex justify-between items-center">
         <div className="flex items-center gap-[1vw]">
-          <img onClick={() => router.push('/')} src="/img/FintechLogo.png" alt="logo" className="w-[8vw] max-w-[80px] h-[6vh] max-h-[50px]" />
+          <Image onClick={() => router.push('/')} src="/img/FintechLogo.png" alt="logo" width={80} height={80} />
           <span className="font-bold text-[3rem] md:text-[1.8rem] leading-[2.5rem]">FTC Chess Game</span>
         </div>
 

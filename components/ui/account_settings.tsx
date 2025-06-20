@@ -13,6 +13,7 @@ import Image from "next/image";
 import styles from "@/css/profile.module.css";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import axios, { AxiosError } from "axios";
+import axiosInstance from "@/apiConfig";
 import { toast } from "sonner";
 import Popup from "@/components/ui/Popup";
 import {
@@ -116,7 +117,7 @@ const AccountSettings = () => {
       return false;
     }
     try {
-      await axios.get("http://localhost:8080/users/profile", {
+      await axiosInstance.get("/users/profile", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
@@ -133,7 +134,7 @@ const AccountSettings = () => {
     try {
       if (isGoogleAuth) {
         console.log("Refreshing token for Google account with existing token:", accessToken);
-        const response = await axios.get("http://localhost:8080/users/profile", {
+        const response = await axiosInstance.get("/users/profile", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
@@ -144,8 +145,8 @@ const AccountSettings = () => {
         }
         return { token: response.data.token, data: response.data.data };
       } else {
-        const loginResponse = await axios.post(
-          "http://localhost:8080/users/login",
+        const loginResponse = await axiosInstance.post(
+          "/users/login",
           { identifier },
         );
         console.log("Token refresh raw response:", loginResponse);
@@ -161,7 +162,7 @@ const AccountSettings = () => {
         error.response?.data?.message?.includes("This account uses Google login")
       ) {
         console.warn("Google auth login attempt blocked, falling back to profile fetch");
-        const response = await axios.get("http://localhost:8080/users/profile", {
+        const response = await axiosInstance.get("/users/profile", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
@@ -191,7 +192,7 @@ const AccountSettings = () => {
       setIsGoogleAuth(decoded.googleAuth);
       setUserId(decoded.id);
 
-      const response = await axios.get("http://localhost:8080/users/profile", {
+      const response = await axiosInstance.get("/users/profile", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
@@ -312,8 +313,8 @@ const AccountSettings = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await axios.post(
-        `http://localhost:8080/users/${userId}/avatar`,
+      const response = await axiosInstance.post(
+        `/users/${userId}/avatar`,
         formData,
         {
           headers: {
@@ -402,8 +403,8 @@ const AccountSettings = () => {
       }
 
       console.log("Updating username with token:", accessToken);
-      const updateResponse = await axios.put(
-        `http://localhost:8080/users/${userId}`,
+      const updateResponse = await axiosInstance.put(
+        `/users/${userId}`,
         { username: data.username },
         {
           headers: {
@@ -478,8 +479,8 @@ const AccountSettings = () => {
       }
 
       console.log("Updating password with token:", accessToken);
-      const response = await axios.put(
-        "http://localhost:8080/users/update-password",
+      const response = await axiosInstance.put(
+        "/users/update-password",
         {
           oldPassword: data.oldPassword,
           newPassword: data.password,
@@ -506,7 +507,7 @@ const AccountSettings = () => {
         });
         toast.error(
           error.response?.data?.message ||
-            "Failed to update password. Please try again."
+          "Failed to update password. Please try again."
         );
       } else {
         console.error("Unexpected error updating password:", error);

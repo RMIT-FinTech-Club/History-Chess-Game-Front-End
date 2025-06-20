@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { GameState, UseOnlineSocketProps } from "../types";
 import { Chess } from 'chess.js';
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
+import basePath from "@/pathConfig";
 
 export const useOnlineSocket = ({
   gameId,
@@ -17,14 +18,14 @@ export const useOnlineSocket = ({
 }: UseOnlineSocketProps) => {
   // Get userId from GlobalStorage instead of localStorage
   const { userId } = useGlobalStorage();
-  
+
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [opponentDisconnected, setOpponentDisconnected] = useState(false);
   const [disconnectionMessage, setDisconnectionMessage] = useState("");
   const router = useRouter();
-  
-  
+
+
   // Track previous time states to calculate move duration
   const prevTimesRef = useRef<{
     whiteTimeLeft?: number;
@@ -36,7 +37,7 @@ export const useOnlineSocket = ({
     try {
       const chess = new Chess(fen);
       const board = chess.board();
-      
+
       // Count remaining pieces
       const remainingPieces: Record<string, number> = {};
       board.flat().forEach(piece => {
@@ -45,21 +46,21 @@ export const useOnlineSocket = ({
           remainingPieces[key] = (remainingPieces[key] || 0) + 1;
         }
       });
-      
+
       // Starting pieces count
       const startingPieces = {
         wP: 8, wR: 2, wN: 2, wB: 2, wQ: 1, wK: 1,
         bP: 8, bR: 2, bN: 2, bB: 2, bQ: 1, bK: 1
       };
-      
+
       // Calculate captured
       const capturedWhite: string[] = [];
       const capturedBlack: string[] = [];
-      
+
       Object.entries(startingPieces).forEach(([piece, startCount]) => {
         const remaining = remainingPieces[piece] || 0;
         const captured = startCount - remaining;
-        
+
         for (let i = 0; i < captured; i++) {
           if (piece.startsWith('w')) {
             capturedWhite.push(piece);
@@ -68,7 +69,7 @@ export const useOnlineSocket = ({
           }
         }
       });
-      
+
       setCapturedWhite(capturedWhite);
       setCapturedBlack(capturedBlack);
     } catch (error) {
@@ -77,7 +78,7 @@ export const useOnlineSocket = ({
   };
 
   useEffect(() => {
-    const newSocket = io("http://localhost:8080", {
+    const newSocket = io(`${basePath}`, {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -87,7 +88,7 @@ export const useOnlineSocket = ({
     newSocket.on("connect", () => {
       setIsConnected(true);
       console.log("Connected to server with socket ID:", newSocket.id);
-      
+
       // Use userId from GlobalStorage instead of localStorage
       if (userId && gameId) {
         console.log("Rejoining game:", gameId);
@@ -116,14 +117,14 @@ export const useOnlineSocket = ({
     // Handle game state updates from backend
     newSocket.on("gameState", (state) => {
       console.log("Received gameState:", state);
-      
+
       // Recalculate captured pieces from current position
       if (state.fen) {
         recalculateAllCapturedPieces(state.fen);
       }
-      
+
       const storedGameData = JSON.parse(localStorage.getItem("gameData") || "{}");
-      
+
       // Set board orientation based on player color
       const playerColor = state.playerColor || storedGameData.playerColor;
       if (playerColor) {
@@ -133,7 +134,7 @@ export const useOnlineSocket = ({
           setBoardOrientation(playerColor);
         }
       }
-      
+
       // Update game state
       setGameState(prev => ({
         ...state,
@@ -143,7 +144,7 @@ export const useOnlineSocket = ({
       // Handle move history from individual moves
       if (state.move && state.moveNumber) {
         const moveTime = calculateMoveTime(state);
-        
+
         setMoveHistory(prev => {
           // Check if this move already exists
           const existingMove = prev.find(m => m.moveNumber === state.moveNumber);
@@ -157,7 +158,7 @@ export const useOnlineSocket = ({
             color: state.color || (state.turn === "w" ? "black" : "white"), // Previous player's color
             time: moveTime
           };
-          
+
           return [...prev, newMove];
         });
       }
@@ -174,24 +175,24 @@ export const useOnlineSocket = ({
     // Handle game start event
     newSocket.on("gameStart", (data) => {
       console.log("Game started:", data);
-      
+
       const storedGameData = JSON.parse(localStorage.getItem("gameData") || "{}");
-      
+
       // Determine player color based on player IDs
       let playerColor = storedGameData.playerColor;
       if (!playerColor && data.whitePlayerId && data.blackPlayerId) {
         const { userId } = storedGameData;
         playerColor = userId === data.whitePlayerId ? "white" : "black";
-        
+
         // Update stored game data
         localStorage.setItem("gameData", JSON.stringify({
           ...storedGameData,
           playerColor
         }));
       }
-      
+
       setBoardOrientation(playerColor || "white");
-      
+
       setGameState({
         fen: data.initialGameState,
         turn: "w",
@@ -201,7 +202,7 @@ export const useOnlineSocket = ({
         blackTimeLeft: data.blackTimeLeft,
         gameOver: false
       });
-      
+
       // Only reset move history for truly new games
       if (data.isNewGame) {
         setMoveHistory([]);
@@ -211,7 +212,7 @@ export const useOnlineSocket = ({
       } else {
         toast.success("Game resumed!");
       }
-      
+
       prevTimesRef.current = {
         whiteTimeLeft: data.whiteTimeLeft,
         blackTimeLeft: data.blackTimeLeft
@@ -226,7 +227,7 @@ export const useOnlineSocket = ({
         whiteTimeLeft: data.whiteTimeLeft,
         blackTimeLeft: data.blackTimeLeft
       }));
-      
+
       // Update time tracking for move calculation
       prevTimesRef.current = {
         whiteTimeLeft: data.whiteTimeLeft,
@@ -237,14 +238,14 @@ export const useOnlineSocket = ({
     // Handle game over
     newSocket.on("gameOver", (data) => {
       console.log("Game over:", data);
-      
+
       setGameState((prev: any) => ({
         ...prev,
         gameOver: true,
         result: data.result,
         eloUpdate: data.eloUpdate
       }));
-            
+
       // Clear game data after a delay
       setTimeout(() => {
         localStorage.removeItem("gameData");
@@ -299,7 +300,7 @@ export const useOnlineSocket = ({
       } else if (state.color === "black") {
         moveTime = prevTimesRef.current.blackTimeLeft - (state.blackTimeLeft || 0);
       }
-      
+
       // Ensure reasonable time bounds
       return Math.max(100, Math.min(moveTime, 60000));
     };
@@ -334,7 +335,7 @@ export const useOnlineSocket = ({
     }
 
     console.log("Sending move:", { gameId, move, userId });
-    
+
     socket.emit("move", { gameId, move, userId });
     return true;
   };
@@ -344,14 +345,14 @@ export const useOnlineSocket = ({
     if (socket && isConnected && userId) {
       socket.emit("leaveGame", { gameId, userId });
     }
-    
+
     // Clear local data and redirect
     localStorage.removeItem("gameData");
     router.push("/game/find");
   };
 
-  return { 
-    socket, 
+  return {
+    socket,
     isConnected,
     opponentDisconnected,
     disconnectionMessage,

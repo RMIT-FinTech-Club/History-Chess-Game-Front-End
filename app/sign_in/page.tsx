@@ -15,6 +15,8 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { MdEmail } from "react-icons/md";
 import { toast } from "sonner";
 import axios from "axios";
+import axiosInstance from "@/apiConfig";
+import basePath from "@/pathConfig";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 const SignIn = () => {
@@ -131,7 +133,7 @@ const SignIn = () => {
         ?.classList.remove("border-red-500", "border-[0.3vh]");
 
       try {
-        const response = await axios.post("http://localhost:8080/users/login", {
+        const response = await axiosInstance.post("/users/login", {
           identifier,
           password,
         });
@@ -181,7 +183,7 @@ const SignIn = () => {
   const handleGoogleLogin = () => {
     const state = Math.random().toString(36).substring(2);
     const popup = window.open(
-      `http://localhost:8080/users/google-auth?state=${state}&prompt=consent`,
+      `${basePath}/users/google-auth?state=${state}&prompt=consent`,
       "google-auth",
       "width=500,height=600"
     );
@@ -193,8 +195,8 @@ const SignIn = () => {
   const onUsernameSubmit = useCallback(
     async (values: UsernameFormValues) => {
       try {
-        const response = await axios.post(
-          "http://localhost:8080/users/complete-google-login",
+        const response = await axiosInstance.post(
+          "/users/complete-google-login",
           {
             tempToken,
             username: values.username,
@@ -224,7 +226,7 @@ const SignIn = () => {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== "http://localhost:8080") return;
+      if (event.origin !== `${basePath}`) return;
       const { type, token, userId, username, email, tempToken, error } =
         event.data;
       if (type === "google-auth") {

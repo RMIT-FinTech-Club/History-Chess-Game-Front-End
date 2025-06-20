@@ -6,20 +6,20 @@ import Clock from "@/public/challenge/SVG/clock";
 import { GameMode, GameModeSelectorProps } from "./types";
 
 const modeOptions: { label: string; value: GameMode; description: string; details: string }[] = [
-    { 
-        label: 'blitz', 
+    {
+        label: 'blitz',
         value: 'blitz',
         description: 'A fast-paced game mode where each player has a total of 3 minutes to make all their moves. Perfect for quick matches!',
         details: 'Blitz'
     },
-    { 
-        label: 'rapid', 
+    {
+        label: 'rapid',
         value: 'rapid',
         description: 'A more relaxed game mode where each player has a total of 10 minutes to make all their moves. Ideal for players who enjoy a bit more time to think.',
         details: 'Rapid'
     },
-    { 
-        label: 'bullet', 
+    {
+        label: 'bullet',
         value: 'bullet',
         description: 'An ultra-fast game mode where each player has only 1 minute to make all their moves. A true test of speed and skill!',
         details: 'Bullet'
@@ -41,7 +41,7 @@ export default function GameModeSelector({ selectedMode, onModeChange }: GameMod
                             value={opt.value}
                             className={`
                                 h-auto w-full flex bg-black !py-4 col-span-1 group gap-4
-                                !bg-[#3B3433] !text-white
+                                !bg-black !text-white
                                 data-[state=active]:!bg-[#DBB968] data-[state=active]:!text-black
                                 hover:!bg-[#DBB968] hover:!text-black
                                 focus:!outline-none focus:!ring-2 focus:!ring-[#DBB968]
@@ -51,7 +51,7 @@ export default function GameModeSelector({ selectedMode, onModeChange }: GameMod
                             <Clock
                                 fill={selectedMode === opt.value ? '#000' : '#DBB968'}
                                 classes="!w-6 !h-6 aspect-square bg-center group-hover:rotate-20 transition-transform duration-200"
-                            />  
+                            />
                             <p className="font-bold uppercase text-nowrap">{opt.label}</p>
                         </TabsTrigger>
                     ))}
