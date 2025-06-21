@@ -111,8 +111,8 @@ const ResetPassword = () => {
     });
     setLoading(true);
     try {
-      const authTypeResponse = await axiosInstance.post(
-        "/users/check-auth-type",
+      const authTypeResponse = await axios.post(
+        "http://localhost:8080/users/check-auth-type",
         { email: data.email }
       );
       if (authTypeResponse.data.googleAuth) {
@@ -120,7 +120,7 @@ const ResetPassword = () => {
         setStep("google");
         return;
       }
-      await axiosInstance.post("/users/request-reset", {
+      await axios.post("http://localhost:8080/users/request-reset", {
         email: data.email,
       });
       console.log("Request reset response: Code sent");
@@ -152,7 +152,7 @@ const ResetPassword = () => {
       });
       setLoading(true);
       try {
-        await axiosInstance.post("/users/verify-reset-code", {
+        await axios.post("http://localhost:8080/users/verify-reset-code", {
           email,
           resetCode: data.resetCode,
         });
@@ -186,31 +186,28 @@ const ResetPassword = () => {
       });
       setLoading(true);
       try {
-        const resetResponse = await axiosInstance.post(
-          "/users/reset-password",
+        const resetResponse = await axios.post(
+          "http://localhost:8080/users/reset-password",
           {
             email,
             resetCode: verifiedResetCode,
             newPassword: data.newPassword,
           }
         );
-        const { token, data: userData } = resetResponse.data;
-        console.log("Reset password response:", resetResponse.data);
-        const profileResponse = await axiosInstance.get("/users/profile", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const user = profileResponse.data.data;
-        console.log("Profile response:", profileResponse.data);
+        const { token, id, username, email: userEmail, avatarUrl } = resetResponse.data;
+
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(id)) {
+          throw new Error("Invalid user ID in reset password response");
+        }
+
         setAuthData({
-          userId: user.id,
-          userName: user.username,
-          email: user.email,
+          userId: id,
+          userName: username,
+          email: userEmail,
           accessToken: token,
           refreshToken: null,
-          avatar: user.avatarUrl || null,
+          avatar: avatarUrl || null,
         });
         toast.success("Password reset successfully");
         router.push("/profile");
@@ -320,7 +317,7 @@ const ResetPassword = () => {
       confirmPassword: "",
     });
     try {
-      await axiosInstance.post("/users/request-reset", {
+      await axios.post("http://localhost:8080/users/request-reset", {
         email,
       });
       console.log("Resend OTP response: Code sent");

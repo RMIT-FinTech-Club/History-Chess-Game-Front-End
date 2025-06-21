@@ -141,19 +141,25 @@ const SignUp = () => {
       document.querySelector("input[name='confirmPassword']")?.classList.remove("border-red-500", "border-[0.3vh]");
 
       try {
-        const response = await axiosInstance.post("/users", {
+        const response = await axios.post("http://localhost:8080/users", {
           username: values.username,
           email: values.email,
           password: values.password,
         });
-        const { token, data } = response.data;
+        const { token, id, username, email, avatarUrl } = response.data;
+
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(id)) {
+          throw new Error("Invalid user ID in signup response");
+        }
+
         setAuthData({
-          userId: data.id,
-          userName: data.username,
-          email: data.email,
+          userId: id,
+          userName: username,
+          email,
           accessToken: token,
           refreshToken: null,
-          avatar: data.avatarUrl || null,
+          avatar: avatarUrl || null,
         });
         document.getElementById("username-input")?.classList.add("border-green-500", "border-[0.3vh]");
         document.getElementById("email-input")?.classList.add("border-green-500", "border-[0.3vh]");

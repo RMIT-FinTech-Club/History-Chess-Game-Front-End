@@ -13,7 +13,6 @@ import Image from "next/image";
 import styles from "@/css/profile.module.css";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import axios, { AxiosError } from "axios";
-import axiosInstance from "@/apiConfig";
 import { toast } from "sonner";
 import Popup from "@/components/ui/Popup";
 import {
@@ -84,12 +83,13 @@ const AccountSettings = () => {
   const [initialAvatar, setInitialAvatar] = useState<string | null>(null);
   const [initialUsername, setInitialUsername] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [isPasswordPopupOpen, setIsPasswordPopupOpen] = useState(false);
   const [isGoogleAuth, setIsGoogleAuth] = useState(false);
   const [userId, setUserId] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { accessToken, setAuthData } = useGlobalStorage();
+  const { accessToken } = useGlobalStorage();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -117,7 +117,7 @@ const AccountSettings = () => {
       return false;
     }
     try {
-      await axiosInstance.get("/users/profile", {
+      await axios.get("http://localhost:8080/users/profile", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
@@ -134,19 +134,19 @@ const AccountSettings = () => {
     try {
       if (isGoogleAuth) {
         console.log("Refreshing token for Google account with existing token:", accessToken);
-        const response = await axiosInstance.get("/users/profile", {
+        const response = await axios.get("http://localhost:8080/users/profile", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
         });
-        if (!response.data || !response.data.token || !response.data.data) {
+        if (!response.data || !response.data.token) {
           throw new Error("Invalid profile response structure");
         }
-        return { token: response.data.token, data: response.data.data };
+        return response.data;
       } else {
-        const loginResponse = await axiosInstance.post(
-          "/users/login",
+        const loginResponse = await axios.post(
+          "http://localhost:8080/users/login",
           { identifier },
         );
         console.log("Token refresh raw response:", loginResponse);
@@ -162,13 +162,13 @@ const AccountSettings = () => {
         error.response?.data?.message?.includes("This account uses Google login")
       ) {
         console.warn("Google auth login attempt blocked, falling back to profile fetch");
-        const response = await axiosInstance.get("/users/profile", {
+        const response = await axios.get("http://localhost:8080/users/profile", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
         });
-        return { token: response.data.token, data: response.data.data };
+        return response.data;
       }
       throw error;
     }
@@ -183,36 +183,37 @@ const AccountSettings = () => {
       console.error("No access token found", { accessToken });
       toast.error("Authentication required. Please sign in.");
       router.push("/sign_in");
+      setInitialLoading(false);
       return;
     }
 
+    setInitialLoading(true);
     try {
       console.log("Fetching profile with token:", accessToken);
       const decoded = jwtDecode<JwtPayload>(accessToken);
       setIsGoogleAuth(decoded.googleAuth);
       setUserId(decoded.id);
 
-      const response = await axiosInstance.get("/users/profile", {
+      const response = await axios.get("http://localhost:8080/users/profile", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
       });
 
-      const data = response.data.data;
-      if (!data) {
-        throw new Error("Invalid response data: 'data' field missing");
+      if (!response.data) {
+        throw new Error("Invalid response data");
       }
 
-      form.reset({ username: data.username || "" });
-      setInitialUsername(data.username || "");
-      setEmail(data.email || "");
-      setInitialAvatar(data.avatarUrl || null);
+      form.reset({ username: response.data.username || "" });
+      setInitialUsername(response.data.username || "");
+      setEmail(response.data.email || "");
+      setInitialAvatar(response.data.avatarUrl || null);
       useGlobalStorage.setState({
         userId: decoded.id,
-        userName: data.username || "",
-        email: data.email || "",
-        avatar: data.avatarUrl || null,
+        userName: response.data.username || "",
+        email: response.data.email || "",
+        avatar: response.data.avatarUrl || null,
       });
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -234,6 +235,8 @@ const AccountSettings = () => {
         console.error("Unexpected error fetching profile:", error);
         toast.error("An unexpected error occurred while fetching profile");
       }
+    } finally {
+      if (isMounted) setInitialLoading(false);
     }
   }, [accessToken, form, router, isMounted]);
 
@@ -313,8 +316,8 @@ const AccountSettings = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await axiosInstance.post(
-        `/users/${userId}/avatar`,
+      const response = await axios.post(
+        `http://localhost:8080/users/${userId}/avatar`,
         formData,
         {
           headers: {
@@ -332,12 +335,12 @@ const AccountSettings = () => {
 
       useGlobalStorage.setState({
         userId,
-        userName: profileData.data.username || initialUsername,
-        email: profileData.data.email || email,
+        userName: profileData.username || initialUsername,
+        email: profileData.email || email,
         accessToken: profileData.token,
-        avatar: profileData.data.avatarUrl || null,
+        avatar: profileData.avatarUrl || null,
       });
-      setInitialAvatar(profileData.data.avatarUrl);
+      setInitialAvatar(profileData.avatarUrl);
       toast.success("Avatar uploaded successfully");
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -403,8 +406,8 @@ const AccountSettings = () => {
       }
 
       console.log("Updating username with token:", accessToken);
-      const updateResponse = await axiosInstance.put(
-        `/users/${userId}`,
+      const updateResponse = await axios.put(
+        `http://localhost:8080/users/${userId}`,
         { username: data.username },
         {
           headers: {
@@ -421,15 +424,15 @@ const AccountSettings = () => {
 
       useGlobalStorage.setState({
         userId,
-        userName: profileData.data.username || data.username,
-        email: profileData.data.email || email,
+        userName: profileData.username || data.username,
+        email: profileData.email || email,
         accessToken: profileData.token,
-        avatar: profileData.data.avatarUrl || null,
+        avatar: profileData.avatarUrl || null,
       });
 
-      form.reset({ username: profileData.data.username || data.username });
-      setInitialUsername(profileData.data.username || data.username);
-      setEmail(profileData.data.email || email);
+      form.reset({ username: profileData.username || data.username });
+      setInitialUsername(profileData.username || data.username);
+      setEmail(profileData.email || email);
       setIsEditing(false);
       toast.success("Profile updated successfully");
     } catch (error) {
@@ -479,8 +482,8 @@ const AccountSettings = () => {
       }
 
       console.log("Updating password with token:", accessToken);
-      const response = await axiosInstance.put(
-        "/users/update-password",
+      const response = await axios.put(
+        "http://localhost:8080/users/update-password",
         {
           oldPassword: data.oldPassword,
           newPassword: data.password,
@@ -507,7 +510,7 @@ const AccountSettings = () => {
         });
         toast.error(
           error.response?.data?.message ||
-          "Failed to update password. Please try again."
+            "Failed to update password. Please try again."
         );
       } else {
         console.error("Unexpected error updating password:", error);
@@ -586,6 +589,14 @@ const AccountSettings = () => {
     };
   }, [accessToken]);
 
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white font-poppins font-bold">
+        <p className="text-[3vh]">Loading Profile...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full">
       <div className="flex items-center">
@@ -610,8 +621,9 @@ const AccountSettings = () => {
         >
           <div className="w-full flex flex-row items-center">
             <div
-              className={`md:w-[8vw] md:aspect-square w-[14vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative ${isEditing ? "cursor-pointer" : "cursor-not-allowed"
-                }`}
+              className={`md:w-[8vw] md:aspect-square w-[14vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative ${
+                isEditing ? "cursor-pointer" : "cursor-not-allowed"
+              }`}
               onClick={handleAvatarClick}
               role="button"
               aria-label={isEditing ? "Upload new avatar" : "Avatar display"}
@@ -681,7 +693,7 @@ const AccountSettings = () => {
                       <Input
                         id="username"
                         disabled={!isEditing}
-                        className="w-full !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                        className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
                         autoComplete="off"
                         aria-disabled={!isEditing}
                         {...field}
@@ -698,7 +710,7 @@ const AccountSettings = () => {
                   disabled
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                  className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
                   aria-disabled="true"
                 />
               </div>
@@ -801,9 +813,7 @@ const AccountSettings = () => {
                       <OldPassword
                         placeholder="Enter your current password"
                         {...field}
-                        className="!w-full !pl-[3.5vw] py-[3vh] md:py-[3.5vh] 
-                          rounded-[1.5vh]
-                          !text-[2.5vh] md:!text-[3vh] font-normal"
+                        className="!w-full !pl-[3.5vw] py-[3vh] md:py-[3.5vh] rounded-[1.5vh] !text-[2.5vh] md:!text-[3vh] font-normal"
                       />
                     </div>
                   </FormControl>
@@ -825,9 +835,7 @@ const AccountSettings = () => {
                       <NewPassword
                         placeholder="Enter your new password"
                         {...field}
-                        className="!w-full py-[3vh] !pl-[3.5vw] md:py-[3.5vh] 
-                          rounded-[1.5vh]
-                          !text-[2.5vh] md:!text-[3vh] font-normal"
+                        className="!w-full py-[3vh] !pl-[3.5vw] md:py-[3.5vh] rounded-[1.5vh] !text-[2.5vh] md:!text-[3vh] font-normal"
                         onChange={(e) => {
                           field.onChange(e);
                           setPassword(e.target.value);
@@ -881,9 +889,7 @@ const AccountSettings = () => {
                       <NewPasswordConfirm
                         placeholder="Confirm your new password"
                         {...field}
-                        className="!w-full py-[3vh] !pl-[3.5vw] md:py-[3.5vh] 
-                          rounded-[1.5vh]
-                          !text-[2.5vh] md:!text-[3vh] font-normal"
+                        className="!w-full py-[3vh] !pl-[3.5vw] md:py-[3.5vh] rounded-[1.5vh] !text-[2.5vh] md:!text-[3vh] font-normal"
                       />
                     </div>
                   </FormControl>
