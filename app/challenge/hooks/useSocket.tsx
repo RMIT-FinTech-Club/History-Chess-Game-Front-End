@@ -101,28 +101,35 @@ export function useSocket({
                         headers: {
                             Authorization: `Bearer ${accessToken}`,
                         },
-                    }).then((res) => {
-                        console.log(`Received user data for ${userId}:`, res.data);
-                        return res.data.data;
+                    })
+                    .then((res) => {
+                        console.log(`Full response for user ${userId}:`, res);
+                        console.log(`Response data for user ${userId}:`, res.data);
+                        return { success: true, data: res.data };
+                    })
+                    .catch(error => {
+                        console.error(`Error fetching user ${userId}:`, error);
+                        return { success: false, error, userId };
                     });
                 });
 
-                const responses = await Promise.all(userDetailsPromises);
-                console.log("All user responses:", responses);
+                const results = await Promise.all(userDetailsPromises);
+                console.log("All user fetch results:", results);
 
-                const formattedPlayers = responses
-                    .map((response) => ({
-                        id: response.id,
-                        username: response.username || "Unknown",
-                        avt: response.avt || "https://i.imgur.com/RoRONDn.jpeg",
-                        elo: response.elo || 0,
+                const formattedPlayers = results
+                    .filter(result => result.success)
+                    .map(({ data: userData }) => ({
+                        id: userData.id,
+                        username: userData.username || "Unknown",
+                        avt: userData.avt || "https://i.imgur.com/RoRONDn.jpeg",
+                        elo: userData.elo || 0,
                     }))
                     .filter((player) => player.id !== userId);
 
                 console.log("Formatted players to be sent to onPlayersUpdateAction:", formattedPlayers);
                 onPlayersUpdateAction(formattedPlayers);
             } catch (err) {
-                console.error("Error fetching user details:", err);
+                console.error("Unexpected error in onlineUsers handler:", err);
                 toast.error("Failed to load player details");
             }
         });

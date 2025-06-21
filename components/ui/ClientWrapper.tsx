@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation"
 import Content from "@/components/content"
 import Footer from "@/components/Footer"
 import NavBar from "@/components/NavBar"
+import { SocketProvider } from "@/context/WebSocketContext";
+
 export default function ClientWrapper({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
@@ -38,10 +40,12 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
   const showNavBar = !noNavBarRoutes.includes(pathname)
 
   return (
-    <>
+    // <>
+    <SocketProvider>
       {showNavBar && <NavBar />}
       <Content>{children}</Content>
       {showFooter && <Footer />}
-    </>
+    </SocketProvider>
+    // </>
   )
 }

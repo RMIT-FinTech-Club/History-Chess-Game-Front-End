@@ -3,10 +3,17 @@
 import styles from '@/css/home.module.css'
 import YellowLight from '@/components/decor/YellowLight'
 import { useRouter } from "next/navigation";
+import { useSocket } from "@/context/WebSocketContext";
+import { useEffect } from 'react';
+import { useGlobalStorage } from '@/hooks/GlobalStorage';
 
 export default function HomePage() {
     const router = useRouter();
+    const { socket } = useSocket();
+    const { userId, accessToken } = useGlobalStorage();
 
+    // const { onlineUsers } = useWebSocket();
+    // console.log(onlineUsers);
     return (
         <div className="text-white relative min-h-screen flex flex-col items-center justify-center">
             <YellowLight left="-15vw" top="-15vw" />
