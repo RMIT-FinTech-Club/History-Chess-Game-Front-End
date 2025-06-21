@@ -371,7 +371,7 @@ const ResetPassword = () => {
                     <FormControl>
                       <div className="relative my-[4vh]">
                         <MdEmail
-                          className="absolute text-black cursor-pointer top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]"
+                          className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[5vh] cursor-pointer"
                           onClick={() =>
                             document.getElementById("email-input")?.focus()
                           }
@@ -382,7 +382,7 @@ const ResetPassword = () => {
                           autoFocus
                           {...field}
                           className="
-                            pl-[7.5vw] md:pl-[4vw]
+                            !pl-[4vw]
                             py-[4vh] w-[40vw]
                             bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                             !text-[3vh] font-normal rounded-[1.5vh]
@@ -401,7 +401,7 @@ const ResetPassword = () => {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="bg-[#DBB968] w-[20vw] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#000000] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
+                  className="!bg-[#DBB968] hover:!shadow-2xl hover:!shadow-amber-400 !w-[20vw] cursor-pointer !text-[#000000] !font-semibold !text-[3vh] !px-[2vw] !py-[3.5vh] !rounded-[1.5vh]"
                 >
                   {loading ? "Sending..." : "Send Verification Code"}
                 </Button>
@@ -430,9 +430,9 @@ const ResetPassword = () => {
                             maxLength={1}
                             autoFocus={index === 0}
                             className={`
-                              w-[12vw] md:w-[14vh] aspect-square text-center rounded-[5px] text-white text-[6vw] md:text-[6vh]
+                              w-[14vh] aspect-square text-center rounded-[5px] !text-white text-[6vw] md:text-[6vh]
                               mt-[5vh]
-                              border-[0.2vw] border-[#27272A] bg-[#000] focus:border-yellow-400 outline-none
+                              !border-[0.2vw] !border-[#27272A] !bg-[#000000] focus:!border-yellow-400 !outline-none
                             `}
                             value={digit}
                             onPaste={handlePaste}
@@ -461,7 +461,7 @@ const ResetPassword = () => {
                 <Button
                   type="submit"
                   disabled={loading || resending}
-                  className="w-[20vw] bg-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#000000] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
+                  className="!w-[20vw] !bg-[#DBB968] hover:!shadow-2xl hover:!shadow-amber-400 cursor-pointer !text-[#000000] !font-semibold !text-[3vh] !px-[2vw] !py-[4vh] !rounded-[1.5vh]"
                 >
                   {loading ? "Submitting..." : "Submit"}
                 </Button>
@@ -469,7 +469,7 @@ const ResetPassword = () => {
                   type="button"
                   onClick={handleResendOtp}
                   disabled={loading || resending}
-                  className="w-[20vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
+                  className="!w-[20vw] !border !border-[#DBB968] hover:!shadow-2xl hover:!shadow-amber-400 hover:!bg-[#000000] cursor-pointer !text-[#EBEBEB] !font-semibold !text-[3vh] !px-[2vw] !py-[4vh] !rounded-[1.5vh]"
                 >
                   {resending ? "Resending..." : "Resend OTP"}
                 </Button>
@@ -495,7 +495,7 @@ const ResetPassword = () => {
                         {...field}
                         autoFocus
                         className="
-                          pl-[7vw] md:pl-[3vw]
+                          !pl-[3.5vw]
                           py-[4vh] w-[40vw]
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -524,7 +524,7 @@ const ResetPassword = () => {
                         placeholder="Confirm new password"
                         {...field}
                         className="
-                          pl-[7vw] md:pl-[3vw]
+                          !pl-[3.5vw]
                           py-[4vh] w-[40vw]
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -543,7 +543,7 @@ const ResetPassword = () => {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-[20vw] bg-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#000000] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
+                  className="!w-[20vw] !bg-[#DBB968] hover:!shadow-2xl hover:!shadow-amber-400 cursor-pointer !text-[#000000] !font-semibold !text-[3vh] !px-[2vw] !py-[4vh] rounded-[1.5vh]"
                 >
                   {loading ? "Submitting..." : "Submit"}
                 </Button>
