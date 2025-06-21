@@ -5,7 +5,7 @@ import { Chessboard } from "react-chessboard";
 import "@/css/chessboard.css";
 import { PlayerSection } from "@/app/game/offline/components/PlayerSection";
 import { useOfflineGame } from "@/app/game/offline/hooks/useOfflineGame";
-import { useBoardSize } from "./hooks/useBoardSize";
+import { useBoardSize } from "@/hooks/useBoardSize";
 import { useMoveHistory } from "./hooks/useMoveHistory";
 import { useChessHandlers } from "./hooks/useChessHandlers";
 import { GameHeader } from "./components/GameHeader";
@@ -247,8 +247,7 @@ const OfflinePage = () => {
               />
             </div>
             
-            <div className="w-full text-black flex flex-col flex-wrap justify-between gap-3">
-              
+            <div className="w-full text-black flex flex-col justify-between gap-3">
               <MoveHistoryTable moveHistoryPairs={moveHistoryPairs} />
               
               <GameControls

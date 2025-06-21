@@ -15,6 +15,7 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { MdEmail, MdPerson } from "react-icons/md";
 import { toast } from "sonner";
 import axios from "axios";
+import axiosInstance from "@/apiConfig";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 const SignUp = () => {
@@ -68,8 +69,8 @@ const SignUp = () => {
             values.username.length < 3
               ? "Username must be at least 3 characters."
               : values.username.length > 50
-              ? "Username must not exceed 50 characters."
-              : "Username must contain only letters and numbers.",
+                ? "Username must not exceed 50 characters."
+                : "Username must contain only letters and numbers.",
         }));
         document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
@@ -112,12 +113,12 @@ const SignUp = () => {
             values.password.length < 9
               ? "Password must be at least 9 characters."
               : values.password.length > 128
-              ? "Password must not exceed 128 characters."
-              : !/[A-Z]/.test(values.password)
-              ? "Password must contain at least one uppercase letter."
-              : !/[0-9]/.test(values.password)
-              ? "Password must contain at least one number."
-              : "Password must contain at least one special character (!@#$%^&*).",
+                ? "Password must not exceed 128 characters."
+                : !/[A-Z]/.test(values.password)
+                  ? "Password must contain at least one uppercase letter."
+                  : !/[0-9]/.test(values.password)
+                    ? "Password must contain at least one number."
+                    : "Password must contain at least one special character (!@#$%^&*).",
         }));
         document.querySelector("input[name='password']")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
@@ -140,7 +141,7 @@ const SignUp = () => {
       document.querySelector("input[name='confirmPassword']")?.classList.remove("border-red-500", "border-[0.3vh]");
 
       try {
-        const response = await axios.post("http://localhost:8080/users", {
+        const response = await axiosInstance.post("/users", {
           username: values.username,
           email: values.email,
           password: values.password,

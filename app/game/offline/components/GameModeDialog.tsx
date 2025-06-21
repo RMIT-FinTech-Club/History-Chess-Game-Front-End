@@ -21,13 +21,13 @@ export const GameModeDialog: React.FC<GameModeDialogProps> = ({
   <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
     <DialogContent className="sm:max-w-md">
       <DialogHeader>
-        <DialogTitle className="flex justify-center text-2xl font-medium">
-          Choose Game Mode
+        <DialogTitle className="flex justify-center text-2xl font-medium text-[#F7D27F] mb-4">
+          CHOOSE GAME MODE
         </DialogTitle>
       </DialogHeader>
-      <div className="flex flex-col space-y-6">
+      <div className="flex flex-col space-y-8">
         <div className="flex flex-col space-y-2">
-          <h3 className="text-lg font-normal">
+          <h3 className="text-lg font-normal text-[#F7D27F]">
             Play against Computer
           </h3>
           <div className="flex flex-col space-y-4">
@@ -74,7 +74,7 @@ export const GameModeDialog: React.FC<GameModeDialogProps> = ({
           </div>
         </div>
         <div className="flex flex-col space-y-2">
-          <h3 className="text-lg font-normal">Two Player Mode</h3>
+          <h3 className="text-lg font-normal text-[#F7D27F]">Two Player Mode</h3>
           <div className="flex flex-col space-y-2">
             <Button onClick={handleStartTwoPlayer} className="!font-medium">
               Start Two Player Game

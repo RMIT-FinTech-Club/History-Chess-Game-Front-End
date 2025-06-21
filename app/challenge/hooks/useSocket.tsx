@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
 import { UseSocketProps } from "./types";
-import axios from "axios";
+import axiosInstance from "@/apiConfig";
+import basePath from "@/pathConfig";
 
 export function useSocket({
     userId,
@@ -32,10 +33,11 @@ export function useSocket({
 
         console.log("Creating new Socket.IO instance with userId:", userId);
 
-        const newSocket = io("http://localhost:8080", {
+        const newSocket = io(`${basePath}`, {
             reconnection: true,
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,
+            withCredentials: true
         });
         setSocket(newSocket);
 
@@ -95,13 +97,13 @@ export function useSocket({
             try {
                 const userDetailsPromises = users.map((userId) => {
                     console.log(`Fetching details for userId: ${userId}`);
-                    return axios.get(`http://localhost:8080/users/${userId}`, {
+                    return axiosInstance.get(`/users/${userId}`, {
                         headers: {
                             Authorization: `Bearer ${accessToken}`,
                         },
                     }).then((res) => {
                         console.log(`Received user data for ${userId}:`, res.data);
-                        return res.data;
+                        return res.data.data;
                     });
                 });
 

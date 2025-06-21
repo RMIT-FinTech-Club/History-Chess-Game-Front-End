@@ -3,6 +3,7 @@ import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Side, UseMatchmakingProps } from "../types"
+import basePath from "@/pathConfig";
 
 export const useMatchmaking = ({ userId, selectedGameMode }: UseMatchmakingProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -11,10 +12,11 @@ export const useMatchmaking = ({ userId, selectedGameMode }: UseMatchmakingProps
   const router = useRouter();
 
   useEffect(() => {
-    const newSocket = io("http://localhost:8080", {
+    const newSocket = io(`${basePath}`, {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      withCredentials: true
     });
     setSocket(newSocket);
 
@@ -44,7 +46,7 @@ export const useMatchmaking = ({ userId, selectedGameMode }: UseMatchmakingProps
       console.log("Match found:", data);
       setIsSearching(false);
       toast.success("Match found! Redirecting to game...");
-      
+
       localStorage.setItem("gameData", JSON.stringify({
         gameId: data.gameId,
         playerColor: data.playerColor,
@@ -95,7 +97,7 @@ export const useMatchmaking = ({ userId, selectedGameMode }: UseMatchmakingProps
         playMode: selectedGameMode,
         colorChoice
       });
-      
+
       socket.emit("findMatch", {
         userId,
         playMode: selectedGameMode,

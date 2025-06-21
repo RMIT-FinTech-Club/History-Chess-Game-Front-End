@@ -6,7 +6,7 @@ import { faArrowUp } from "@fortawesome/free-solid-svg-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import CountUp from "react-countup"
 import { useRouter } from "next/navigation"
-import axios from "axios"
+import axiosInstance from "@/apiConfig"
 import { toast } from "sonner"
 
 import styles from "@/css/profile.module.css"
@@ -36,7 +36,7 @@ export default function ProfilePage() {
                 return
             }
             try {
-                await axios.get("http://localhost:8080/users/profile", {
+                await axiosInstance.get("/users/profile", {
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${accessToken}`,

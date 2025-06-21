@@ -4,7 +4,7 @@ import styles from "@/css/players.module.css"
 import Chevron from "@/public/players/chevron"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import axios from "axios"
+import axiosInstance from "@/apiConfig"
 
 interface Players {
   rank: number
@@ -25,7 +25,7 @@ export default function PlayerList() {
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/leaderboard?limit=3&page=1&sort=elo_desc')
+        const response = await axiosInstance.get('/api/leaderboard?limit=3&page=1&sort=elo_desc')
 
         const formattedPlayers = response.data.leaderboard.map((player: any) => {
           return {

@@ -1,4 +1,5 @@
 import axios from "axios"
+import axiosInstance from "@/apiConfig"
 import { useEffect, useState } from "react"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 import styles from "@/css/profile.module.css"
@@ -23,7 +24,7 @@ export default function ProfileMatches() {
         const fetchMatchHistory = async () => {
             try {
                 // Replace with actual userId - e.g., from auth context, localStorage, or route params
-                const response = await axios.get(`http://localhost:8000/api/v1/game/history/${userId}`)
+                const response = await axiosInstance.get(`/api/v1/game/history/${userId}`)
 
                 const formattedMatches = response.data.map((match: any) => {
                     return {

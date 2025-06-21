@@ -7,9 +7,10 @@ export const useBoardSize = () => {
     const calculateBoardSize = () => {
       if (typeof window === "undefined") return 580;
       const width = window.innerWidth;
+      const height = window.innerHeight;
       if (width < 480) return Math.min(width - 48, 480);
       if (width < 768) return Math.min(width - 48, 580);
-      return 650;
+      return height * 0.75; // Default to 75% of viewport height
     };
 
     const handleResize = () => setBoardWidth(calculateBoardSize());
