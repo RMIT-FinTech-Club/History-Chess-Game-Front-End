@@ -13,7 +13,7 @@ import Image from "next/image";
 import styles from "@/css/profile.module.css";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import axios, { AxiosError } from "axios";
-import axiosInstance from "@/apiConfig";
+import axiosInstance from "@/config/apiConfig";
 import { toast } from "sonner";
 import Popup from "@/components/ui/Popup";
 import {

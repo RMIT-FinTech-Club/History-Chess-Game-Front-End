@@ -1,11 +1,21 @@
 "use client"
-
+import { useEffect } from 'react';
 import styles from '@/css/home.module.css'
 import YellowLight from '@/components/decor/YellowLight'
 import { useRouter } from "next/navigation";
+import { useGlobalStorage } from '@/hooks/GlobalStorage';
+import { toast } from 'sonner';
 
 export default function HomePage() {
     const router = useRouter();
+    const { isAuthenticated } = useGlobalStorage();
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            toast.error("Please sign in to view home page.");
+            router.push('/sign_in')
+        }
+    }, [isAuthenticated, router])
 
     return (
         <div className="text-white relative min-h-screen flex flex-col items-center justify-center">

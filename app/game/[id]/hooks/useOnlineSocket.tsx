@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { GameState, UseOnlineSocketProps } from "../types";
 import { Chess } from 'chess.js';
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
-import basePath from "@/pathConfig";
+import basePath from "@/config/pathConfig";
 
 export const useOnlineSocket = ({
   gameId,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Chessboard } from "react-chessboard";
 import { toast } from "sonner";
@@ -18,10 +18,7 @@ export default function Challenge() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const usernameFromURL = searchParams.get("player");
-    const { userId, accessToken } = useGlobalStorage();
-
-    console.log("Challenge component rendered", { userId, accessToken });
-
+    const { userId, accessToken, isAuthenticated } = useGlobalStorage();
     const [players, setPlayers] = useState<Player[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [selectedMode, setSelectedMode] = useState<GameMode>("blitz");
@@ -36,6 +33,13 @@ export default function Challenge() {
     });
     const [showChallengeModal, setShowChallengeModal] = useState(false);
     const [challengeData, setChallengeData] = useState<ChallengeData | null>(null);
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            toast.error("Please sign in to challenge other players.");
+            router.push('/sign_in')
+        }
+    }, [isAuthenticated, router])
 
     const handlePlayersUpdate = useCallback((newPlayers: Player[]) => {
         console.log("handlePlayersUpdate called with newPlayers:", newPlayers);

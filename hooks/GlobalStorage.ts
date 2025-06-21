@@ -22,10 +22,11 @@ interface GlobalStorage {
     avatar?: string | null;
   }) => void;
   clearAuth: () => void;
+  isAuthenticated: () => boolean;
 }
 
 // --- Store ---
-export const useGlobalStorage = create<GlobalStorage>((set) => ({
+export const useGlobalStorage = create<GlobalStorage>((set, get) => ({
   userId: Cookies.get("userId")
     ? CryptoJS.AES.decrypt(Cookies.get("userId")!, SECRET_KEY).toString(CryptoJS.enc.Utf8)
     : null,
@@ -83,5 +84,10 @@ export const useGlobalStorage = create<GlobalStorage>((set) => ({
       refreshToken: null,
       avatar: null,
     });
+  },
+
+  isAuthenticated: () => {
+    const { accessToken } = get();
+    return !!accessToken && accessToken.trim() !== "";
   },
 }));

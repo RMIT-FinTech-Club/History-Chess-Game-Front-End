@@ -18,7 +18,7 @@ import { NewPassword } from "@/components/ui/NewPassword";
 import { NewPasswordConfirm } from "@/components/ui/NewPasswordConfirm";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import { MdEmail } from "react-icons/md";
-import axiosInstance from "@/apiConfig";
+import axiosInstance from "@/config/apiConfig";
 import axios from "axios";
 import styles from "@/css/otp.module.css";
 

@@ -15,7 +15,7 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { MdEmail, MdPerson } from "react-icons/md";
 import { toast } from "sonner";
 import axios from "axios";
-import axiosInstance from "@/apiConfig";
+import axiosInstance from "@/config/apiConfig";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 const SignUp = () => {

@@ -15,8 +15,8 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { MdEmail } from "react-icons/md";
 import { toast } from "sonner";
 import axios from "axios";
-import axiosInstance from "@/apiConfig";
-import basePath from "@/pathConfig";
+import axiosInstance from "@/config/apiConfig";
+import basePath from "@/config/pathConfig";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 const SignIn = () => {

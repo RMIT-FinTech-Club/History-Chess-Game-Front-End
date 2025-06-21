@@ -6,7 +6,7 @@ import { faArrowUp } from "@fortawesome/free-solid-svg-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import CountUp from "react-countup"
 import { useRouter } from "next/navigation"
-import axiosInstance from "@/apiConfig"
+import axiosInstance from "@/config/apiConfig"
 import { toast } from "sonner"
 
 import styles from "@/css/profile.module.css"
@@ -19,22 +19,22 @@ import AccountSettings from "@/components/ui/account_settings"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 
 export default function ProfilePage() {
-    const { userName, avatar, accessToken } = useGlobalStorage()
+    const { userName, avatar, accessToken, isAuthenticated } = useGlobalStorage()
     const router = useRouter()
-
     const profileRef = useRef<HTMLDivElement | null>(null)
     const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
     const [profileMenu, setProfileMenu] = useState(1)
 
+    useEffect(() => {
+        if (!isAuthenticated) {
+            toast.error("Please sign in to view your profile.");
+            router.push('/sign_in')
+        }
+    }, [isAuthenticated, router])
+
     // Validate token on mount
     useEffect(() => {
-        const validateToken = async () => {
-            if (!accessToken || typeof accessToken !== "string" || accessToken.trim() === "") {
-                console.error("Invalid or missing access token", { accessToken })
-                toast.error("Please sign in to view your profile.")
-                router.push("/sign_in")
-                return
-            }
+        const getUserData = async () => {
             try {
                 await axiosInstance.get("/users/profile", {
                     headers: {
@@ -42,13 +42,12 @@ export default function ProfilePage() {
                         Authorization: `Bearer ${accessToken}`,
                     },
                 })
-            } catch (error) {
-                console.error("Token validation failed:", error)
-                toast.error("Session expired. Please sign in again.")
-                router.push("/sign_in")
+            } catch (error: any) {
+                console.error("An error occurred while validating your session.", error);
+                toast.error("An error occurred while validating your session.");
             }
         }
-        validateToken()
+        getUserData()
     }, [accessToken, router])
 
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)

@@ -1,5 +1,5 @@
 import axios from "axios"
-import axiosInstance from "@/apiConfig"
+import axiosInstance from "@/config/apiConfig"
 import { useEffect, useState } from "react"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 import styles from "@/css/profile.module.css"
