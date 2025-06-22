@@ -254,7 +254,7 @@ const SignIn = () => {
           email,
           accessToken: token,
           refreshToken: null,
-          avatar: avatarUrl,
+          avatar: avatarUrl || null,
         });
         toast.success("Google login successful!");
         router.push("/home");
