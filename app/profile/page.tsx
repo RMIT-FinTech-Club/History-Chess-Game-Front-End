@@ -13,9 +13,9 @@ import styles from "@/css/profile.module.css"
 import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
 import CupIcon from "@/public/profile/SVG/cupIcon"
 import SettingIcon from "@/public/profile/SVG/settingIcon"
-import ProfilePlayers from "@/components/ui/profilePlayers"
-import ProfileMatches from "@/components/ui/profileMatches"
-import AccountSettings from "@/components/ui/account_settings"
+import ProfilePlayers from "@/components/profile/profilePlayers"
+import ProfileMatches from "@/components/profile/profileMatches"
+import AccountSettings from "@/components/profile/accountSettings"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 
 export default function ProfilePage() {
@@ -33,22 +33,22 @@ export default function ProfilePage() {
     }, [isAuthenticated, router])
 
     // Validate token on mount
-    useEffect(() => {
-        const getUserData = async () => {
-            try {
-                await axiosInstance.get("/users/profile", {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                })
-            } catch (error: any) {
-                console.error("An error occurred while validating your session.", error);
-                toast.error("An error occurred while validating your session.");
-            }
-        }
-        getUserData()
-    }, [accessToken, router])
+    // useEffect(() => {
+    //     const getUserData = async () => {
+    //         try {
+    //             await axiosInstance.get("/users/profile", {
+    //                 headers: {
+    //                     "Content-Type": "application/json",
+    //                     Authorization: `Bearer ${accessToken}`,
+    //                 },
+    //             })
+    //         } catch (error: any) {
+    //             console.error("An error occurred while validating your session.", error);
+    //             toast.error("An error occurred while validating your session.");
+    //         }
+    //     }
+    //     getUserData()
+    // }, [accessToken, router])
 
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
     return (

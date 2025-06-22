@@ -118,7 +118,7 @@ export function useSocket({
                     .map((response) => ({
                         id: response.id,
                         username: response.username || "Unknown",
-                        avt: response.avt || "https://i.imgur.com/RoRONDn.jpeg",
+                        avt: response.avatarUrl || "https://i.imgur.com/RoRONDn.jpeg",
                         elo: response.elo || 0,
                     }))
                     .filter((player) => player.id !== userId);

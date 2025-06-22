@@ -27,7 +27,7 @@ export default function Challenge() {
     const [showPlayerSelect, setShowPlayerSelect] = useState(false);
     const [selectedPlayer, setSelectedPlayer] = useState<Player>({
         id: "",
-        username: "Unknown",
+        username: "Player List",
         avt: "https://i.imgur.com/RoRONDn.jpeg",
         elo: 0,
     });

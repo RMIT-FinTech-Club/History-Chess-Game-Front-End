@@ -74,7 +74,7 @@ export default function Navbar() {
               </div>
               <div className="relative">
                 <div onClick={handleAvatarClick} className="flex items-center gap-[0.5vw] cursor-pointer">
-                  <img src={avatarUrl} alt="avatar" className="w-[2.5rem] h-[2.5rem] rounded-full" />
+                  <Image src={avatarUrl} alt="avatar" className="w-[2.5rem] h-[2.5rem] rounded-full" width={25} height={25} />
                   <FaChevronDown className="text-white" />
                 </div>
                 {showDropdown && (
