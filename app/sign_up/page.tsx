@@ -15,7 +15,7 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { MdEmail, MdPerson } from "react-icons/md";
 import { toast } from "sonner";
 import axios from "axios";
-import axiosInstance from "@/apiConfig";
+import axiosInstance from "@/config/apiConfig";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 const SignUp = () => {
@@ -141,7 +141,7 @@ const SignUp = () => {
       document.querySelector("input[name='confirmPassword']")?.classList.remove("border-red-500", "border-[0.3vh]");
 
       try {
-        const response = await axios.post("http://localhost:8080/users", {
+        const response = await axiosInstance.post("/users", {
           username: values.username,
           email: values.email,
           password: values.password,

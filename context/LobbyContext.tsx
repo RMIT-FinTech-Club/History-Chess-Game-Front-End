@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useCallback, useEffect } from 'rea
 import { toast } from 'sonner';
 import { Player, ChallengeData } from "@/app/challenge/types"; // Adjust path if types are elsewhere
 import { useSocketContext } from './WebSocketContext'; // Your global socket context
-import axiosInstance from '@/apiConfig'; // Ensure this import path is correct for your axios setup
+import axiosInstance from '@/config/apiConfig';
 
 type GameRedirectData = { // New type for game redirection data
     gameId: string;

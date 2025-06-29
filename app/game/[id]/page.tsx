@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Square } from "chess.js";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import YellowLight from "@/components/decor/YellowLight";
-import "@/css/chessboard.css";
+import { toast } from "sonner";
 
 // Import hooks
 import { useBoardSize } from "@/hooks/useBoardSize";
@@ -21,6 +21,7 @@ import { ConnectionStatus } from "./components/ConnectionStatus";
 import { GameLayout } from "./components/GameLayout";
 import { GameOverDialog } from "./components/GameOverDialog";
 import { OpponentDisconnectionWarning } from "./components/OpponentDisconnectionWarning";
+import { useRouter } from "next/navigation";
 
 const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   const [mounted, setMounted] = useState(false);

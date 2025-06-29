@@ -16,6 +16,9 @@ import { GameControls } from "./components/GameControls";
 import type { StockfishLevel } from "@/app/game/offline/hooks/useStockfish";
 import { TimeCounterHandle } from "./types";
 import YellowLight from "@/components/decor/YellowLight";
+import { useGlobalStorage } from "@/hooks/GlobalStorage";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const OfflinePage = () => {
   const [mounted, setMounted] = useState(false);
@@ -25,9 +28,18 @@ const OfflinePage = () => {
   const [gameActive, setGameActive] = useState(false);
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
   const [autoRotateBoard, setAutoRotateBoard] = useState(false);
-  
+
   const timerRef = useRef<TimeCounterHandle>(null);
   const boardWidth = useBoardSize();
+  const { isAuthenticated } = useGlobalStorage();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to play game.");
+      router.push('/sign_in')
+    }
+  }, [isAuthenticated, router])
 
   const {
     fen,
@@ -53,7 +65,7 @@ const OfflinePage = () => {
   } = useOfflineGame();
 
   const moveHistoryPairs = useMoveHistory(history, moveTimings);
-  
+
   const chessHandlers = useChessHandlers({
     isSinglePlayer,
     playerColor,
@@ -93,14 +105,14 @@ const OfflinePage = () => {
   const [isPaused, setIsPaused] = useState(true);
 
   // Add a new state to track time for each move
-  const [moveTimeHistory, setMoveTimeHistory] = useState<{white: number, black: number}[]>([]);
+  const [moveTimeHistory, setMoveTimeHistory] = useState<{ white: number, black: number }[]>([]);
 
   // Add timer effect
   useEffect(() => {
     if (gameState.isGameOver || isPaused || !gameActive) {
       return;
     }
-    
+
     const timer = setInterval(() => {
       if (currentTurn === "w") {
         setWhiteTimeInSeconds((prev) => Math.max(0, prev - 1));
@@ -108,7 +120,7 @@ const OfflinePage = () => {
         setBlackTimeInSeconds((prev) => Math.max(0, prev - 1));
       }
     }, 1000);
-    
+
     return () => clearInterval(timer);
   }, [currentTurn, isPaused, gameActive, gameState.isGameOver]);
 
@@ -167,20 +179,20 @@ const OfflinePage = () => {
   const handleUndo = useCallback(() => {
     const lastTurn = fen.split(" ")[1] === "w" ? "b" : "w";
     undoMove();
-    
+
     // Restore previous timer state
     if (moveTimeHistory.length > 0) {
       const previousTimeState = moveTimeHistory[moveTimeHistory.length - 1];
       setWhiteTimeInSeconds(previousTimeState.white);
       setBlackTimeInSeconds(previousTimeState.black);
-      
+
       // Remove the last time state since we're undoing
       setMoveTimeHistory(prev => prev.slice(0, -1));
     }
-    
+
     // Pause the timer during undo
     setIsPaused(true);
-    
+
     // Resume timer after a short delay if game is still active
     setTimeout(() => {
       if (gameActive && !gameState.isGameOver) {
@@ -207,7 +219,7 @@ const OfflinePage = () => {
     <div className="min-h-screen flex flex-col items-center w-full py-5 px-2 md:px-4">
       <h1 className="text-4xl font-semibold">OFFLINE CHESS GAME</h1>
       <YellowLight top={'30vh'} left={'55vw'} />
-      
+
       <GameHeader
         isSinglePlayer={isSinglePlayer}
         playerColor={playerColor}
@@ -221,16 +233,16 @@ const OfflinePage = () => {
       <div className="flex flex-col lg:flex-row gap-3 w-full max-w-7xl flex-1">
         <div className="flex flex-col justify-between w-full min-h-0">
           <div className="flex justify-center md:justify-start">
-            <PlayerSection 
-              color="Black" 
-              pieces={capturedBlack} 
+            <PlayerSection
+              color="Black"
+              pieces={capturedBlack}
               timeInSeconds={blackTimeInSeconds}
               isCurrentTurn={currentTurn === "b"}
               isPaused={isPaused}
               gameActive={gameActive}
             />
           </div>
-          
+
           <div className="flex flex-col md:flex-row gap-3">
             <div className="flex justify-center items-center">
               <Chessboard
@@ -246,10 +258,10 @@ const OfflinePage = () => {
                 boardOrientation={boardOrientation}
               />
             </div>
-            
+
             <div className="w-full text-black flex flex-col justify-between gap-3">
               <MoveHistoryTable moveHistoryPairs={moveHistoryPairs} />
-              
+
               <GameControls
                 onUndo={handleUndo}
                 onNewGame={handleNewGame}
@@ -257,11 +269,11 @@ const OfflinePage = () => {
               />
             </div>
           </div>
-          
+
           <div className="flex justify-center md:justify-start">
-            <PlayerSection 
-              color="White" 
-              pieces={capturedWhite} 
+            <PlayerSection
+              color="White"
+              pieces={capturedWhite}
               timeInSeconds={whiteTimeInSeconds}
               isCurrentTurn={currentTurn === "w"}
               isPaused={isPaused}

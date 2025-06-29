@@ -1,5 +1,5 @@
 import axios from "axios"
-import axiosInstance from "@/apiConfig"
+import axiosInstance from "@/config/apiConfig"
 import { useEffect, useState } from "react"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 import styles from "@/css/profile.module.css"
@@ -14,9 +14,7 @@ interface Match {
 }
 
 export default function ProfileMatches() {
-    const { userId } = useGlobalStorage()
-
-
+    const { userId, accessToken } = useGlobalStorage()
     const [matches, setMatches] = useState<Match[]>([])
     const [error, setError] = useState<string | null>(null)
 
@@ -24,7 +22,11 @@ export default function ProfileMatches() {
         const fetchMatchHistory = async () => {
             try {
                 // Replace with actual userId - e.g., from auth context, localStorage, or route params
-                const response = await axiosInstance.get(`/api/v1/game/history/${userId}`)
+                const response = await axiosInstance.get(`/game/history/${userId}`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    }
+                })
 
                 const formattedMatches = response.data.map((match: any) => {
                     return {

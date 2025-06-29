@@ -7,15 +7,15 @@ import { useSocket } from "@/context/WebSocketContext";
 
 export const useMatchmaking = ({ userId, selectedGameMode }: UseMatchmakingProps) => {
   const { socket } = useSocket();
-  
+
   const [isConnected, setIsConnected] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const router = useRouter();
-  
+
   // console.log(socket)
   useEffect(() => {
     if (!socket) return;
-    
+
     // setSocket(socket);
 
     setIsConnected(true);

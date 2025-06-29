@@ -14,11 +14,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { NewPassword } from "@/components/ui/NewPassword";
-import { NewPasswordConfirm } from "@/components/ui/NewPasswordConfirm";
+import { NewPassword } from "@/components/profile/accountSetting/NewPassword";
+import { NewPasswordConfirm } from "@/components/profile/accountSetting/NewPasswordConfirm";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import { MdEmail } from "react-icons/md";
-import axiosInstance from "@/apiConfig";
+import axiosInstance from "@/config/apiConfig";
 import axios from "axios";
 import styles from "@/css/otp.module.css";
 
@@ -111,8 +111,8 @@ const ResetPassword = () => {
     });
     setLoading(true);
     try {
-      const authTypeResponse = await axios.post(
-        "http://localhost:8080/users/check-auth-type",
+      const authTypeResponse = await axiosInstance.post(
+        "/users/check-auth-type",
         { email: data.email }
       );
       if (authTypeResponse.data.googleAuth) {
@@ -120,7 +120,7 @@ const ResetPassword = () => {
         setStep("google");
         return;
       }
-      await axios.post("http://localhost:8080/users/request-reset", {
+      await axiosInstance.post("/users/request-reset", {
         email: data.email,
       });
       console.log("Request reset response: Code sent");
@@ -152,7 +152,7 @@ const ResetPassword = () => {
       });
       setLoading(true);
       try {
-        await axios.post("http://localhost:8080/users/verify-reset-code", {
+        await axiosInstance.post("/users/verify-reset-code", {
           email,
           resetCode: data.resetCode,
         });
@@ -186,8 +186,8 @@ const ResetPassword = () => {
       });
       setLoading(true);
       try {
-        const resetResponse = await axios.post(
-          "http://localhost:8080/users/reset-password",
+        const resetResponse = await axiosInstance.post(
+          "/users/reset-password",
           {
             email,
             resetCode: verifiedResetCode,
@@ -317,7 +317,7 @@ const ResetPassword = () => {
       confirmPassword: "",
     });
     try {
-      await axios.post("http://localhost:8080/users/request-reset", {
+      await axiosInstance.post("/users/request-reset", {
         email,
       });
       console.log("Resend OTP response: Code sent");

@@ -15,8 +15,8 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { MdEmail } from "react-icons/md";
 import { toast } from "sonner";
 import axios from "axios";
-import axiosInstance from "@/apiConfig";
-import basePath from "@/pathConfig";
+import axiosInstance from "@/config/apiConfig";
+import basePath from "@/config/pathConfig";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 const SignIn = () => {
@@ -133,7 +133,7 @@ const SignIn = () => {
         ?.classList.remove("border-red-500", "border-[0.3vh]");
 
       try {
-        const response = await axios.post("http://localhost:8080/users/login", {
+        const response = await axiosInstance.post("/users/login", {
           identifier,
           password,
         });
@@ -201,8 +201,8 @@ const SignIn = () => {
   const onUsernameSubmit = useCallback(
     async (values: UsernameFormValues) => {
       try {
-        const response = await axios.post(
-          "http://localhost:8080/users/complete-google-login",
+        const response = await axiosInstance.post(
+          "/users/complete-google-login",
           {
             tempToken,
             username: values.username,
@@ -221,8 +221,9 @@ const SignIn = () => {
           email,
           accessToken: token,
           refreshToken: null,
-          avatar: avatarUrl || null,
+          avatar: avatarUrl,
         });
+
         toast.success("Google login successful!");
         setShowUsernamePrompt(false);
         router.push("/profile");
@@ -238,8 +239,8 @@ const SignIn = () => {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== "http://localhost:8080") return;
-      const { type, token, userId, username, email, tempToken, error } = event.data;
+      if (event.origin !== basePath) return;
+      const { type, token, userId, username, email, avatarUrl, tempToken, error } = event.data;
       if (type === "google-auth") {
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         if (!uuidRegex.test(userId)) {
@@ -253,7 +254,7 @@ const SignIn = () => {
           email,
           accessToken: token,
           refreshToken: null,
-          avatar: null,
+          avatar: avatarUrl || null,
         });
         toast.success("Google login successful!");
         router.push("/home");

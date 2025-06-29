@@ -3,8 +3,8 @@
 
 import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import basePath from "@/pathConfig"; // Assuming basePath is correctly configured
-import { useGlobalStorage } from '@/hooks/GlobalStorage'; // Your custom hook for global storage
+import basePath from '@/config/pathConfig';
+import { useGlobalStorage } from '@/hooks/GlobalStorage';
 
 // --- Type Definitions ---
 type SocketContextType = {

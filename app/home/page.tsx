@@ -1,10 +1,9 @@
 "use client"
-
+import { useEffect } from 'react';
 import styles from '@/css/home.module.css'
 import YellowLight from '@/components/decor/YellowLight'
 import { useRouter } from "next/navigation";
 import { useSocketContext } from "@/context/WebSocketContext";
-import { useEffect } from 'react';
 import { useGlobalStorage } from '@/hooks/GlobalStorage';
 
 export default function HomePage() {

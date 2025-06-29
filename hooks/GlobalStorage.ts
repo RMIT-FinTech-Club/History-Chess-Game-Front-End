@@ -18,46 +18,77 @@ interface GlobalStorage {
     avatar?: string | null;
   }) => void;
   clearAuth: () => void;
+  isAuthenticated: () => boolean;
 }
 
+// --- Cookie Options ---
+const cookieOptions = {
+  expires: 7, // 7 days
+  secure: process.env.PRODUCTION === "1", // HTTPS only in production
+  sameSite: "strict" as const, // Prevent CSRF
+  path: "/", // Accessible site-wide
+};
+
 // --- Store ---
-export const useGlobalStorage = create<GlobalStorage>((set) => ({
+export const useGlobalStorage = create<GlobalStorage>((set, get) => ({
   userId: Cookies.get("userId") || null,
   userName: Cookies.get("userName") || null,
   email: Cookies.get("email") || null,
   accessToken: Cookies.get("accessToken") || null,
   refreshToken: Cookies.get("refreshToken") || null,
-  avatar: Cookies.get("avatar") || null,
+  avatar:
+    typeof window !== "undefined" ? localStorage.getItem("avatar") || null : null,
 
   setAuthData: ({ userId, userName, email, accessToken, refreshToken, avatar }) => {
-    Cookies.set("userId", userId);
-    Cookies.set("userName", userName);
-    Cookies.set("email", email);
-    Cookies.set("accessToken", accessToken);
-    if (refreshToken) {
-      Cookies.set("refreshToken", refreshToken);
-    }
-    if (avatar) {
-      Cookies.set("avatar", avatar);
-    }
+    try {
+      // Log avatar value for debugging
+      console.log("Setting auth data, avatar value:", avatar);
 
-    set({
-      userId,
-      userName,
-      email,
-      accessToken,
-      refreshToken,
-      avatar: avatar || null,
-    });
+      // Store sensitive fields in cookies
+      Cookies.set("userId", userId, cookieOptions);
+      Cookies.set("userName", userName, cookieOptions);
+      Cookies.set("email", email, cookieOptions);
+      Cookies.set("accessToken", accessToken, cookieOptions);
+      if (refreshToken) {
+        Cookies.set("refreshToken", refreshToken, cookieOptions);
+      }
+      console.log("access token: ", accessToken)
+      console.log("avatar: ", avatar)
+
+      // Store avatar in localStorage
+      if (typeof window !== "undefined") {
+        if (avatar !== undefined) {
+          localStorage.setItem("avatar", avatar || "");
+        } else {
+          localStorage.removeItem("avatar");
+        }
+      }
+
+      set({
+        userId,
+        userName,
+        email,
+        accessToken,
+        refreshToken,
+        avatar: avatar !== undefined ? avatar : null,
+      });
+    } catch (error) {
+      console.error("Error setting auth data:", error);
+      throw new Error("Failed to set authentication data");
+    }
   },
 
   clearAuth: () => {
-    Cookies.remove("userId");
-    Cookies.remove("userName");
-    Cookies.remove("email");
-    Cookies.remove("accessToken");
-    Cookies.remove("refreshToken");
-    Cookies.remove("avatar");
+    Cookies.remove("userId", { path: "/" });
+    Cookies.remove("userName", { path: "/" });
+    Cookies.remove("email", { path: "/" });
+    Cookies.remove("accessToken", { path: "/" });
+    Cookies.remove("refreshToken", { path: "/" });
+
+    // Clear avatar from localStorage
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("avatar");
+    }
 
     set({
       userId: null,
@@ -67,5 +98,10 @@ export const useGlobalStorage = create<GlobalStorage>((set) => ({
       refreshToken: null,
       avatar: null,
     });
+  },
+
+  isAuthenticated: () => {
+    const { accessToken } = get();
+    return !!accessToken && accessToken.trim() !== "";
   },
 }));
