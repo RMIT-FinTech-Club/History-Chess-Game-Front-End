@@ -3,13 +3,13 @@
 import styles from '@/css/home.module.css'
 import YellowLight from '@/components/decor/YellowLight'
 import { useRouter } from "next/navigation";
-import { useSocket } from "@/context/WebSocketContext";
+import { useSocketContext } from "@/context/WebSocketContext";
 import { useEffect } from 'react';
 import { useGlobalStorage } from '@/hooks/GlobalStorage';
 
 export default function HomePage() {
     const router = useRouter();
-    const { socket } = useSocket();
+    const { socket } = useSocketContext();
     const { userId, accessToken } = useGlobalStorage();
 
     // const { onlineUsers } = useWebSocket();

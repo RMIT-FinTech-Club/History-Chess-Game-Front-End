@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { Square } from "chess.js";
-import "@/css/chessboard.css";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import YellowLight from "@/components/decor/YellowLight";
+import "@/css/chessboard.css";
 
 // Import hooks
 import { useBoardSize } from "@/hooks/useBoardSize";
@@ -25,17 +25,17 @@ import { OpponentDisconnectionWarning } from "./components/OpponentDisconnection
 const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   const [mounted, setMounted] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState<Square | null>(null);
-  
+
   // Get userId from GlobalStorage
   const { userId } = useGlobalStorage();
-  
+
   // Unwrap the params Promise
   const resolvedParams = React.use(params);
   const gameId = resolvedParams.id;
 
   // Use custom hooks
   const boardWidth = useBoardSize();
-  
+
   const {
     gameState,
     setGameState,
@@ -53,13 +53,13 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   } = useGameState();
 
   // Use online-specific socket hook
-  const { 
-    socket, 
-    isConnected, 
-    opponentDisconnected, 
-    disconnectionMessage, 
+  const {
+    socket,
+    isConnected,
+    opponentDisconnected,
+    disconnectionMessage,
     sendMove,  // Get sendMove from socket
-    leaveGame 
+    leaveGame
   } = useOnlineSocket({
     gameId: gameId,
     autoRotateBoard,
@@ -101,14 +101,14 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   // Enhanced handleNewGame with proper cleanup
   const handleNewGame = () => {
     resetTimeout();
-    
+
     // Reset all game state
     setGameState(null);
     setMoveHistory([]);
     setCapturedWhite([]);
     setCapturedBlack([]);
     setSelectedPiece(null);
-    
+
     // Leave current game and redirect
     leaveGame();
   };
@@ -128,8 +128,8 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
 
   if (!mounted) return <p>Loading Chessboard...</p>;
 
-  const isCurrentPlayerTurn = gameState?.turn === "w" 
-    ? gameState?.playerColor === "white" 
+  const isCurrentPlayerTurn = gameState?.turn === "w"
+    ? gameState?.playerColor === "white"
     : gameState?.playerColor === "black";
 
   // Check if game is over (either from server or timeout)
@@ -139,9 +139,9 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
     if (timeoutGameOver) {
       return timeoutResult;
     }
-    
+
     if (!gameState?.result) return "The game has ended";
-    
+
     // Check if the result contains winner information
     if (gameState.result.includes("wins")) {
       return gameState.result;
@@ -154,7 +154,7 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
     } else if (gameState.result.includes("timeout")) {
       return gameState.result;
     }
-    
+
     return gameState.result;
   })();
 
@@ -162,12 +162,12 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
     <div className="min-h-screen flex flex-col items-center w-full py-5 px-2 md:px-4">
       <h1 className="text-4xl font-semibold">ONLINE CHESS GAME</h1>
       <YellowLight top={'30vh'} left={'55vw'} />
-      
+
       {/* Connection Status */}
       <ConnectionStatus isConnected={isConnected} />
 
       {/* Opponent Disconnection Warning */}
-      <OpponentDisconnectionWarning 
+      <OpponentDisconnectionWarning
         isDisconnected={opponentDisconnected && !isGameOver}
         message={disconnectionMessage}
       />

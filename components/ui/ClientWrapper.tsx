@@ -6,6 +6,23 @@ import Content from "@/components/content"
 import Footer from "@/components/Footer"
 import NavBar from "@/components/NavBar"
 import { SocketProvider } from "@/context/WebSocketContext";
+import { useLobby, LobbyProvider } from "@/context/LobbyContext";
+import ChallengeModal from "@/app/challenge/ChallengeModal";
+import GlobalGameRedirector from "@/context/GlobalGameRedirector";
+
+const GlobalChallengeModalManager = () => {
+  const { isChallengeModalOpen, incomingChallengeData, acceptChallenge, declineChallenge } = useLobby();
+  return (
+    <ChallengeModal
+      isOpen={isChallengeModalOpen}
+      challengeData={incomingChallengeData}
+      onCloseAction={declineChallenge} // Closing the modal should decline the challenge
+      onAcceptAction={acceptChallenge}
+      onDeclineAction={declineChallenge}
+    />
+  );
+}
+
 
 export default function ClientWrapper({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -40,12 +57,14 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
   const showNavBar = !noNavBarRoutes.includes(pathname)
 
   return (
-    // <>
     <SocketProvider>
-      {showNavBar && <NavBar />}
-      <Content>{children}</Content>
-      {showFooter && <Footer />}
+      <LobbyProvider> {/* NEST THE LOBBY PROVIDER INSIDE SOCKET PROVIDER */}
+        {showNavBar && <NavBar />}
+        <Content>{children}</Content>
+        {showFooter && <Footer />}
+        <GlobalChallengeModalManager /> {/* Render the modal manager globally */}
+        <GlobalGameRedirector />
+      </LobbyProvider>
     </SocketProvider>
-    // </>
   )
 }
