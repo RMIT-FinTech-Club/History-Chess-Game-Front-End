@@ -1,17 +1,18 @@
-// src/context/WebSocketContext.tsx
 'use client';
 
 import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import basePath from '@/config/pathConfig';
 import { useGlobalStorage } from '@/hooks/GlobalStorage';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 // --- Type Definitions ---
 type SocketContextType = {
   socket: Socket | null;
   isConnected: boolean;
-  userId: string | null;     // Added: userId for consistent access
-  accessToken: string | null; // Added: accessToken for consistent access
+  userId: string | null;
+  accessToken: string | null;
 };
 
 // --- Context Creation ---
@@ -25,7 +26,8 @@ const SocketContext = createContext<SocketContextType>({
 // --- Socket Provider Component ---
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   // Get userId and accessToken from your global storage
-  const { userId, accessToken } = useGlobalStorage();
+  const { userId, accessToken, clearAuth } = useGlobalStorage(); // Also get clearGlobalStorage
+  const router = useRouter(); // Initialize router for redirection
 
   // State to hold the socket instance and its connection status
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -35,26 +37,29 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const socketInstanceRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    // --- Connection Logic ---
-    // Only attempt to connect if userId and accessToken are available
-    // AND a socket instance doesn't already exist in the ref.
+    // --- Centralized Authentication Check ---
     if (!userId || !accessToken) {
       console.warn("SocketContext: userId or accessToken missing. Cannot establish socket connection.");
-      // If user logs out or token becomes invalid while connected, disconnect
+
+      // If a socket was previously connected, disconnect it.
       if (socketInstanceRef.current) {
-        console.log("SocketContext: User logged out or token missing, disconnecting existing socket.");
+        console.log("SocketContext: Disconnecting existing socket due to missing credentials.");
         socketInstanceRef.current.disconnect();
         socketInstanceRef.current = null; // Clear the ref
         setSocket(null);
         setIsConnected(false);
       }
-      return; // Exit if authentication details are missing
+
+      // Redirect user to login and show a toast
+      toast.error("Your session has expired or is invalid. Please log in again.", { duration: 5000 });
+      clearAuth(); // Clear any partial or old data
+      router.push('/sign_in'); // Redirect to your login page
+      return; // Stop further execution of this effect
     }
 
     // If a socket instance already exists and the user is authenticated, do nothing.
-    // This prevents re-creating the socket on every re-render if dependencies haven't truly changed meaningfully.
     if (socketInstanceRef.current) {
-      console.log("SocketContext: Socket instance already exists. Skipping re-initialization.");
+      console.log("SocketContext: Socket instance already exists and authenticated. Skipping re-initialization.");
       return;
     }
 
@@ -62,19 +67,17 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Define socket connection options
     const socketOptions = {
-      autoConnect: true, // Attempt to connect immediately
+      autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
       query: {
-        // Send userId in the query for initial identification on the server
         userId: userId,
       },
-      // Prefer extraHeaders for Bearer Token authentication if your backend supports it
       extraHeaders: {
         Authorization: `Bearer ${accessToken}`
       },
-      withCredentials: true // Important for handling cookies/sessions if used
+      withCredentials: true
     };
 
     // Create the new socket instance
@@ -86,24 +89,30 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     const onConnect = () => {
       console.log("SocketContext: Connected to WebSocket server.");
       setIsConnected(true);
-      // Emit 'identify' event after connection to associate socket with userId
       newSocketInstance.emit('identify', userId);
     };
 
     const onDisconnect = (reason: Socket.DisconnectReason) => {
       console.log("SocketContext: Disconnected from WebSocket server. Reason:", reason);
       setIsConnected(false);
-      if (reason === 'io server disconnect') {
-        console.warn("SocketContext: Server initiated disconnect (e.g., invalid token, logout).");
-        // You might want to handle re-authentication or token refresh here if appropriate
+      if (reason === 'io server disconnect' || reason === 'transport close' || reason === 'ping timeout') {
+        // Consider redirecting or re-authenticating if server disconnects for authentication reasons
+        console.warn("SocketContext: Server initiated disconnect or connection issue.");
+        // You might choose to re-authenticate here more aggressively if needed
       }
     };
 
     const onConnectError = (error: Error) => {
       console.error("SocketContext: Connection error:", error);
       setIsConnected(false);
-      // Optionally toast an error here if it's the primary connection point
-      // toast.error(`Socket connection failed: ${error.message}`);
+      // This might indicate an invalid token, so consider redirecting
+      if (error.message.includes('Authentication error') || error.message.includes('invalid token')) {
+        toast.error("Authentication failed. Please log in again.", { duration: 5000 });
+        clearAuth();
+        router.push('/sign_in');
+      } else {
+        toast.error(`Socket connection failed: ${error.message}`, { duration: 5000 });
+      }
     };
 
     // Register event listeners
@@ -113,7 +122,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     // --- Cleanup Function ---
     return () => {
-      // Disconnect and clean up listeners when component unmounts or dependencies change
       if (socketInstanceRef.current) {
         console.log("SocketContext: Cleaning up socket instance and listeners.");
         newSocketInstance.off('connect', onConnect);
@@ -123,10 +131,9 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         socketInstanceRef.current = null; // Clear the ref
       }
     };
-  }, [userId, accessToken]); // Re-run effect if userId or accessToken changes
+  }, [userId, accessToken, router, clearAuth]); // Add router and clearGlobalStorage to dependencies
 
   // --- Provide Context Values ---
-  // Make socket, connection status, userId, and accessToken available to children
   return (
     <SocketContext.Provider value={{ socket, isConnected, userId, accessToken }}>
       {children}
@@ -135,8 +142,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 // --- Custom Hook to Consume Context ---
-// Renamed export to `useSocketContext` to avoid naming conflicts with
-// other `useSocket` hooks that might exist in your application.
 export const useSocketContext = () => {
   const context = useContext(SocketContext);
   if (context === undefined) {

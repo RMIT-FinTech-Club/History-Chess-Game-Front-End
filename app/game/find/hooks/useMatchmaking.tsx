@@ -3,10 +3,10 @@ import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Side, UseMatchmakingProps } from "../types"
-import { useSocket } from "@/context/WebSocketContext";
+import { useSocketContext } from "@/context/WebSocketContext";
 
 export const useMatchmaking = ({ userId, selectedGameMode }: UseMatchmakingProps) => {
-  const { socket } = useSocket();
+  const { socket } = useSocketContext();
 
   const [isConnected, setIsConnected] = useState(false);
   const [isSearching, setIsSearching] = useState(false);

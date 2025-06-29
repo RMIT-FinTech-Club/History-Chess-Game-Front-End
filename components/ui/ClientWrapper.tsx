@@ -24,8 +24,9 @@ const GlobalChallengeModalManager = () => {
 }
 
 
-export default function ClientWrapper({ children }: { children: React.ReactNode }) {
+const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname()
 
   useEffect(() => {
     setMounted(true);
@@ -34,8 +35,6 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
   if (!mounted) {
     return null; // Prevent rendering until the component is mounted
   }
-
-  const pathname = usePathname()
 
   const noFooterRoutes = [
     '/challenge',
@@ -68,3 +67,5 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
     </SocketProvider>
   )
 }
+
+export default ClientWrapper;
