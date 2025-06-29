@@ -5,7 +5,7 @@ import { PlayerSelectorProps } from "./types";
 
 export default function PlayerSelector({
     selectedPlayer,
-    players,
+    players, // This is now 'onlinePlayers' passed down from Challenge
     showPlayerSelect,
     onPlayerChangeAction,
     onToggleSelectAction,
@@ -57,7 +57,7 @@ export default function PlayerSelector({
                         <div className="flex flex-col gap-[1vh] max-h-[50vh] overflow-y-auto list-container">
                             {players.map((player, index) => (
                                 <div
-                                    key={index}
+                                    key={player.id || index}
                                     onClick={() => {
                                         onPlayerChangeAction(player);
                                         onCloseSelectAction();

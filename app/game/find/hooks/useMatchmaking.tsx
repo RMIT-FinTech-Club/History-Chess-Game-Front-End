@@ -3,46 +3,35 @@ import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Side, UseMatchmakingProps } from "../types"
-import basePath from "@/config/pathConfig";
+import { useSocketContext } from "@/context/WebSocketContext";
 
 export const useMatchmaking = ({ userId, selectedGameMode }: UseMatchmakingProps) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const { socket } = useSocketContext();
+
   const [isConnected, setIsConnected] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const router = useRouter();
 
+  // console.log(socket)
   useEffect(() => {
-    const newSocket = io(`${basePath}`, {
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      withCredentials: true
-    });
-    setSocket(newSocket);
+    if (!socket) return;
 
-    newSocket.on("connect", () => {
-      setIsConnected(true);
-      console.log("Socket connected with ID:", newSocket.id);
-    });
+    // setSocket(socket);
 
-    newSocket.on("disconnect", () => {
-      setIsConnected(false);
-      toast.error("Disconnected from server");
-      console.log("Socket disconnected");
-    });
+    setIsConnected(true);
 
-    newSocket.on("error", (error) => {
+    socket.on("error", (error) => {
       console.error("Socket error:", error);
       toast.error(error.message);
     });
 
-    newSocket.on("inQueue", (data) => {
+    socket.on("inQueue", (data) => {
       console.log("In queue:", data);
       toast.info(data.message || "Waiting for opponent...");
       setIsSearching(true);
     });
 
-    newSocket.on("matchFound", (data) => {
+    socket.on("matchFound", (data) => {
       console.log("Match found:", data);
       setIsSearching(false);
       toast.success("Match found! Redirecting to game...");
@@ -57,24 +46,21 @@ export const useMatchmaking = ({ userId, selectedGameMode }: UseMatchmakingProps
       router.push(`/game/${data.gameId}`);
     });
 
-    newSocket.on("matchmakingCancelled", () => {
+    socket.on("matchmakingCancelled", () => {
       console.log("Matchmaking cancelled");
       setIsSearching(false);
       toast.info("Matchmaking cancelled");
     });
 
     return () => {
-      if (newSocket) {
-        newSocket.off("connect");
-        newSocket.off("disconnect");
-        newSocket.off("error");
-        newSocket.off("inQueue");
-        newSocket.off("matchFound");
-        newSocket.off("matchmakingCancelled");
-        newSocket.close();
+      if (socket) {
+        socket.off("error");
+        socket.off("inQueue");
+        socket.off("matchFound");
+        socket.off("matchmakingCancelled");
       }
     };
-  }, [router, selectedGameMode, userId]);
+  }, [router, selectedGameMode, userId, socket]);
 
   const findMatch = (colorChoice: Side) => {
     if (!userId) {
@@ -103,6 +89,7 @@ export const useMatchmaking = ({ userId, selectedGameMode }: UseMatchmakingProps
         playMode: selectedGameMode,
         colorChoice
       });
+      console.log("Matchmaking for user:", userId);
     } catch (error) {
       console.error('Error finding match:', error);
       toast.error(error instanceof Error ? error.message : "Error finding match");

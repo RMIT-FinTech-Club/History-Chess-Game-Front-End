@@ -1,7 +1,8 @@
+// layout.tsx
 import type { Metadata } from "next";
 import { ThemeProvider } from "../components/ThemeProvider";
 import { Toaster } from "sonner";
-import ClientWrapper from "@/components/ui/ClientWrapper"; // Import the client component
+import ClientWrapper from "@/components/ui/ClientWrapper";
 
 import "@/app/globals.css"
 import '@/css/styles.css'
@@ -19,17 +20,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light" style={{ colorScheme: "light" }}>
+    // REMOVE 'className="light"' and 'style={{ colorScheme: "light" }}'
+    // ADD 'suppressHydrationWarning' to prevent React from complaining during initial render
+    <html lang="en" suppressHydrationWarning>
       <body>
         <UserProvider>
           <ThemeProvider
             defaultTheme="system"
-            attribute="class"
+            attribute="class" // This tells the ThemeProvider to toggle 'dark'/'light' classes on the html tag
             enableSystem={true}
             disableTransitionOnChange={true}
           >
             <Toaster richColors position="top-center" />
-            <ClientWrapper>{children}</ClientWrapper> {/* Use the client component */}
+            <ClientWrapper>{children}</ClientWrapper>
           </ThemeProvider>
         </UserProvider>
       </body>
