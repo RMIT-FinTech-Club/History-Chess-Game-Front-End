@@ -15,8 +15,8 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { MdEmail } from "react-icons/md";
 import { toast } from "sonner";
 import axios from "axios";
-import axiosInstance from "@/apiConfig";
-import basePath from "@/pathConfig";
+import axiosInstance from "@/config/apiConfig";
+import basePath from "@/config/pathConfig";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 const SignIn = () => {
@@ -137,14 +137,20 @@ const SignIn = () => {
           identifier,
           password,
         });
-        const { token, data } = response.data;
+        const { token, id, username, email, avatarUrl } = response.data;
+
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(id)) {
+          throw new Error("Invalid user ID in login response");
+        }
+
         setAuthData({
-          userId: data.id,
-          userName: data.username,
-          email: data.email,
+          userId: id,
+          userName: username,
+          email,
           accessToken: token,
           refreshToken: null,
-          avatar: data.avatarUrl || null,
+          avatar: avatarUrl || null,
         });
         document
           .getElementById("identifier-input")
@@ -202,15 +208,22 @@ const SignIn = () => {
             username: values.username,
           }
         );
-        const { token, data } = response.data;
+        const { token, id, username, email, avatarUrl } = response.data;
+
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(id)) {
+          throw new Error("Invalid user ID in Google login response");
+        }
+
         setAuthData({
-          userId: data.id,
-          userName: data.username,
-          email: data.email,
+          userId: id,
+          userName: username,
+          email,
           accessToken: token,
           refreshToken: null,
-          avatar: data.avatarUrl || null,
+          avatar: avatarUrl,
         });
+
         toast.success("Google login successful!");
         setShowUsernamePrompt(false);
         router.push("/profile");
@@ -226,17 +239,22 @@ const SignIn = () => {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== `${basePath}`) return;
-      const { type, token, userId, username, email, tempToken, error } =
-        event.data;
+      if (event.origin !== basePath) return;
+      const { type, token, userId, username, email, avatarUrl, tempToken, error } = event.data;
       if (type === "google-auth") {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(userId)) {
+          toast.error("Invalid user ID from Google auth response");
+          return;
+        }
+
         setAuthData({
           userId,
           userName: username,
           email,
           accessToken: token,
           refreshToken: null,
-          avatar: null,
+          avatar: avatarUrl || null,
         });
         toast.success("Google login successful!");
         router.push("/home");
@@ -259,7 +277,7 @@ const SignIn = () => {
   }, [router, setAuthData]);
 
   return (
-    <div className=" min-h-screen text-white font-poppins font-bold relative md:flex md:justify-around md:items-center ">
+    <div className="min-h-screen text-white font-poppins font-bold relative md:flex md:justify-around md:items-center">
       <div className="w-[35vw] aspect-[1/1] relative md:block hidden">
         <div className="w-full absolute aspect-[1/1] bg-[#DBB968] rounded-[50%] blur-[15vw] left-0 top-[50%] -translate-y-[50%]"></div>
         <div
@@ -338,7 +356,7 @@ const SignIn = () => {
                             placeholder="Enter your username or email"
                             {...field}
                             className="
-                              !pl-[4vw] 
+                              !pl-[4vw]
                               py-[12vh] md:py-[4vh] w-full
                               bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                               text-[2vh] md:text-[3vh] font-normal rounded-[1.5vh]

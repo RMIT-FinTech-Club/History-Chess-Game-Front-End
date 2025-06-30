@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
 import { UseSocketProps } from "./types";
-import axiosInstance from "@/apiConfig";
-import basePath from "@/pathConfig";
+import axiosInstance from "@/config/apiConfig";
+import basePath from "@/config/pathConfig";
+import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 export function useSocket({
     userId,
@@ -18,16 +19,19 @@ export function useSocket({
     const [socket, setSocket] = useState<Socket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const router = useRouter();
+    const { isAuthenticated } = useGlobalStorage();
 
     useEffect(() => {
         if (!userId) {
             console.warn("Skipping socket initialization: userId missing", { userId });
             toast.error("Cannot connect to server: Please log in");
+            router.push('/sign_in')
             return;
         }
         if (!accessToken) {
             console.warn("Skipping socket initialization: accessToken missing", { accessToken });
             toast.error("Cannot connect to server: Authentication required");
+            router.push('/sign_in')
             return;
         }
 
@@ -103,7 +107,7 @@ export function useSocket({
                         },
                     }).then((res) => {
                         console.log(`Received user data for ${userId}:`, res.data);
-                        return res.data.data;
+                        return res.data;
                     });
                 });
 
@@ -114,7 +118,7 @@ export function useSocket({
                     .map((response) => ({
                         id: response.id,
                         username: response.username || "Unknown",
-                        avt: response.avt || "https://i.imgur.com/RoRONDn.jpeg",
+                        avt: response.avatarUrl || "https://i.imgur.com/RoRONDn.jpeg",
                         elo: response.elo || 0,
                     }))
                     .filter((player) => player.id !== userId);

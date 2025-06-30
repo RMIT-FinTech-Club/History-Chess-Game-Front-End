@@ -4,7 +4,9 @@ import styles from "@/css/players.module.css"
 import Chevron from "@/public/players/chevron"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import axiosInstance from "@/apiConfig"
+import axiosInstance from "@/config/apiConfig"
+import { useGlobalStorage } from "@/hooks/GlobalStorage"
+import { toast } from "sonner"
 
 interface Players {
   rank: number
@@ -16,11 +18,18 @@ interface Players {
 
 export default function PlayerList() {
   const router = useRouter()
-
+  const { isAuthenticated } = useGlobalStorage();
   const [showFilter, setShowFilter] = useState(false)
   const [selectedFilter, setSelectedFilter] = useState("Highest")
   const [players, setPlayers] = useState<Players[]>([])
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to view players list.");
+      router.push('/sign_in')
+    }
+  }, [isAuthenticated, router])
 
   useEffect(() => {
     const fetchPlayers = async () => {

@@ -6,50 +6,49 @@ import { faArrowUp } from "@fortawesome/free-solid-svg-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import CountUp from "react-countup"
 import { useRouter } from "next/navigation"
-import axiosInstance from "@/apiConfig"
+import axiosInstance from "@/config/apiConfig"
 import { toast } from "sonner"
 
 import styles from "@/css/profile.module.css"
 import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
 import CupIcon from "@/public/profile/SVG/cupIcon"
 import SettingIcon from "@/public/profile/SVG/settingIcon"
-import ProfilePlayers from "@/components/ui/profilePlayers"
-import ProfileMatches from "@/components/ui/profileMatches"
-import AccountSettings from "@/components/ui/account_settings"
+import ProfilePlayers from "@/components/profile/profilePlayers"
+import ProfileMatches from "@/components/profile/profileMatches"
+import AccountSettings from "@/components/profile/accountSettings"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 
 export default function ProfilePage() {
-    const { userName, avatar, accessToken } = useGlobalStorage()
+    const { userName, avatar, accessToken, isAuthenticated } = useGlobalStorage()
     const router = useRouter()
-
     const profileRef = useRef<HTMLDivElement | null>(null)
     const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
     const [profileMenu, setProfileMenu] = useState(1)
 
-    // Validate token on mount
     useEffect(() => {
-        const validateToken = async () => {
-            if (!accessToken || typeof accessToken !== "string" || accessToken.trim() === "") {
-                console.error("Invalid or missing access token", { accessToken })
-                toast.error("Please sign in to view your profile.")
-                router.push("/sign_in")
-                return
-            }
-            try {
-                await axiosInstance.get("/users/profile", {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                })
-            } catch (error) {
-                console.error("Token validation failed:", error)
-                toast.error("Session expired. Please sign in again.")
-                router.push("/sign_in")
-            }
+        if (!isAuthenticated) {
+            toast.error("Please sign in to view your profile.");
+            router.push('/sign_in')
         }
-        validateToken()
-    }, [accessToken, router])
+    }, [isAuthenticated, router])
+
+    // Validate token on mount
+    // useEffect(() => {
+    //     const getUserData = async () => {
+    //         try {
+    //             await axiosInstance.get("/users/profile", {
+    //                 headers: {
+    //                     "Content-Type": "application/json",
+    //                     Authorization: `Bearer ${accessToken}`,
+    //                 },
+    //             })
+    //         } catch (error: any) {
+    //             console.error("An error occurred while validating your session.", error);
+    //             toast.error("An error occurred while validating your session.");
+    //         }
+    //     }
+    //     getUserData()
+    // }, [accessToken, router])
 
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
     return (

@@ -3,7 +3,7 @@ import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Side, UseMatchmakingProps } from "../types"
-import basePath from "@/pathConfig";
+import basePath from "@/config/pathConfig";
 
 export const useMatchmaking = ({ userId, selectedGameMode }: UseMatchmakingProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
