@@ -26,6 +26,7 @@ import {
 import { OldPassword } from "@/components/profile/accountSetting/OldPassword";
 import { NewPassword } from "@/components/profile/accountSetting/NewPassword";
 import { NewPasswordConfirm } from "@/components/profile/accountSetting/NewPasswordConfirm";
+import axiosInstance from "@/config/apiConfig";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit
 
@@ -111,7 +112,7 @@ const AccountSettings = () => {
       return false;
     }
     try {
-      await axios.get("/users/profile", {
+      await axiosInstance.get("/users/profile", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
@@ -131,7 +132,7 @@ const AccountSettings = () => {
           "Refreshing token for Google account with existing token:",
           accessToken
         );
-        const response = await axios.get("/users/profile", {
+        const response = await axiosInstance.get("/users/profile", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
@@ -142,7 +143,7 @@ const AccountSettings = () => {
         }
         return response.data;
       } else {
-        const loginResponse = await axios.post("/users/login", { identifier });
+        const loginResponse = await axiosInstance.post("/users/login", { identifier });
         console.log("Token refresh raw response:", loginResponse);
         if (!loginResponse.data || !loginResponse.data.token) {
           throw new Error("Invalid login response structure");
@@ -160,7 +161,7 @@ const AccountSettings = () => {
         console.warn(
           "Google auth login attempt blocked, falling back to profile fetch"
         );
-        const response = await axios.get("/users/profile", {
+        const response = await axiosInstance.get("/users/profile", {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
@@ -188,7 +189,7 @@ const AccountSettings = () => {
     setInitialLoading(true);
     try {
       console.log("Fetching profile with token:", accessToken);
-      const response = await axios.get("/users/profile", {
+      const response = await axiosInstance.get("/users/profile", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
@@ -341,7 +342,7 @@ const AccountSettings = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await axios.post(`/users/${userId}/avatar`, formData, {
+      const response = await axiosInstance.post(`/users/${userId}/avatar`, formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "multipart/form-data",
@@ -442,7 +443,7 @@ const AccountSettings = () => {
       }
 
       console.log("Updating username with token:", accessToken);
-      const updateResponse = await axios.put(
+      const updateResponse = await axiosInstance.put(
         `/users/${userId}`,
         { username: data.username },
         {
@@ -525,7 +526,7 @@ const AccountSettings = () => {
       }
 
       console.log("Updating password with token:", accessToken);
-      const response = await axios.put(
+      const response = await axiosInstance.put(
         "/users/update-password",
         {
           oldPassword: data.oldPassword,
@@ -553,7 +554,7 @@ const AccountSettings = () => {
         });
         toast.error(
           error.response?.data?.message ||
-            "Failed to update password. Please try again."
+          "Failed to update password. Please try again."
         );
       } else {
         console.error("Unexpected error updating password:", error);
@@ -620,7 +621,7 @@ const AccountSettings = () => {
   };
 
   useEffect(() => {
-    const interceptor = axios.interceptors.request.use((config) => {
+    const interceptor = axiosInstance.interceptors.request.use((config) => {
       if (accessToken) {
         console.log("Axios interceptor using token:", accessToken);
         config.headers.Authorization = `Bearer ${accessToken}`;
@@ -628,7 +629,7 @@ const AccountSettings = () => {
       return config;
     });
     return () => {
-      axios.interceptors.request.eject(interceptor);
+      axiosInstance.interceptors.request.eject(interceptor);
     };
   }, [accessToken]);
 
@@ -664,9 +665,8 @@ const AccountSettings = () => {
         >
           <div className="w-full flex flex-row items-center">
             <div
-              className={`md:w-[8vw] md:aspect-square w-[14vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative ${
-                isEditing ? "cursor-pointer" : "cursor-not-allowed"
-              }`}
+              className={`md:w-[8vw] md:aspect-square w-[14vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative ${isEditing ? "cursor-pointer" : "cursor-not-allowed"
+                }`}
               onClick={handleAvatarClick}
               role="button"
               aria-label={isEditing ? "Upload new avatar" : "Avatar display"}
