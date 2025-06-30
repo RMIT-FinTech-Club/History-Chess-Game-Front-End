@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { Square } from "chess.js";
-import "@/css/chessboard.css";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import YellowLight from "@/components/decor/YellowLight";
 import { toast } from "sonner";
@@ -27,8 +26,9 @@ import { useRouter } from "next/navigation";
 const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   const [mounted, setMounted] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState<Square | null>(null);
-  const { userId, isAuthenticated } = useGlobalStorage();
-  const router = useRouter();
+
+  // Get userId from GlobalStorage
+  const { userId } = useGlobalStorage();
 
   // Unwrap the params Promise
   const resolvedParams = React.use(params);
@@ -36,13 +36,6 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
 
   // Use custom hooks
   const boardWidth = useBoardSize();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      toast.error("Please sign in to play game.");
-      router.push('/sign_in')
-    }
-  }, [isAuthenticated, router])
 
   const {
     gameState,

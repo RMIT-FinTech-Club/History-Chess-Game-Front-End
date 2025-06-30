@@ -3,20 +3,16 @@ import { useEffect } from 'react';
 import styles from '@/css/home.module.css'
 import YellowLight from '@/components/decor/YellowLight'
 import { useRouter } from "next/navigation";
+import { useSocketContext } from "@/context/WebSocketContext";
 import { useGlobalStorage } from '@/hooks/GlobalStorage';
-import { toast } from 'sonner';
 
 export default function HomePage() {
     const router = useRouter();
-    const { isAuthenticated } = useGlobalStorage();
+    const { socket } = useSocketContext();
+    const { userId, accessToken } = useGlobalStorage();
 
-    useEffect(() => {
-        if (!isAuthenticated) {
-            toast.error("Please sign in to view home page.");
-            router.push('/sign_in')
-        }
-    }, [isAuthenticated, router])
-
+    // const { onlineUsers } = useWebSocket();
+    // console.log(onlineUsers);
     return (
         <div className="text-white relative min-h-screen flex flex-col items-center justify-center">
             <YellowLight left="-15vw" top="-15vw" />
