@@ -25,13 +25,6 @@ export default function ProfilePage() {
     const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
     const [profileMenu, setProfileMenu] = useState(1)
 
-    useEffect(() => {
-        if (!isAuthenticated) {
-            toast.error("Please sign in to view your profile.");
-            router.push('/sign_in')
-        }
-    }, [isAuthenticated, router])
-
     // Validate token on mount
     // useEffect(() => {
     //     const getUserData = async () => {
