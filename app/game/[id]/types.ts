@@ -91,6 +91,7 @@ export interface PlayerSectionProps {
   gameActive: boolean;
   profileName?: string;
   profileImage?: string;
+  elo?: number;
 }
 
 // Add type definition for game state
@@ -149,8 +150,8 @@ export interface GameLayoutProps {
   capturedWhite: string[];
   capturedBlack: string[];
   gameState: any;
-  whiteProfile: { name: string; image: string };
-  blackProfile: { name: string; image: string };
+  whiteProfile: { name: string; image: string, elo: number };
+  blackProfile: { name: string; image: string, elo: number };
   formatTimeInSeconds: (ms?: number) => number;
   handleDrop: any;
   onPieceClick: any;
