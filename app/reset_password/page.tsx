@@ -332,7 +332,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-[100dvh]">
+    <div className="flex flex-col justify-center items-center h-[calc(100dvh-var(--navbar-height))]">
       {/* Logo section unchanged */}
       <div className="flex justify-center items-center relative h-[30vh] aspect-square">
         <div

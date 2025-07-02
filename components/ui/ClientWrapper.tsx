@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import Content from "@/components/content"
 import Footer from "@/components/Footer"
 import NavBar from "@/components/NavBar"
+
 export default function ClientWrapper({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
@@ -25,14 +26,25 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
     '/profile',
     '/otp',
     '/sign_in',
-    '/sign_up'
+    '/sign_up',
+    '/home',
+    '/reset_password',
+    '/game/offline',
+    '/game/online'
   ]
 
+  const noNavRoutes = [
+    '/sign_in',
+    '/sign_up',
+    '/'
+  ]
+
+  const showNav = !noNavRoutes.includes(pathname)
   const showFooter = !noFooterRoutes.includes(pathname)
 
   return (
     <>
-      <NavBar />
+      {showNav && <NavBar />}
       <Content>{children}</Content>
       {showFooter && <Footer />}
     </>

@@ -48,6 +48,7 @@
         "shadcn": "^2.4.0-canary.17",
         "socket.io-client": "^4.8.1",
         "sonner": "^2.0.5",
+        "tailwind": "^4.0.0",
         "tailwind-merge": "^3.0.2",
         "tailwindcss": "^4.1.4",
         "tailwindcss-animate": "^1.0.7",

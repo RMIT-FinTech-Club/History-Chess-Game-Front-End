@@ -126,7 +126,7 @@ const OnlinePage: React.FC = () => {
   // Show loading if joining from URL
   if (gameIdFromUrl && !gameState) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#2C2420] via-[#3D3025] to-[#4A3728] flex items-center justify-center">
+      <div className="h-[calc(100dvh-var(--navbar-height))] bg-gradient-to-br from-[#2C2420] via-[#3D3025] to-[#4A3728] flex items-center justify-center">
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F7D27F] mx-auto mb-4"></div>
           <div className="text-lg font-semibold">Joining game...</div>
@@ -137,7 +137,7 @@ const OnlinePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="h-[calc(100dvh-var(--navbar-height))] flex items-center justify-center p-4">
       <div className="max-w-6xl w-full flex flex-col lg:flex-row gap-8 items-center">
         <YellowLight top="20%" left="60%" />
         

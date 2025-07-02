@@ -3,7 +3,7 @@
 import styles from "@/css/players.module.css"
 import Chevron from "@/public/players/chevron"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import axios from "axios"
 
 interface Players {
@@ -64,7 +64,7 @@ export default function PlayerList() {
   }
 
   return (
-    <div className={`w-full min-h-screen flex flex-col justify-start items-center relative text-white ${styles.container}`}>
+    <div className={`w-full h-[calc(100dvh-var(--navbar-height))] flex flex-col justify-start items-center relative text-white ${styles.container}`}>
       <p className="text-[3rem] md:text-[3rem] font-extrabold text-center mx-auto my-[3dvh] tracking-[0.2vw]">Players List</p>
       <div
         className="flex relative justify-center items-center bg-[#1F1F1F] mr-[5vw] md:mr-[15vw] ml-auto border-[0.1px] border-solid border-[#CBD5E1] rounded-[1vw] mb-[5vh] text-[1.5rem] px-[2rem] py-[1rem] cursor-pointer"
@@ -101,9 +101,9 @@ export default function PlayerList() {
           </div>
         </div>}
       </div>
-      <div className="w-[90vw] md:w-[70vw] flex flex-col justify-center items-start">
+      <div className="w-[90vw] md:w-[70vw] flex flex-col justify-center items-start pb-[3dvh] flex-1 overflow-y-auto">
         {error ? (
-          <div className="w-full flex justify-center items-center py-5 text-[#EA4335]">
+          <div className="w-full h-[300vh] flex justify-center items-center py-5 text-[#EA4335]">
             <p>{error}</p>
           </div>
         ) : getSortedPlayers().length === 0 ? (
