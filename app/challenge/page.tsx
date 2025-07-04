@@ -210,7 +210,7 @@ export default function Challenge() {
     ]
 
     return (
-        <div className="w-full h-[100dvh] flex flex-col p-[2vw] text-white">
+        <div className="w-full h-[calc(100dvh-var(--nav-height))] flex flex-col p-[2vw] text-white">
             <div className="h-full flex items-center justify-between">
                 <div className={`h-full aspect-square bg-center bg-no-repeat bg-cover bg-[#BF9544] rounded-[2vw] mr-[2vw] ${styles.board}`}></div>
                 <div className="h-full w-full flex flex-col justify-between">

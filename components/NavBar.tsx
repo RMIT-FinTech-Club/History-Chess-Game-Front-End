@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaUser, FaPuzzlePiece, FaSignOutAlt, FaWallet, FaChevronDown } from 'react-icons/fa';
 import { HiOutlineMenuAlt3, HiX } from 'react-icons/hi';
 import { useGlobalStorage } from '@/hooks/GlobalStorage';
-import Toast from '././ui/Toast'; 
+import Toast from '././ui/Toast';
 import ConfirmModal from './ui/ConfirmModal';
 
 export default function Navbar() {
@@ -25,15 +25,29 @@ export default function Navbar() {
 
   const isLoggedIn = !!userId && !!accessToken;
 
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null); 
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const handleAvatarClick = () => setShowDropdown(prev => !prev);
   const displayName = userName || "User 1";
   const avatarUrl = avatar || "/img/DefaultUser.png";
 
+  const navRef = useRef<HTMLDivElement>(null);
+  const [navHeight, setNavHeight] = useState(0);
+
+  useEffect(() => {
+    const updateNavHeight = () => {
+      if (navRef.current) {
+        const height = navRef.current.offsetHeight;
+        document.documentElement.style.setProperty("--nav-height", `${height}px`);
+      }
+    };
+
+    updateNavHeight();
+    window.addEventListener("resize", updateNavHeight);
+    return () => window.removeEventListener("resize", updateNavHeight);
+  }, []);
+
   return (
-    
-    
-    <nav className="w-full bg-black text-white font-[Poppins] px-6 py-4">
+    <nav ref={navRef} className="w-full bg-black text-white font-[Poppins] px-6 py-4">
       {toast && (
         <Toast
           type={toast.type}
@@ -56,7 +70,7 @@ export default function Navbar() {
       {/* Desktop */}
       <div className="hidden md:flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <img onClick={() => router.push('/')} src="/img/FintechLogo.png" alt="logo" className="w-[80px] h-[50px]" />
+          <img onClick={() => router.push('/home')} src="/img/FintechLogo.png" alt="logo" className="w-[80px] h-[50px]" />
           <span className="font-bold text-[25.2px] leading-[38px]">FTC Chess Game</span>
         </div>
 
@@ -89,41 +103,41 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
-             <button
+              <button
                 onClick={() => {
                   router.push('/game/offline');
                 }}
                 className="px-4 py-2 w-[124px] h-[35px] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] hover:text-white transition-colors duration-300 flex justify-center items-center">
                 New Game
-            </button>
+              </button>
 
             </div>
           ) : (
             <div className="flex items-center gap-4">
-              <button onClick={() => router.push('/sign_in')} 
-                  className="px-4 py-2 w-[100px] h-[35px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] hover:text-black transition-colors duration-300 flex justify-center items-center">
+              <button onClick={() => router.push('/sign_in')}
+                className="px-4 py-2 w-[100px] h-[35px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] hover:text-black transition-colors duration-300 flex justify-center items-center">
                 Sign In
               </button>
 
-              <button onClick={() => router.push('/sign_up')}   
+              <button onClick={() => router.push('/sign_up')}
                 className=" w-[100px] h-[35px] text-black bg-white hover:bg-black hover:text-white rounded-[6px] font-semibold border border-white transition-colors duration-300 flex justify-center items-center">
                 Sign Up
               </button>
             </div>
           )}
-        </div>  
+        </div>
       </div>
 
       {/* Mobile */}
       <div className="md:hidden flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <img onClick={() => router.push('/')} src="/img/FintechLogo.png" alt="logo" className="w-[70px] h-[45px]" />
+          <img onClick={() => router.push('/home')} src="/img/FintechLogo.png" alt="logo" className="w-[70px] h-[45px]" />
           <span className="font-bold text-xl">FTC Chess Game</span>
         </div>
         <p onClick={() => setMobileOpen(!mobileOpen)} className="text-white text-[34px]">
           {mobileOpen ? <HiX className="text-white text-[34px]" /> : <HiOutlineMenuAlt3 className="text-white text-[30px]" />}
         </p>
-      </div>  
+      </div>
 
       {/* Mobile Drawer */}
       {mobileOpen && (

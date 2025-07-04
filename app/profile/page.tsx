@@ -10,7 +10,6 @@ import styles from "@/css/profile.module.css"
 import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
 import CupIcon from "@/public/profile/SVG/cupIcon"
 import SettingIcon from "@/public/profile/SVG/settingIcon"
-import ProfilePlayers from "@/components/ui/profilePlayers"
 import ProfileMatches from "@/components/ui/profileMatches"
 import AccountSettings from "@/components/ui/account_settings"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
@@ -24,7 +23,7 @@ export default function ProfilePage() {
 
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
     return (
-        <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3dvh] mx-[5vw] md:mx-[10vw] text-white relative h-[100ddvh]">
+        <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3dvh] mx-[5vw] md:mx-[10vw] text-white relative h-[calc(100dvh-var(--nav-height))]">
             <div className={`w-full relative md:absolute ${isProfileOpened ? 'md:top-[3dvh]' : 'md:top-[calc(-12vw-2px)]'} top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3dvh] transition-all duration-300`}>
                 <Tooltip disableHoverableContent>
                     <TooltipTrigger asChild>
@@ -91,7 +90,7 @@ export default function ProfilePage() {
                     ))}
                 </div>
             </div>
-            <div className={`w-full ${isProfileOpened ? 'md:mt-[calc(12vw+2px+3dvh)]' : 'md:mt-0'} mt-0 ${isProfileOpened ? 'h-[calc(100dvh-3dvh-12vw-2px-6dvh)]' : 'h-[calc(100dvh-6dvh)]'} transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}>
+            <div className={`w-full ${isProfileOpened ? 'md:mt-[calc(12vw+2px+3dvh)]' : 'md:mt-0'} mt-0 ${isProfileOpened ? 'h-[calc(100dvh-var(--nav-height)-3dvh-12vw-2px-6dvh)]' : 'h-[calc(100dvh-var(--nav-height)-6dvh)]'} transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}>
                 <div className="md:w-[30%] w-full flex flex-col">
                     <div className="px-0 md:px-[2vw] py-[1vw] md:py-[2vw] w-full flex flex-row md:flex-col bg-[#1D1D1D] rounded-[2vw] mb-[3dvh] relative items-center justify-around">
                         <div className={`absolute ${profileMenu === 0 ? 'md:top-[2vw] md:left-0 top-0 left-0' : `${profileMenu === 1 ? 'md:top-[6vw] md:left-0 top-0 left-[30vw]' : 'md:top-[10vw] md:left-0 top-0 left-[60vw]'}`} left-0 md:h-[2vw] md:w-[calc(2vw/3)] w-1/3 h-[1vw] rounded-[0.5vw] md:rounded-[1vw] bg-[#DBB968] transition-all duration-200`}></div>
@@ -121,7 +120,6 @@ export default function ProfilePage() {
                             </div>
                         ))}
                     </div>
-                    {profileMenu === 1 && <ProfilePlayers isopen={isProfileOpened} />}
                 </div>
                 {profileMenu === 1 && <ProfileMatches />}
                 {profileMenu === 2 && <AccountSettings />}

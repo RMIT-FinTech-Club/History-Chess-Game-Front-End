@@ -64,8 +64,8 @@ export default function PlayerList() {
   }
 
   return (
-    <div className={`w-full min-h-screen flex flex-col justify-start items-center relative text-white ${styles.container}`}>
-      <p className="text-[3rem] md:text-[3rem] font-extrabold text-center mx-auto my-[3dvh] tracking-[0.2vw]">Players List</p>
+    <div className={`w-full h-[calc(100dvh-var(--nav-height))] flex flex-col justify-start items-center relative text-white ${styles.container}`}>
+      <p className="text-[3rem] md:text-[3rem] font-extrabold text-center mx-auto my-[3vh] tracking-[0.2vw]">Players List</p>
       <div
         className="flex relative justify-center items-center bg-[#1F1F1F] mr-[5vw] md:mr-[15vw] ml-auto border-[0.1px] border-solid border-[#CBD5E1] rounded-[1vw] mb-[5vh] text-[1.5rem] px-[2rem] py-[1rem] cursor-pointer"
         onClick={(e) => {
@@ -101,7 +101,7 @@ export default function PlayerList() {
           </div>
         </div>}
       </div>
-      <div className="w-[90vw] md:w-[70vw] flex flex-col justify-center items-start">
+      <div className="w-full h-full overflow-y-auto flex flex-col justify-start items-center">
         {error ? (
           <div className="w-full flex justify-center items-center py-5 text-[#EA4335]">
             <p>{error}</p>
@@ -112,22 +112,22 @@ export default function PlayerList() {
           </div>
         ) : (
           getSortedPlayers().map((user, index) => (
-            <div key={index} className={`w-full h-[8dvh] sm:h-[15vh] mb-[5vh] rounded-[2vw] bg-[rgba(255,255,255,0.3)] border-[0.1px] border-solid border-[#EEFF07] flex justify-start items-center ${styles.player}`}>
+            <div key={index} className={`w-[90vw] md:w-[70vw] mb-[5vh] rounded-[2vw] bg-[rgba(255,255,255,0.3)] border-[0.1px] border-solid border-[#EEFF07] flex justify-start items-center ${styles.player}`}>
               <div
-                className="sm:h-[9dvh] h-[5vh] aspect-square rounded-[50%] mx-[1dvh] sm:mx-[3dvh] border border-solid border-white bg-center bg-cover bg-no-repeat"
+                className="sm:h-[9vh] h-[5vh] aspect-square rounded-[50%] mx-[1vh] sm:mx-[3vh] my-[1.5vh] sm:my-[3vh] border border-solid border-white bg-center bg-cover bg-no-repeat"
                 style={{ backgroundImage: `url(https://i.imgur.com/RoRONDn.jpeg)` }}>
               </div>
-              <div className="flex justify-center items-center w-[calc(100%-8dvh-2vw)] sm:w-[calc(100%-15vh-2vw)] h-full ml-[2vw]">
+              <div className="flex justify-center items-center w-[calc(100%-8vh-2vw)] sm:w-[calc(100%-15vh-2vw)] h-full ml-[2vw]">
                 <div className="flex flex-col w-[calc(70%/2)] md:w-[calc(70%/3)] h-full items-start justify-center">
-                  <p className="text-[#C4C4C4] sm:text-[1.3rem] text-[1rem] mb-[1dvh]">Player</p>
+                  <p className="text-[#C4C4C4] sm:text-[1.3rem] text-[1rem] mb-[1vh]">Player</p>
                   <p className="font-bold sm:text-[1.3rem] text-[1rem] whitespace-nowrap overflow-hidden text-ellipsis w-full">{user.username}</p>
                 </div>
                 <div className="flex flex-col w-[calc(70%/2)] md:w-[calc(70%/3)] h-full items-start justify-center">
-                  <p className="text-[#C4C4C4] sm:text-[1.3rem] text-[1rem] mb-[1dvh]">Elo</p>
+                  <p className="text-[#C4C4C4] sm:text-[1.3rem] text-[1rem] mb-[1vh]">Elo</p>
                   <p className="font-bold sm:text-[1.3rem] text-[1rem]">{user.elo}</p>
                 </div>
                 <div className="md:flex hidden flex-col w-[calc(70%/3)] h-full items-start justify-center">
-                  <p className="text-[#C4C4C4] text-[1.3rem] mb-[1dvh]">Global Ranking</p>
+                  <p className="text-[#C4C4C4] text-[1.3rem] mb-[1vh]">Global Ranking</p>
                   <p className="font-bold text-[1.3rem]">{user.rank}</p>
                 </div>
                 <div className="w-[30%] h-full flex justify-start items-center">

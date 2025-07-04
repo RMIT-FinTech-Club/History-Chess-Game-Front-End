@@ -25,14 +25,25 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
     '/profile',
     '/otp',
     '/sign_in',
+    '/sign_up',
+    '/reset_password',
+    '/game/offline',
+    '/game/online',
+    '/home'
+  ]
+
+  const noNavRoutes = [
+    '/',
+    '/sign_in',
     '/sign_up'
   ]
 
   const showFooter = !noFooterRoutes.includes(pathname)
+  const showNav = !noNavRoutes.includes(pathname)
 
   return (
     <>
-      <NavBar />
+      {showNav && <NavBar />}
       <Content>{children}</Content>
       {showFooter && <Footer />}
     </>
