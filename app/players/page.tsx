@@ -3,17 +3,17 @@
 import styles from "@/css/players.module.css"
 import Chevron from "@/public/players/chevron"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import axiosInstance from "@/config/apiConfig"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 import { toast } from "sonner"
+import { useSocketContext } from "@/context/WebSocketContext"
 
 interface Players {
-  rank: number
   username: string
   avt: string
   elo: number
-  id: number
+  id: string
 }
 
 export default function PlayerList() {
@@ -23,54 +23,99 @@ export default function PlayerList() {
   const [selectedFilter, setSelectedFilter] = useState("Highest")
   const [players, setPlayers] = useState<Players[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [onlinePlayers, setOnlinePlayers] = useState<Players[]>([]);
+  const [sortedPlayers, setSortedPlayers] = useState<Players[]>([]);
+  const { socket, isConnected, userId, accessToken } = useSocketContext();
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      toast.error("Please sign in to view players list.");
-      router.push('/sign_in')
-    }
-  }, [isAuthenticated, router])
 
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      try {
-        const response = await axiosInstance.get('/api/leaderboard?limit=3&page=1&sort=elo_desc')
-
-        const formattedPlayers = response.data.leaderboard.map((player: any) => {
-          return {
-            username: player.username || 'Unknown',
-            avt: player.avt || 'https://i.imgur.com/RoRONDn.jpeg',
-            elo: player.elo,
-            id: player.id,
-            rank: player.rank
-          }
-        })
-
-        setPlayers(formattedPlayers)
-        setError(null)
-      } catch (err) {
-        console.error('Error fetching player list:', err)
-        setError('Failed to load player list')
-        setPlayers([])
+  const handleOnlinePlayersUpdate = useCallback(async (users: string[]) => {
+    console.log("LobbyContext: Received onlineUsers event with users:", users);
+    try {
+      if (!accessToken) {
+        console.error("LobbyContext: AccessToken is missing for fetching user details.");
+        return;
       }
-    }
 
-    fetchPlayers()
-  }, [])
+      const userDetailsPromises = users.map((id) => {
+        return axiosInstance.get(`/users/${id}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+          .then(res => {
+            return { success: true, data: res.data };
+          })
+          .catch(error => {
+            console.error(`LobbyContext: Error fetching user ${id}:`, error);
+            if (error.response) {
+              console.error("Error response data:", error.response.data);
+              console.error("Error response status:", error.response.status);
+              console.error("Error response headers:", error.response.headers);
+            } else if (error.request) {
+              console.error("Error request:", error.request);
+            } else {
+              console.error("Error message:", error.message);
+            }
+            return { success: false, error, userId: id };
+          });
+      });
+
+      const results = await Promise.all(userDetailsPromises);
+
+      const formattedPlayers = results
+        .filter((result): result is { success: true, data: Players } => result.success)
+        .map(({ data: userData }) => ({
+          id: userData.id,
+          username: userData.username || "Unknown",
+          avt: userData.avt || "https://i.imgur.com/RoRONDn.jpeg",
+          elo: userData.elo || 0,
+        }))
+        .filter((player) => player.id !== userId);
+
+      setOnlinePlayers(formattedPlayers);
+
+    } catch (err) {
+      console.error("LobbyContext: Unexpected error in onlineUsers handler:", err);
+      toast.error("Failed to load online player details");
+    }
+  }, [userId, accessToken]);
 
   const getSortedPlayers = () => {
-    const sorted = players
+    const sorted = [...onlinePlayers];
+
+    console.log("SORTING PLAYERS:", sorted);
     switch (selectedFilter) {
       case "Highest":
-        return sorted.sort((a, b) => b.elo - a.elo)
+        return sorted.sort((a, b) => b.elo - a.elo);
       case "Lowest":
-        return sorted.sort((a, b) => a.elo - b.elo)
+        return sorted.sort((a, b) => a.elo - b.elo);
       case "Name":
-        return sorted.sort((a, b) => a.username.localeCompare(b.username))
+        return sorted.sort((a, b) => a.username.localeCompare(b.username));
       default:
-        return sorted
+        return sorted;
     }
   }
+
+
+
+  // Handle socket connection and authentication
+  useEffect(() => {
+    socket?.on("onlineUsers", handleOnlinePlayersUpdate);
+
+    if (!isAuthenticated) {
+      toast.error("Please sign in to view players list.");
+      router.push('/sign_in');
+    }
+    
+  }, [isAuthenticated, router, socket, handleOnlinePlayersUpdate]);
+
+  useEffect(() => {
+    if (onlinePlayers.length > 0) {
+      const sorted = getSortedPlayers();
+      // console.log("SORTED PLAYERS:", sorted);
+      setSortedPlayers(sorted);
+    }
+  }, [onlinePlayers, selectedFilter]);
 
   return (
     <div className={`w-full min-h-screen flex flex-col justify-start items-center relative text-white ${styles.container}`}>
@@ -115,12 +160,12 @@ export default function PlayerList() {
           <div className="w-full flex justify-center items-center py-5 text-[#EA4335]">
             <p>{error}</p>
           </div>
-        ) : getSortedPlayers().length === 0 ? (
+        ) : sortedPlayers.length === 0 ? (
           <div className="w-full flex justify-center items-center py-5">
             <p>No players list found</p>
           </div>
         ) : (
-          getSortedPlayers().map((user, index) => (
+          sortedPlayers.map((user, index) => (
             <div key={index} className={`w-full h-[8dvh] sm:h-[15vh] mb-[5vh] rounded-[2vw] bg-[rgba(255,255,255,0.3)] border-[0.1px] border-solid border-[#EEFF07] flex justify-start items-center ${styles.player}`}>
               <div
                 className="sm:h-[9dvh] h-[5vh] aspect-square rounded-[50%] mx-[1dvh] sm:mx-[3dvh] border border-solid border-white bg-center bg-cover bg-no-repeat"
@@ -137,7 +182,7 @@ export default function PlayerList() {
                 </div>
                 <div className="md:flex hidden flex-col w-[calc(70%/3)] h-full items-start justify-center">
                   <p className="text-[#C4C4C4] text-[1.3rem] mb-[1dvh]">Global Ranking</p>
-                  <p className="font-bold text-[1.3rem]">{user.rank}</p>
+                  {/* <p className="font-bold text-[1.3rem]">{user.rank}</p>  */}
                 </div>
                 <div className="w-[30%] h-full flex justify-start items-center">
                   <p
