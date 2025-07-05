@@ -56,29 +56,13 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/sign_up'
   ]
 
-  const noNavBarRoutes = [
-    '/otp',
-    '/sign_in',
-    '/sign_up',
-    '/reset_password',
-    '/game/offline',
-    '/game/online',
-    '/home'
-  ]
-
-  const noNavRoutes = [
-    '/',
-    '/sign_in',
-    '/sign_up'
-  ]
-
   const showFooter = !noFooterRoutes.includes(pathname)
   const showNav = !noNavRoutes.includes(pathname)
 
   return (
     <SocketProvider>
       <LobbyProvider> {/* NEST THE LOBBY PROVIDER INSIDE SOCKET PROVIDER */}
-        {showNavBar && <NavBar />}
+        {showNav && <NavBar />}
         <Content>{children}</Content>
         {showFooter && <Footer />}
         <GlobalChallengeModalManager /> {/* Render the modal manager globally */}
