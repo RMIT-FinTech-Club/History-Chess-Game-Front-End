@@ -1,25 +1,46 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowUp } from "@fortawesome/free-solid-svg-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import CountUp from "react-countup"
+import { useRouter } from "next/navigation"
+import axiosInstance from "@/config/apiConfig"
+import { toast } from "sonner"
 
 import styles from "@/css/profile.module.css"
 import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
 import CupIcon from "@/public/profile/SVG/cupIcon"
 import SettingIcon from "@/public/profile/SVG/settingIcon"
-import ProfileMatches from "@/components/ui/profileMatches"
-import AccountSettings from "@/components/ui/account_settings"
+import ProfileMatches from "@/components/profile/profileMatches"
+import AccountSettings from "@/components/profile/accountSettings"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 
 export default function ProfilePage() {
-    const { userName, avatar } = useGlobalStorage()
-
+    const { userName, avatar, accessToken, isAuthenticated } = useGlobalStorage()
+    const router = useRouter()
     const profileRef = useRef<HTMLDivElement | null>(null)
     const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
     const [profileMenu, setProfileMenu] = useState(1)
+
+    // Validate token on mount
+    // useEffect(() => {
+    //     const getUserData = async () => {
+    //         try {
+    //             await axiosInstance.get("/users/profile", {
+    //                 headers: {
+    //                     "Content-Type": "application/json",
+    //                     Authorization: `Bearer ${accessToken}`,
+    //                 },
+    //             })
+    //         } catch (error: any) {
+    //             console.error("An error occurred while validating your session.", error);
+    //             toast.error("An error occurred while validating your session.");
+    //         }
+    //     }
+    //     getUserData()
+    // }, [accessToken, router])
 
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
     return (
@@ -30,7 +51,7 @@ export default function ProfilePage() {
                         <div
                             ref={profileRef}
                             onClick={handleToggleProfile}
-                            className={`absolute w-[calc(2vw-2px)] aspect-square left-[31vw] ${isProfileOpened ? 'top-[11vw]' : 'top-[11.5vw]'} cursor-pointer bg-[#1D1D1D] border border-solid border-white rounded-[50%] hidden md:flex justify-center items-center`}
+                            className={`absolute w-[calc(2vw-2px)] aspect-square left-[76vw] top-[13vw] cursor-pointer bg-[#1D1D1D] border border-solid border-white rounded-[50%] hidden md:flex justify-center items-center`}
                         >
                             <FontAwesomeIcon
                                 icon={faArrowUp}
