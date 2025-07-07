@@ -12,7 +12,7 @@ import { MdOutlineFileUpload } from "react-icons/md";
 import Image from "next/image";
 import styles from "@/css/profile.module.css";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { toast } from "sonner";
 import Popup from "@/components/ui/Popup";
 import {
@@ -143,7 +143,9 @@ const AccountSettings = () => {
         }
         return response.data;
       } else {
-        const loginResponse = await axiosInstance.post("/users/login", { identifier });
+        const loginResponse = await axiosInstance.post("/users/login", {
+          identifier,
+        });
         console.log("Token refresh raw response:", loginResponse);
         if (!loginResponse.data || !loginResponse.data.token) {
           throw new Error("Invalid login response structure");
@@ -329,7 +331,7 @@ const AccountSettings = () => {
           userId: "",
           userName: "",
           email: "",
-          refreshToken: null
+          refreshToken: null,
         });
       }
 
@@ -342,12 +344,16 @@ const AccountSettings = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await axiosInstance.post(`/users/${userId}/avatar`, formData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await axiosInstance.post(
+        `/users/${userId}/avatar`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       console.log("Avatar upload response:", response.data);
       setImagePreview(null);
@@ -361,7 +367,7 @@ const AccountSettings = () => {
         email: profileData.email || email,
         accessToken: profileData.token,
         avatar: profileData.avatarUrl || null,
-        refreshToken: null
+        refreshToken: null,
       });
       setInitialAvatar(profileData.avatarUrl);
       toast.success("Avatar uploaded successfully");
@@ -438,7 +444,7 @@ const AccountSettings = () => {
           userId: "",
           userName: "",
           email: "",
-          refreshToken: null
+          refreshToken: null,
         });
       }
 
@@ -465,7 +471,7 @@ const AccountSettings = () => {
         email: profileData.email || email,
         accessToken: profileData.token,
         avatar: profileData.avatarUrl || null,
-        refreshToken: null
+        refreshToken: null,
       });
 
       form.reset({ username: profileData.username || data.username });
@@ -554,7 +560,7 @@ const AccountSettings = () => {
         });
         toast.error(
           error.response?.data?.message ||
-          "Failed to update password. Please try again."
+            "Failed to update password. Please try again."
         );
       } else {
         console.error("Unexpected error updating password:", error);
@@ -635,8 +641,8 @@ const AccountSettings = () => {
 
   if (initialLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-white font-poppins font-bold">
-        <p className="text-[3vh]">Loading Profile...</p>
+      <div>
+        <p className="text-[3vh] font-bold">Loading Profile...</p>
       </div>
     );
   }
@@ -651,9 +657,9 @@ const AccountSettings = () => {
           alt="Settings icon"
           className="w-[2.5vw] md:w-[2vw] mb-[1vh]"
         />
-        <h3 className="text-[3vw] md:text-[2vw] leading-[2vw] ml-[1vw] font-bold">
+        <p className="text-[3vw] md:text-[2vw] leading-[2vw] ml-[1vw] font-bold">
           Basic Information
-        </h3>
+        </p>
       </div>
 
       <hr className="border-t border-[#FFFFFF]" />
@@ -665,8 +671,9 @@ const AccountSettings = () => {
         >
           <div className="w-full flex flex-row items-center">
             <div
-              className={`md:w-[8vw] md:aspect-square w-[14vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative ${isEditing ? "cursor-pointer" : "cursor-not-allowed"
-                }`}
+              className={`md:w-[9vw] md:aspect-square w-[14vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative ${
+                isEditing ? "cursor-pointer" : "cursor-not-allowed"
+              }`}
               onClick={handleAvatarClick}
               role="button"
               aria-label={isEditing ? "Upload new avatar" : "Avatar display"}
@@ -719,7 +726,7 @@ const AccountSettings = () => {
               />
             </div>
 
-            <div className="!mx-[4vw]">
+            <div className="!mx-[2vw]">
               <div>
                 <Label className="text-[2.25vw] md:text-[1.25vw]">
                   User Information
@@ -733,14 +740,25 @@ const AccountSettings = () => {
                   <FormItem>
                     <div className="relative w-[55vw] md:w-[25vw]">
                       <FaUser className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[2.5vh] pointer-events-none" />
-                      <Input
-                        id="username"
-                        disabled={!isEditing}
-                        className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
-                        autoComplete="off"
-                        aria-disabled={!isEditing}
-                        {...field}
-                      />
+                      {isEditing ? (
+                        <Input
+                          id="username"
+                          disabled={!isEditing}
+                          className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] !text-[2.5vh] font-normal"
+                          autoComplete="off"
+                          aria-disabled={!isEditing}
+                          {...field}
+                        />
+                      ) : (
+                        <Input
+                          id="username"
+                          disabled={!isEditing}
+                          className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] !text-[#8C8C8C] !text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                          autoComplete="off"
+                          aria-disabled={!isEditing}
+                          {...field}
+                        />
+                      )}
                     </div>
                     <FormMessage className="text-[2.5vh] text-red-500" />
                   </FormItem>
@@ -753,7 +771,7 @@ const AccountSettings = () => {
                   disabled
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                  className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] !text-[#8C8C8C] !text-[2.5vh] font-normal disabled:!opacity-100 disabled:!cursor-not-allowed"
                   aria-disabled="true"
                 />
               </div>
@@ -765,7 +783,7 @@ const AccountSettings = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="cursor-pointer rounded-[1vh] py-[1vh] px-[1vw] font-semibold text-[#000000] bg-[#F7D27F] hover:bg-[#E9B654] transition-colors text-[2.25vw] md:text-[1.25vw] disabled:opacity-50"
+                    className="cursor-pointer rounded-[1vh] !py-[1vh] !px-[1vw] !font-semibold !text-[#000000] !bg-[#F7D27F] hover:!bg-[#E9B654] !transition-colors !text-[1.25vw]"
                     aria-busy={loading}
                   >
                     {loading ? "Saving..." : "Save"}
@@ -773,7 +791,7 @@ const AccountSettings = () => {
                   <button
                     type="button"
                     onClick={handleCancelClick}
-                    className="cursor-pointer rounded-[1vh] py-[1vh] px-[1vw] font-semibold text-[#000000] bg-[#CCCCCC] hover:bg-[#AAAAAA] transition-colors text-[2.25vw] md:text-[1.25vw]"
+                    className="cursor-pointer rounded-[1vh] !py-[1vh] !px-[1vw] !font-semibold !text-[#000000] !bg-[#EA4335] hover:!bg-[#A12318] !transition-colors !text-[1.25vw]"
                   >
                     Cancel
                   </button>
@@ -782,7 +800,7 @@ const AccountSettings = () => {
                 <button
                   type="button"
                   onClick={handleEditClick}
-                  className="flex items-center gap-2 cursor-pointer border border-[#E9B654] hover:!bg-[#DBB968] rounded-[1vh] py-[1vh] px-[1vw] transition-colors"
+                  className="flex items-center gap-2 cursor-pointer border border-[#E9B654] !text-[#FFFFFF] hover:!bg-[#DBB968] rounded-[1vh] py-[1vh] px-[1vw] transition-colors"
                 >
                   <span className="text-[2.25vw] md:text-[1.25vw]">Edit</span>
                   <Image
@@ -945,7 +963,7 @@ const AccountSettings = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="cursor-pointer rounded-[1vh] py-[1vh] px-[1vw] font-semibold text-[#000000] bg-[#F7D27F] hover:bg-[#E9B654] transition-colors text-[2.25vw] md:text-[1.25vw] disabled:opacity-50"
+                className="cursor-pointer rounded-[1vh] !py-[1vh] !px-[1vw] !font-semibold !text-[#000000] !bg-[#F7D27F] hover:!bg-[#E9B654] !transition-colors !text-[1.25vw]"
                 aria-busy={loading}
               >
                 {loading ? "Saving..." : "Save"}
@@ -953,7 +971,7 @@ const AccountSettings = () => {
               <button
                 type="button"
                 onClick={handleClosePasswordPopup}
-                className="cursor-pointer rounded-[1vh] py-[1vh] px-[1vw] font-semibold text-[#000000] bg-[#CCCCCC] hover:bg-[#AAAAAA] transition-colors text-[2.25vw] md:text-[1.25vw]"
+                className="cursor-pointer rounded-[1vh] !py-[1vh] !px-[1vw] !font-semibold !text-[#000000] !bg-[#EA4335] hover:!bg-[#A12318] !transition-colors !text-[1.25vw]"
               >
                 Cancel
               </button>
