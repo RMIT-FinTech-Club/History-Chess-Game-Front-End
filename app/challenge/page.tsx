@@ -109,7 +109,7 @@ export default function Challenge() {
                     />
                 </div>
                 <div className={`${window.innerWidth > 768 ? 'h-[600px]' : window.innerWidth > 480 ? 'h-[400px]' : 'h-[300px]'} flex flex-col`}>
-                    <div className="h-full bg-[#353b48] mb-[2vh] text-white flex flex-col p-[2vh] rounded-[2vh]">
+                    <div className="h-full bg-[transparent] bg-[linear-gradient(120deg,rgba(255,255,255,0.3),rgba(0,0,0,0.2))] backdrop-blur-[20px] mb-[2vh] text-white flex flex-col p-[2vh] rounded-[2vh]">
                         <PlayerSelector
                             selectedPlayer={selectedPlayer}
                             players={onlinePlayers}
