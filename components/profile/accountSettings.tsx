@@ -726,7 +726,7 @@ const AccountSettings = () => {
               />
             </div>
 
-            <div className="!mx-[2vw]">
+            <div className="!mx-[3vw]">
               <div>
                 <Label className="text-[2.25vw] md:text-[1.25vw]">
                   User Information
@@ -777,7 +777,7 @@ const AccountSettings = () => {
               </div>
             </div>
 
-            <div className="flex flex-col self-start gap-[1vh] ml-[4vw]">
+            <div className="flex flex-col self-start gap-[1vh]">
               {isEditing ? (
                 <>
                   {loading ? (
