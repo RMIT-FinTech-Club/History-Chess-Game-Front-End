@@ -671,7 +671,7 @@ const AccountSettings = () => {
         >
           <div className="w-full flex flex-row items-center">
             <div
-              className={`md:w-[9vw] md:aspect-square w-[14vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative ${
+              className={`w-[9vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative ${
                 isEditing ? "cursor-pointer" : "cursor-not-allowed"
               }`}
               onClick={handleAvatarClick}
@@ -738,13 +738,13 @@ const AccountSettings = () => {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="relative w-[55vw] md:w-[25vw]">
+                    <div className="relative w-[27vw]">
                       <FaUser className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[2.5vh] pointer-events-none" />
                       {isEditing ? (
                         <Input
                           id="username"
                           disabled={!isEditing}
-                          className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] !text-[2.5vh] font-normal"
+                          className="w-[25vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] !text-[2.5vh] font-normal"
                           autoComplete="off"
                           aria-disabled={!isEditing}
                           {...field}
@@ -753,7 +753,7 @@ const AccountSettings = () => {
                         <Input
                           id="username"
                           disabled={!isEditing}
-                          className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] !text-[#8C8C8C] !text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                          className="w-[25vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] !text-[#8C8C8C] !text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
                           autoComplete="off"
                           aria-disabled={!isEditing}
                           {...field}
@@ -765,29 +765,41 @@ const AccountSettings = () => {
                 )}
               />
 
-              <div className="relative w-[55vw] md:w-[25vw] mt-[2vh]">
+              <div className="relative w-[25vw] mt-[2vh]">
                 <MdEmail className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[3vh] pointer-events-none" />
                 <Input
                   disabled
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] !text-[#8C8C8C] !text-[2.5vh] font-normal disabled:!opacity-100 disabled:!cursor-not-allowed"
+                  className="w-[25vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] !text-[#8C8C8C] !text-[2.5vh] font-normal disabled:!opacity-100 disabled:!cursor-not-allowed"
                   aria-disabled="true"
                 />
               </div>
             </div>
 
-            <div className="flex flex-col self-start gap-[1vw] ml-[5vw]">
+            <div className="flex flex-col self-start gap-[1vh] ml-[4vw]">
               {isEditing ? (
                 <>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="cursor-pointer rounded-[1vh] !py-[1vh] !px-[1vw] !font-semibold !text-[#000000] !bg-[#F7D27F] hover:!bg-[#E9B654] !transition-colors !text-[1.25vw]"
-                    aria-busy={loading}
-                  >
-                    {loading ? "Saving..." : "Save"}
-                  </button>
+                  {loading ? (
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="cursor-pointer rounded-[1vh] !py-[1vh] !px-[1vw] !font-semibold !text-[#000000] !bg-[#F7D27F] hover:!bg-[#E9B654] !transition-colors !text-[1.25vw]"
+                      aria-busy={loading}
+                    >
+                      Saving...
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="cursor-pointer rounded-[1vh] !py-[1vh] !px-[1vw] !font-semibold !text-[#000000] !bg-[#F7D27F] hover:!bg-[#E9B654] !transition-colors !text-[1.25vw]"
+                      aria-busy={loading}
+                    >
+                      Save
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     onClick={handleCancelClick}
