@@ -28,19 +28,19 @@ const modeOptions: { label: string; value: GameMode; description: string; detail
 
 export default function GameModeSelector({ selectedMode, onModeChange }: GameModeSelectorProps) {
     return (
-        <div className="h-auto w-full flex items-center justify-between">
+        <div className="h-full w-full">
             <Tabs
                 value={selectedMode}
                 onValueChange={(value) => onModeChange(value as GameMode)}
-                className="w-full h-full"
+                className="w-full h-full flex flex-col justify-around items-center"
             >
-                <TabsList className="grid w-full h-full grid-cols-3 gap-x-[2vh] bg-transparent p-0 mb-4">
+                <TabsList className="grid w-full h-[max-content] grid-cols-3 gap-x-[2vh] bg-transparent p-0 my-auto">
                     {modeOptions.map((opt) => (
                         <TabsTrigger
                             key={opt.value}
                             value={opt.value}
                             className={`
-                                h-auto w-full flex bg-black !py-4 col-span-1 group gap-4
+                                h-auto w-full flex !py-4 col-span-1 group gap-4
                                 !bg-black !text-white
                                 data-[state=active]:!bg-[#DBB968] data-[state=active]:!text-black
                                 hover:!bg-[#DBB968] hover:!text-black
@@ -50,22 +50,24 @@ export default function GameModeSelector({ selectedMode, onModeChange }: GameMod
                         >
                             <Clock
                                 fill={selectedMode === opt.value ? '#000' : '#DBB968'}
-                                classes="!w-6 !h-6 aspect-square bg-center group-hover:rotate-20 transition-transform duration-200"
+                                classes="!w-10 !h-10 aspect-square bg-center group-hover:rotate-20 transition-transform duration-200"
                             />
-                            <p className="font-bold uppercase text-nowrap">{opt.label}</p>
+                            <p className="text-[1.1rem] font-bold uppercase text-nowrap">{opt.label}</p>
                         </TabsTrigger>
                     ))}
                 </TabsList>
-                {modeOptions.map((opt) => (
-                    <TabsContent key={opt.value} value={opt.value}>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{opt.details}</CardTitle>
-                                <CardDescription>{opt.description}</CardDescription>
-                            </CardHeader>
-                        </Card>
-                    </TabsContent>
-                ))}
+                <div className="w-full my-auto">
+                    {modeOptions.map((opt) => (
+                        <TabsContent key={opt.value} value={opt.value}>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>{opt.details}</CardTitle>
+                                    <CardDescription>{opt.description}</CardDescription>
+                                </CardHeader>
+                            </Card>
+                        </TabsContent>
+                    ))}
+                </div>
             </Tabs>
         </div>
     );

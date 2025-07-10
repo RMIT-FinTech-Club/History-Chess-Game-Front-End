@@ -43,17 +43,21 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/profile',
     '/otp',
     '/sign_in',
-    '/sign_up'
+    '/sign_up',
+    '/home',
+    '/reset_password',
+    '/game/offline',
+    '/game/online'
   ]
 
-  const noNavBarRoutes = [
-    '/otp',
+  const noNavRoutes = [
     '/sign_in',
-    '/sign_up'
+    '/sign_up',
+    '/'
   ]
 
   const showFooter = !noFooterRoutes.includes(pathname)
-  const showNavBar = !noNavBarRoutes.includes(pathname)
+  const showNavBar = !noNavRoutes.includes(pathname)
 
   return (
     <SocketProvider>
