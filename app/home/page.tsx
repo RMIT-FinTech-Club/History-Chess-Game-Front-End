@@ -14,27 +14,26 @@ export default function HomePage() {
     // const { onlineUsers } = useWebSocket();
     // console.log(onlineUsers);
     return (
-        <div className="text-white relative min-h-screen flex flex-col items-center justify-center">
+        <div className="text-white relative h-[calc(100dvh-var(--navbar-height))] flex justify-center items-center">
             <YellowLight left="-15vw" top="-15vw" />
-            <p className="text-[5rem] text-center font-extrabold my-[5dvh] w-full">Choose Game Mode</p>
-            <div className="flex flex-col md:flex-row justify-around items-stretch w-full max-w-6xl px-4">
-                <div
+            <div className={`${styles.container} w-full md:h-[max-content] h-full grid`}>
+                <div 
                     onClick={() => router.push("/challenge")}
-                    className="border border-white border-solid w-full md:w-[30vw] overflow-hidden rounded-[4vw] mb-[5dvh] md:mb-0 flex flex-col bg-[linear-gradient(180deg,#E9B654,#363624)] cursor-pointer min-h-[400px]"
+                    className={`${styles.item1} border border-white border-solid overflow-hidden rounded-[4vw] flex flex-row md:flex-col bg-[linear-gradient(180deg,#E9B654,#363624)] cursor-pointer`}
                 >
-                    <div className={`w-full aspect-square bg-center bg-cover bg-no-repeat ${styles.chessboardBG}`}></div>
-                    <div className="flex flex-col items-start justify-center flex-1 p-4">
-                        <p className="text-[5rem] md:text-[3.5rem] text-center font-extrabold w-full my-[1dvh]">Challenge Players</p>
+                    <div className={`w-[40vw] md:w-full aspect-square bg-center bg-cover bg-no-repeat ${styles.chessboardBG}`}></div>
+                    <div className="flex flex-col items-start justify-center">
+                        <p className="text-[3.5rem] text-center font-extrabold w-full my-[1dvh]">Play Online</p>
                         <p className="text-[2rem] text-center opacity-80 w-full px-[4vw] mb-[2dvh]">Match and play with someone at your level</p>
                     </div>
                 </div>
-                <div
+                <div 
                     onClick={() => router.push("/game/find")}
-                    className="border border-white border-solid w-full md:w-[30vw] overflow-hidden rounded-[4vw] flex flex-col bg-[linear-gradient(180deg,#E9B654,#363624)] cursor-pointer min-h-[400px]"
+                    className={`${styles.item2} border border-white border-solid overflow-hidden rounded-[4vw] flex flex-row md:flex-col bg-[linear-gradient(180deg,#E9B654,#363624)] cursor-pointer`}
                 >
-                    <div className={`w-full aspect-square bg-center bg-cover bg-no-repeat ${styles.chessboardBG}`}></div>
-                    <div className="flex flex-col items-start justify-center flex-1 p-4">
-                        <p className="text-[5rem] md:text-[3.5rem] text-center font-extrabold w-full my-[1dvh]">Find Match</p>
+                    <div className={`w-[40vw] md:w-full aspect-square bg-center bg-cover bg-no-repeat ${styles.chessboardBG}`}></div>
+                    <div className="flex flex-col items-start justify-center">
+                        <p className="text-[3.5rem] text-center font-extrabold w-full my-[1dvh]">Play Offline</p>
                         <p className="text-[2rem] text-center opacity-80 w-full px-[4vw] mb-[2dvh]">Challenge yourself with our trained bot</p>
                     </div>
                 </div>

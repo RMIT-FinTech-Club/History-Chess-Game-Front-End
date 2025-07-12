@@ -6,7 +6,7 @@ import { SideSelectorProps, sideOptions } from "./types";
 
 export default function SideSelector({ selectedSide, onSideChangeAction }: SideSelectorProps) {
     return (
-        <div className="grid grid-cols-3 gap-[2vh]">
+        <div className="grid grid-cols-3 gap-[2vh] mt-[2vh]">
             {sideOptions.map((opt) => (
                 <div
                     key={opt.value}
