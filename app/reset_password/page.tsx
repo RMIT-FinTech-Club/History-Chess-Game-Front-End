@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -14,10 +14,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { NewPassword } from "@/components/ui/NewPassword";
-import { NewPasswordConfirm } from "@/components/ui/NewPasswordConfirm";
+import { NewPassword } from "@/components/profile/accountSetting/NewPassword";
+import { NewPasswordConfirm } from "@/components/profile/accountSetting/NewPasswordConfirm";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import { MdEmail } from "react-icons/md";
+import axiosInstance from "@/config/apiConfig";
 import axios from "axios";
 import styles from "@/css/otp.module.css";
 
@@ -110,8 +111,8 @@ const ResetPassword = () => {
     });
     setLoading(true);
     try {
-      const authTypeResponse = await axios.post(
-        "http://localhost:8080/users/check-auth-type",
+      const authTypeResponse = await axiosInstance.post(
+        "/users/check-auth-type",
         { email: data.email }
       );
       if (authTypeResponse.data.googleAuth) {
@@ -119,7 +120,7 @@ const ResetPassword = () => {
         setStep("google");
         return;
       }
-      await axios.post("http://localhost:8080/users/request-reset", {
+      await axiosInstance.post("/users/request-reset", {
         email: data.email,
       });
       console.log("Request reset response: Code sent");
@@ -151,7 +152,7 @@ const ResetPassword = () => {
       });
       setLoading(true);
       try {
-        await axios.post("http://localhost:8080/users/verify-reset-code", {
+        await axiosInstance.post("/users/verify-reset-code", {
           email,
           resetCode: data.resetCode,
         });
@@ -185,31 +186,28 @@ const ResetPassword = () => {
       });
       setLoading(true);
       try {
-        const resetResponse = await axios.post(
-          "http://localhost:8080/users/reset-password",
+        const resetResponse = await axiosInstance.post(
+          "/users/reset-password",
           {
             email,
             resetCode: verifiedResetCode,
             newPassword: data.newPassword,
           }
         );
-        const token = resetResponse.data.token;
-        console.log("Reset password response:", resetResponse.data);
-        const profileResponse = await axios.get("http://localhost:8080/users/profile", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const user = profileResponse.data.user;
-        console.log("Profile response:", profileResponse.data);
+        const { token, id, username, email: userEmail, avatarUrl } = resetResponse.data;
+
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(id)) {
+          throw new Error("Invalid user ID in reset password response");
+        }
+
         setAuthData({
-          userId: user.id,
-          userName: user.username,
-          email: user.email,
+          userId: id,
+          userName: username,
+          email: userEmail,
           accessToken: token,
           refreshToken: null,
-          avatar: user.avatarUrl || null,
+          avatar: avatarUrl || null,
         });
         toast.success("Password reset successfully");
         router.push("/profile");
@@ -218,7 +216,17 @@ const ResetPassword = () => {
           ? err.response?.data?.message || "Failed to reset password"
           : "Network error";
         console.error("Reset password error:", err);
-        setErrors((prev) => ({ ...prev, newPassword: message }));
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 404) {
+            setErrors((prev) => ({ ...prev, newPassword: "User not found" }));
+          } else if (err.response?.status === 400) {
+            setErrors((prev) => ({ ...prev, newPassword: "Invalid reset code" }));
+          } else {
+            setErrors((prev) => ({ ...prev, newPassword: message }));
+          }
+        } else {
+          setErrors((prev) => ({ ...prev, newPassword: message }));
+        }
         document
           .getElementById("newPassword-input")
           ?.classList.add("border-red-500", "border-[0.3vh]");
@@ -275,7 +283,6 @@ const ResetPassword = () => {
     } else if (key === "ArrowRight" && index < 5) {
       inputRefs.current[index + 1]?.focus();
     } else if (key === "Enter" && !resending && otp.every((digit) => digit !== "")) {
-      // Only submit on Enter if not resending and OTP is complete
       e.preventDefault();
       onCodeSubmit({ resetCode: otp.join("") });
     }
@@ -310,7 +317,7 @@ const ResetPassword = () => {
       confirmPassword: "",
     });
     try {
-      await axios.post("http://localhost:8080/users/request-reset", {
+      await axiosInstance.post("/users/request-reset", {
         email,
       });
       console.log("Resend OTP response: Code sent");
@@ -333,7 +340,6 @@ const ResetPassword = () => {
 
   return (
     <div className="flex flex-col justify-center items-center h-[100dvh]">
-      {/* Logo section unchanged */}
       <div className="flex justify-center items-center relative h-[30vh] aspect-square">
         <div
           className="w-full h-full bg-[#DCB410] rounded-full absolute left-0 top-0"
@@ -349,10 +355,10 @@ const ResetPassword = () => {
           {step === "email"
             ? "Reset Password"
             : step === "code"
-            ? ""
-            : step === "password"
-            ? "Reset Password"
-            : "Google Sign In"}
+              ? ""
+              : step === "password"
+                ? "Reset Password"
+                : "Google Sign In"}
         </h2>
         {step === "email" && (
           <Form {...emailForm}>
@@ -365,7 +371,7 @@ const ResetPassword = () => {
                     <FormControl>
                       <div className="relative my-[4vh]">
                         <MdEmail
-                          className="absolute text-black cursor-pointer top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]"
+                          className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[5vh] cursor-pointer"
                           onClick={() =>
                             document.getElementById("email-input")?.focus()
                           }
@@ -376,7 +382,7 @@ const ResetPassword = () => {
                           autoFocus
                           {...field}
                           className="
-                            pl-[7.5vw] md:pl-[4vw]
+                            !pl-[4vw]
                             py-[4vh] w-[40vw]
                             bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                             !text-[3vh] font-normal rounded-[1.5vh]
@@ -385,6 +391,9 @@ const ResetPassword = () => {
                         />
                       </div>
                     </FormControl>
+                    {errors.email && (
+                      <p className="text-red-500 text-[2.5vh] font-bold">{errors.email}</p>
+                    )}
                   </FormItem>
                 )}
               />
@@ -392,7 +401,7 @@ const ResetPassword = () => {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="bg-[#DBB968] w-[20vw] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#000000] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
+                  className="!bg-[#DBB968] hover:!shadow-2xl hover:!shadow-amber-400 !w-[20vw] cursor-pointer !text-[#000000] !font-semibold !text-[3vh] !px-[2vw] !py-[3.5vh] !rounded-[1.5vh]"
                 >
                   {loading ? "Sending..." : "Send Verification Code"}
                 </Button>
@@ -421,9 +430,9 @@ const ResetPassword = () => {
                             maxLength={1}
                             autoFocus={index === 0}
                             className={`
-                              w-[12vw] md:w-[14vh] aspect-square text-center rounded-[5px] text-white text-[6vw] md:text-[6vh]
+                              w-[14vh] aspect-square text-center rounded-[5px] !text-white text-[6vw] md:text-[6vh]
                               mt-[5vh]
-                              border-[0.2vw] border-[#27272A] bg-[#000] focus:border-yellow-400 outline-none
+                              !border-[0.2vw] !border-[#27272A] !bg-[#000000] focus:!border-yellow-400 !outline-none
                             `}
                             value={digit}
                             onPaste={handlePaste}
@@ -435,6 +444,9 @@ const ResetPassword = () => {
                         ))}
                       </div>
                     </FormControl>
+                    {errors.resetCode && (
+                      <p className="text-red-500 text-[2.5vh] font-bold">{errors.resetCode}</p>
+                    )}
                     <p className="text-white text-[2.5vw] text-center md:text-[1.5vw] mt-[5vh]">
                       Enter the OTP sent via email. (Expired in{" "}
                       <span className="text-[#E9B654]">
@@ -449,15 +461,15 @@ const ResetPassword = () => {
                 <Button
                   type="submit"
                   disabled={loading || resending}
-                  className="w-[20vw] bg-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#000000] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
+                  className="!w-[20vw] !bg-[#DBB968] hover:!shadow-2xl hover:!shadow-amber-400 cursor-pointer !text-[#000000] !font-semibold !text-[3vh] !px-[2vw] !py-[4vh] !rounded-[1.5vh]"
                 >
                   {loading ? "Submitting..." : "Submit"}
                 </Button>
                 <Button
-                  type="button" // Explicitly prevent form submission
+                  type="button"
                   onClick={handleResendOtp}
                   disabled={loading || resending}
-                  className="w-[20vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
+                  className="!w-[20vw] !border !border-[#DBB968] hover:!shadow-2xl hover:!shadow-amber-400 hover:!bg-[#000000] cursor-pointer !text-[#EBEBEB] !font-semibold !text-[3vh] !px-[2vw] !py-[4vh] !rounded-[1.5vh]"
                 >
                   {resending ? "Resending..." : "Resend OTP"}
                 </Button>
@@ -483,7 +495,7 @@ const ResetPassword = () => {
                         {...field}
                         autoFocus
                         className="
-                          pl-[7vw] md:pl-[3vw]
+                          !pl-[3.5vw]
                           py-[4vh] w-[40vw]
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -512,7 +524,7 @@ const ResetPassword = () => {
                         placeholder="Confirm new password"
                         {...field}
                         className="
-                          pl-[7vw] md:pl-[3vw]
+                          !pl-[3.5vw]
                           py-[4vh] w-[40vw]
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -531,7 +543,7 @@ const ResetPassword = () => {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-[20vw] bg-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#000000] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
+                  className="!w-[20vw] !bg-[#DBB968] hover:!shadow-2xl hover:!shadow-amber-400 cursor-pointer !text-[#000000] !font-semibold !text-[3vh] !px-[2vw] !py-[4vh] rounded-[1.5vh]"
                 >
                   {loading ? "Submitting..." : "Submit"}
                 </Button>

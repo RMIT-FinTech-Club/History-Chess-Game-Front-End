@@ -5,8 +5,28 @@ import { usePathname } from "next/navigation"
 import Content from "@/components/content"
 import Footer from "@/components/Footer"
 import NavBar from "@/components/NavBar"
-export default function ClientWrapper({ children }: { children: React.ReactNode }) {
+import { SocketProvider } from "@/context/WebSocketContext";
+import { useLobby, LobbyProvider } from "@/context/LobbyContext";
+import ChallengeModal from "@/app/challenge/ChallengeModal";
+import GlobalGameRedirector from "@/context/GlobalGameRedirector";
+
+const GlobalChallengeModalManager = () => {
+  const { isChallengeModalOpen, incomingChallengeData, acceptChallenge, declineChallenge } = useLobby();
+  return (
+    <ChallengeModal
+      isOpen={isChallengeModalOpen}
+      challengeData={incomingChallengeData}
+      onCloseAction={declineChallenge} // Closing the modal should decline the challenge
+      onAcceptAction={acceptChallenge}
+      onDeclineAction={declineChallenge}
+    />
+  );
+}
+
+
+const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname()
 
   useEffect(() => {
     setMounted(true);
@@ -15,8 +35,6 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
   if (!mounted) {
     return null; // Prevent rendering until the component is mounted
   }
-
-  const pathname = usePathname()
 
   const noFooterRoutes = [
     '/challenge',
@@ -28,13 +46,26 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
     '/sign_up'
   ]
 
+  const noNavBarRoutes = [
+    '/otp',
+    '/sign_in',
+    '/sign_up'
+  ]
+
   const showFooter = !noFooterRoutes.includes(pathname)
+  const showNavBar = !noNavBarRoutes.includes(pathname)
 
   return (
-    <>
-      <NavBar />
-      <Content>{children}</Content>
-      {showFooter && <Footer />}
-    </>
+    <SocketProvider>
+      <LobbyProvider> {/* NEST THE LOBBY PROVIDER INSIDE SOCKET PROVIDER */}
+        {showNavBar && <NavBar />}
+        <Content>{children}</Content>
+        {showFooter && <Footer />}
+        <GlobalChallengeModalManager /> {/* Render the modal manager globally */}
+        <GlobalGameRedirector />
+      </LobbyProvider>
+    </SocketProvider>
   )
 }
+
+export default ClientWrapper;

@@ -112,7 +112,7 @@ export default function Otp() {
     }
 
     return (
-        <div className="flex flex-col justify-center md:justify-around items-center h-[100dvh]">
+        <div className="min-h-screen flex flex-col justify-center md:justify-around items-center h-[100dvh]">
             {/* Logo section with background blur */}
             <div className="flex justify-center items-center relative h-[30vh] aspect-square">
                 <div
