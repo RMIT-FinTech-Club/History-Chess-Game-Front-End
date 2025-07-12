@@ -42,11 +42,15 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/profile',
     '/otp',
     '/sign_in',
-    '/sign_up'
+    '/sign_up',
+    '/reset_password',
+    '/game/offline',
+    '/game/online',
+    '/home'
   ];
 
   const noNavBarRoutes = [
-    '/otp',
+    '/',
     '/sign_in',
     '/sign_up'
   ];
