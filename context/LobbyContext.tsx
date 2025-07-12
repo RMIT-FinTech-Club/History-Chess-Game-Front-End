@@ -91,7 +91,7 @@ export const LobbyProvider = ({ children }: { children: React.ReactNode }) => {
             console.error("LobbyContext: Unexpected error in onlineUsers handler:", err);
             toast.error("Failed to load online player details");
         }
-    }, [userId, accessToken]); // Depend on userId and accessToken
+    }, [userId, accessToken]); 
 
     // Callback for incoming challenges, accessible globally
     const handleIncomingChallenge = useCallback((data: ChallengeData) => {
