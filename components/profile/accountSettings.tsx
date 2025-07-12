@@ -23,10 +23,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { OldPassword } from "@/components/ui/OldPassword";
-import { NewPassword } from "@/components/ui/NewPassword";
-import { NewPasswordConfirm } from "@/components/ui/NewPasswordConfirm";
-import { jwtDecode } from "jwt-decode";
+import { OldPassword } from "@/components/profile/accountSetting/OldPassword";
+import { NewPassword } from "@/components/profile/accountSetting/NewPassword";
+import { NewPasswordConfirm } from "@/components/profile/accountSetting/NewPasswordConfirm";
+import axiosInstance from "@/config/apiConfig";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit
 
@@ -68,12 +68,6 @@ const passwordFormSchema = z
 
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
-interface JwtPayload {
-  id: string;
-  username: string;
-  googleAuth: boolean;
-}
-
 const AccountSettings = () => {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -89,7 +83,8 @@ const AccountSettings = () => {
   const [isGoogleAuth, setIsGoogleAuth] = useState(false);
   const [userId, setUserId] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { accessToken, setAuthData } = useGlobalStorage();
+  const { accessToken } = useGlobalStorage();
+  const { setAuthData } = useGlobalStorage();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -117,7 +112,7 @@ const AccountSettings = () => {
       return false;
     }
     try {
-      await axios.get("http://localhost:8080/users/profile", {
+      await axiosInstance.get("/users/profile", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
@@ -132,24 +127,31 @@ const AccountSettings = () => {
 
   const refreshToken = async (identifier: string) => {
     try {
-      const loginResponse = await axios.post(
-        "http://localhost:8080/users/login",
-        {
-          identifier,
-          token: accessToken || undefined,
+      if (isGoogleAuth) {
+        console.log(
+          "Refreshing token for Google account with existing token:",
+          accessToken
+        );
+        const response = await axiosInstance.get("/users/profile", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        if (!response.data || !response.data.token) {
+          throw new Error("Invalid profile response structure");
         }
-      );
-      console.log(
-        "Token refresh raw response:",
-        loginResponse,
-        "isGoogleAuth:",
-        isGoogleAuth
-      );
-      if (!loginResponse.data || !loginResponse.data.token) {
-        throw new Error("Invalid login response structure");
+        return response.data;
+      } else {
+        const loginResponse = await axiosInstance.post("/users/login", { identifier });
+        console.log("Token refresh raw response:", loginResponse);
+        if (!loginResponse.data || !loginResponse.data.token) {
+          throw new Error("Invalid login response structure");
+        }
+        return loginResponse.data;
       }
-      return loginResponse.data;
     } catch (error) {
+      console.error("Token refresh failed:", error);
       if (
         axios.isAxiosError(error) &&
         error.response?.data?.message?.includes(
@@ -157,11 +159,16 @@ const AccountSettings = () => {
         )
       ) {
         console.warn(
-          "Google auth login attempt blocked, falling back to existing token"
+          "Google auth login attempt blocked, falling back to profile fetch"
         );
-        return { token: accessToken, data: null }; // Fallback to existing token
+        const response = await axiosInstance.get("/users/profile", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        return response.data;
       }
-      console.error("Token refresh failed:", error);
       throw error;
     }
   };
@@ -182,26 +189,34 @@ const AccountSettings = () => {
     setInitialLoading(true);
     try {
       console.log("Fetching profile with token:", accessToken);
-      const decoded = jwtDecode<JwtPayload>(accessToken);
-      setIsGoogleAuth(decoded.googleAuth);
-      setUserId(decoded.id);
-
-      const response = await axios.get("http://localhost:8080/users/profile", {
+      const response = await axiosInstance.get("/users/profile", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
       });
 
-      const data = response.data;
-      if (!data?.user) {
-        throw new Error("Invalid response data: 'user' field missing");
+      if (!response.data) {
+        throw new Error("Invalid response data");
       }
 
-      form.reset({ username: data.user.username || "" });
-      setInitialUsername(data.user.username || "");
-      setEmail(data.user.email || "");
-      setInitialAvatar(null);
+      const { id, username, email, avatarUrl, googleAuth, refreshToken } =
+        response.data;
+      setIsGoogleAuth(googleAuth || false);
+      setUserId(id || "");
+      setAuthData({
+        userId: id,
+        userName: username || "",
+        email: email || "",
+        accessToken,
+        refreshToken: refreshToken || "",
+        avatar: avatarUrl || null,
+      });
+
+      form.reset({ username: username || "" });
+      setInitialUsername(username || "");
+      setEmail(email || "");
+      setInitialAvatar(avatarUrl || null);
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         console.error("Fetch profile error:", {
@@ -225,7 +240,7 @@ const AccountSettings = () => {
     } finally {
       if (isMounted) setInitialLoading(false);
     }
-  }, [accessToken, form, router, isMounted]);
+  }, [accessToken, form, router, isMounted, setAuthData]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -284,6 +299,17 @@ const AccountSettings = () => {
       return;
     }
 
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+      console.error("Invalid user ID:", userId);
+      toast.error("Invalid user ID. Please sign in again.");
+      router.push("/sign_in");
+      setImagePreview(null);
+      setInitialAvatar(null);
+      return;
+    }
+
     setLoading(true);
     try {
       console.log(
@@ -298,13 +324,12 @@ const AccountSettings = () => {
           "Invalid token, attempting refresh for non-Google account"
         );
         const loginData = await refreshToken(email);
-        useGlobalStorage.setState({
-          userId,
-          userName: loginData.data?.username || initialUsername,
-          email,
+        setAuthData({
           accessToken: loginData.token,
-          refreshToken: null,
-          avatar: loginData.data?.avatarUrl || null,
+          userId: "",
+          userName: "",
+          email: "",
+          refreshToken: null
         });
       }
 
@@ -317,51 +342,32 @@ const AccountSettings = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await axios.post(
-        `http://localhost:8080/users/${userId}/avatar`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await axiosInstance.post(`/users/${userId}/avatar`, formData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       console.log("Avatar upload response:", response.data);
       setImagePreview(null);
 
-      // Refresh token via login
-      const loginData = await refreshToken(email);
-      console.log(
-        "Token refresh response:",
-        loginData,
-        "GlobalStorage state:",
-        useGlobalStorage.getState()
-      );
+      const profileData = await refreshToken(email);
+      console.log("Profile refresh response:", profileData);
 
-      // Update GlobalStorage
-      useGlobalStorage.setState({
+      setAuthData({
         userId,
-        userName: loginData.data?.username || initialUsername,
-        email,
-        accessToken: loginData.token,
-        refreshToken: null,
-        avatar: response.data.avatarUrl || null,
+        userName: profileData.username || initialUsername,
+        email: profileData.email || email,
+        accessToken: profileData.token,
+        avatar: profileData.avatarUrl || null,
+        refreshToken: null
       });
-      setImagePreview(response.data.avatarUrl || null);
+      setInitialAvatar(profileData.avatarUrl);
       toast.success("Avatar uploaded successfully");
-
-      // Reload page for Google accounts
-      if (isGoogleAuth) {
-        console.log(
-          "Triggering full page reload for Google account avatar update"
-        );
-        window.location.reload();
-      }
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        console.error("Avatar upload or token refresh error:", {
+        console.error("Avatar upload or profile refresh error:", {
           status: error.response?.status,
           data: error.response?.data,
           message: error.message,
@@ -378,8 +384,7 @@ const AccountSettings = () => {
           toast.error(s3Error);
         } else {
           toast.error(
-            error.response?.data?.message ||
-              "Failed to upload avatar or refresh session"
+            error.response?.data?.message || "Failed to upload avatar"
           );
         }
       } else {
@@ -405,6 +410,15 @@ const AccountSettings = () => {
       return;
     }
 
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(userId)) {
+      console.error("Invalid user ID:", userId);
+      toast.error("Invalid user ID. Please sign in again.");
+      router.push("/sign_in");
+      return;
+    }
+
     setLoading(true);
     try {
       console.log(
@@ -419,19 +433,18 @@ const AccountSettings = () => {
           "Invalid token, attempting refresh for non-Google account"
         );
         const loginData = await refreshToken(email);
-        useGlobalStorage.setState({
-          userId,
-          userName: loginData.data?.username || initialUsername,
-          email,
+        setAuthData({
           accessToken: loginData.token,
-          refreshToken: null,
-          avatar: loginData.data?.avatarUrl || null,
+          userId: "",
+          userName: "",
+          email: "",
+          refreshToken: null
         });
       }
 
       console.log("Updating username with token:", accessToken);
-      const updateResponse = await axios.put(
-        `http://localhost:8080/users/${userId}`,
+      const updateResponse = await axiosInstance.put(
+        `/users/${userId}`,
         { username: data.username },
         {
           headers: {
@@ -443,41 +456,26 @@ const AccountSettings = () => {
 
       console.log("Username update response:", updateResponse.data);
 
-      // Refresh token via login
-      const loginData = await refreshToken(email);
-      console.log(
-        "Token refresh response:",
-        loginData,
-        "GlobalStorage state:",
-        useGlobalStorage.getState()
-      );
+      const profileData = await refreshToken(email);
+      console.log("Profile refresh response:", profileData);
 
-      // Update GlobalStorage
-      useGlobalStorage.setState({
+      setAuthData({
         userId,
-        userName: loginData.data?.username || data.username,
-        email: loginData.data?.email || email,
-        accessToken: loginData.token,
-        refreshToken: null,
-        avatar: loginData.data?.avatarUrl || null,
+        userName: profileData.username || data.username,
+        email: profileData.email || email,
+        accessToken: profileData.token,
+        avatar: profileData.avatarUrl || null,
+        refreshToken: null
       });
 
-      form.reset({ username: loginData.data?.username || data.username });
-      setInitialUsername(loginData.data?.username || data.username);
-      setEmail(loginData.data?.email || email);
+      form.reset({ username: profileData.username || data.username });
+      setInitialUsername(profileData.username || data.username);
+      setEmail(profileData.email || email);
       setIsEditing(false);
       toast.success("Profile updated successfully");
-
-      // Reload page for Google accounts
-      if (isGoogleAuth) {
-        console.log(
-          "Triggering full page reload for Google account username update"
-        );
-        window.location.reload();
-      }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error("Username update or token refresh error:", {
+        console.error("Username update or profile refresh error:", {
           status: error.response?.status,
           data: error.response?.data,
           token: accessToken,
@@ -493,8 +491,7 @@ const AccountSettings = () => {
           router.push("/sign_in");
         } else {
           toast.error(
-            error.response?.data?.message ||
-              "Failed to update profile or refresh session"
+            error.response?.data?.message || "Failed to update profile"
           );
         }
       } else {
@@ -529,8 +526,8 @@ const AccountSettings = () => {
       }
 
       console.log("Updating password with token:", accessToken);
-      const response = await axios.put(
-        "http://localhost:8080/users/update-password",
+      const response = await axiosInstance.put(
+        "/users/update-password",
         {
           oldPassword: data.oldPassword,
           newPassword: data.password,
@@ -543,6 +540,7 @@ const AccountSettings = () => {
         }
       );
 
+      console.log("Password update response:", response.data);
       toast.success("Password updated successfully");
       passwordForm.reset();
       setPassword("");
@@ -556,7 +554,7 @@ const AccountSettings = () => {
         });
         toast.error(
           error.response?.data?.message ||
-            "Failed to update password. Please try again."
+          "Failed to update password. Please try again."
         );
       } else {
         console.error("Unexpected error updating password:", error);
@@ -623,7 +621,7 @@ const AccountSettings = () => {
   };
 
   useEffect(() => {
-    const interceptor = axios.interceptors.request.use((config) => {
+    const interceptor = axiosInstance.interceptors.request.use((config) => {
       if (accessToken) {
         console.log("Axios interceptor using token:", accessToken);
         config.headers.Authorization = `Bearer ${accessToken}`;
@@ -631,7 +629,7 @@ const AccountSettings = () => {
       return config;
     });
     return () => {
-      axios.interceptors.request.eject(interceptor);
+      axiosInstance.interceptors.request.eject(interceptor);
     };
   }, [accessToken]);
 
@@ -721,7 +719,7 @@ const AccountSettings = () => {
               />
             </div>
 
-            <div className="ml-[2vw]">
+            <div className="!mx-[4vw]">
               <div>
                 <Label className="text-[2.25vw] md:text-[1.25vw]">
                   User Information
@@ -738,7 +736,7 @@ const AccountSettings = () => {
                       <Input
                         id="username"
                         disabled={!isEditing}
-                        className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                        className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
                         autoComplete="off"
                         aria-disabled={!isEditing}
                         {...field}
@@ -755,7 +753,7 @@ const AccountSettings = () => {
                   disabled
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-21 py-[2.5vh] md:pl-12 md:py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
+                  className="w-[30vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] text-[#8C8C8C] !text-[2vh] md:!text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
                   aria-disabled="true"
                 />
               </div>
@@ -784,7 +782,7 @@ const AccountSettings = () => {
                 <button
                   type="button"
                   onClick={handleEditClick}
-                  className="flex items-center gap-2 cursor-pointer border border-[#E9B654] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#E9B654] transition-colors"
+                  className="flex items-center gap-2 cursor-pointer border border-[#E9B654] hover:!bg-[#DBB968] rounded-[1vh] py-[1vh] px-[1vw] transition-colors"
                 >
                   <span className="text-[2.25vw] md:text-[1.25vw]">Edit</span>
                   <Image
@@ -858,9 +856,7 @@ const AccountSettings = () => {
                       <OldPassword
                         placeholder="Enter your current password"
                         {...field}
-                        className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
-                          rounded-[1.5vh]
-                          !text-[2.5vh] md:!text-[3vh] font-normal"
+                        className="!w-full !pl-[3.5vw] py-[3vh] md:py-[3.5vh] rounded-[1.5vh] !text-[2.5vh] md:!text-[3vh] font-normal"
                       />
                     </div>
                   </FormControl>
@@ -882,9 +878,7 @@ const AccountSettings = () => {
                       <NewPassword
                         placeholder="Enter your new password"
                         {...field}
-                        className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
-                          rounded-[1.5vh]
-                          !text-[2.5vh] md:!text-[3vh] font-normal"
+                        className="!w-full py-[3vh] !pl-[3.5vw] md:py-[3.5vh] rounded-[1.5vh] !text-[2.5vh] md:!text-[3vh] font-normal"
                         onChange={(e) => {
                           field.onChange(e);
                           setPassword(e.target.value);
@@ -938,9 +932,7 @@ const AccountSettings = () => {
                       <NewPasswordConfirm
                         placeholder="Confirm your new password"
                         {...field}
-                        className="pl-21 py-[3vh] md:pl-12 md:py-[3.5vh] 
-                          rounded-[1.5vh]
-                          !text-[2.5vh] md:!text-[3vh] font-normal"
+                        className="!w-full py-[3vh] !pl-[3.5vw] md:py-[3.5vh] rounded-[1.5vh] !text-[2.5vh] md:!text-[3vh] font-normal"
                       />
                     </div>
                   </FormControl>

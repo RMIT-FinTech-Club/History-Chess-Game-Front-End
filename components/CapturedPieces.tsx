@@ -30,11 +30,11 @@ export const CapturedPieces = ({ color, pieces }: CapturedPiecesProps) => {
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Show pieces in a row with or without overlay effect based on hover state */}
-        <div className={`flex flex-row items-center transition-all duration-300 ${isHovered ? 'flex-wrap' : ''}`}>
+        <div className={`flex h-[2vh] flex-row items-center transition-all duration-300 ${isHovered ? 'flex-wrap' : ''}`}>
           {displayPieces.map((piece, index) => (
             <div 
               key={index} 
-              className="flex items-center justify-center" 
+              className="flex items-center justify-center aspect-square h-[2vh]" 
               style={{ 
                 transform: !isHovered && index > 0 ? `translateX(${-80 * index}%)` : 'translateX(0)',
                 zIndex: !isHovered ? index : 0,
@@ -49,7 +49,7 @@ export const CapturedPieces = ({ color, pieces }: CapturedPiecesProps) => {
           {/* Display truncation indicator after the last piece */}
           {truncatedCount > 0 && !isHovered && (
             <div 
-              className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center bg-gray-200 rounded-full text-xs sm:text-sm text-black font-bold ml-1"
+              className="w-4 h-4 sm:h-5 sm:w-5 flex items-center justify-center bg-gray-200 rounded-full text-xs sm:text-sm text-black font-bold ml-1"
               style={{ 
                 transform: displayPieces.length > 0 ? `translateX(${-80 * (displayPieces.length + 3)}%)` : 'translateX(0)',
                 position: 'relative',

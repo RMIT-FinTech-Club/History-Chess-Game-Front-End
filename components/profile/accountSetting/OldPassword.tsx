@@ -5,7 +5,7 @@ import { FaKey, FaEye, FaEyeSlash } from "react-icons/fa6";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-const NewPasswordConfirm = React.forwardRef<
+const OldPassword = React.forwardRef<
   HTMLInputElement,
   React.ComponentProps<"input">
 >(({ className, ...props }, ref) => {
@@ -17,14 +17,13 @@ const NewPasswordConfirm = React.forwardRef<
     <div className="relative">
       {/* Left-side Key Icon */}
       <FaKey
-        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 
-        text-[#2F2F2F] text-[3vh] cursor-pointer"
-        onClick={() => document.getElementById("password-confirm")?.focus()}
+        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[4vh] cursor-pointer"
+        onClick={() => document.getElementById("old-password")?.focus()}
       />
 
       {/* Password Input Field */}
       <Input
-        id="password-confirm"
+        id="old-password"
         type={showPassword ? "text" : "password"}
         className={cn(
           "pl-10 pr-10 bg-[#c4c4c4] text-[#000000] focus:border-[0.2rem] focus:border-[#DBB968]",
@@ -39,8 +38,8 @@ const NewPasswordConfirm = React.forwardRef<
         type="button"
         className={cn(
           "absolute top-1/2 right-6 md:right-4 transform -translate-y-1/2",
-          "bg-transparent border-none p-0",
-          "text-[#2F2F2F] text-[3vh] cursor-pointer",
+          "!bg-transparent border-none p-0",
+          "!text-[#2F2F2F] text-[3vh] cursor-pointer",
           props.disabled && "opacity-50 cursor-not-allowed"
         )}
         onClick={() => setShowPassword(!showPassword)}
@@ -53,19 +52,9 @@ const NewPasswordConfirm = React.forwardRef<
           <FaEye aria-hidden="true" />
         )}
       </button>
-
-      {/* Hide browser's default password toggle */}
-      <style>{`
-        #password-confirm::-ms-reveal,
-        #password-confirm::-ms-clear {
-          visibility: hidden;
-          pointer-events: none;
-          display: none;
-        }
-      `}</style>
     </div>
   );
 });
-NewPasswordConfirm.displayName = "NewPasswordConfirm";
+OldPassword.displayName = "NewPasswordConfirm";
 
-export { NewPasswordConfirm };
+export { OldPassword };

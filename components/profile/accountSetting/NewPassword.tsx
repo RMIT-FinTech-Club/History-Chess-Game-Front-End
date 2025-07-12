@@ -17,8 +17,7 @@ const NewPassword = React.forwardRef<
     <div className="relative">
       {/* Left-side Key Icon */}
       <FaKey
-        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 
-                    text-[#2F2F2F] text-[3vh] cursor-pointer"
+        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[4vh] cursor-pointer"
         onClick={() => {
           document.getElementById("new-password")?.focus();
         }}
@@ -36,16 +35,16 @@ const NewPassword = React.forwardRef<
       {/* Right-side Eye Icon for toggling password visibility */}
       {showPassword ? (
         <FaEyeSlash
-          className="absolute top-1/2 right-6 md:right-4 transform -translate-y-1/2 
-                      text-[#2F2F2F] text-[3vh] cursor-pointer"
+          className="absolute top-1/2 right-7 transform -translate-y-1/2 
+                      text-[#2F2F2F] text-[2.25vh] cursor-pointer"
           onClick={() => setShowPassword(false)}
           title="Hide password"
           aria-label="Hide password"
         />
       ) : (
         <FaEye
-          className="absolute top-1/2 right-6 md:right-4 transform -translate-y-1/2 
-                      text-[#2F2F2F] text-[3vh] cursor-pointer"
+          className="absolute top-1/2 right-7 transform -translate-y-1/2 
+                      text-[#2F2F2F] text-[2.25vh] cursor-pointer"
           onClick={() => setShowPassword(true)}
           title="Show password"
           aria-label="Show password"

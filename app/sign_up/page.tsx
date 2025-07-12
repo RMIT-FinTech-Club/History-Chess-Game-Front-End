@@ -15,6 +15,8 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { MdEmail, MdPerson } from "react-icons/md";
 import { toast } from "sonner";
 import axios from "axios";
+import axiosInstance from "@/config/apiConfig";
+import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 const SignUp = () => {
   const [errors, setErrors] = useState({
@@ -26,6 +28,7 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { setAuthData } = useGlobalStorage();
   const form = useForm({
     defaultValues: {
       username: "",
@@ -66,8 +69,8 @@ const SignUp = () => {
             values.username.length < 3
               ? "Username must be at least 3 characters."
               : values.username.length > 50
-              ? "Username must not exceed 50 characters."
-              : "Username must contain only letters and numbers.",
+                ? "Username must not exceed 50 characters."
+                : "Username must contain only letters and numbers.",
         }));
         document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
@@ -110,12 +113,12 @@ const SignUp = () => {
             values.password.length < 9
               ? "Password must be at least 9 characters."
               : values.password.length > 128
-              ? "Password must not exceed 128 characters."
-              : !/[A-Z]/.test(values.password)
-              ? "Password must contain at least one uppercase letter."
-              : !/[0-9]/.test(values.password)
-              ? "Password must contain at least one number."
-              : "Password must contain at least one special character (!@#$%^&*).",
+                ? "Password must not exceed 128 characters."
+                : !/[A-Z]/.test(values.password)
+                  ? "Password must contain at least one uppercase letter."
+                  : !/[0-9]/.test(values.password)
+                    ? "Password must contain at least one number."
+                    : "Password must contain at least one special character (!@#$%^&*).",
         }));
         document.querySelector("input[name='password']")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
@@ -138,19 +141,36 @@ const SignUp = () => {
       document.querySelector("input[name='confirmPassword']")?.classList.remove("border-red-500", "border-[0.3vh]");
 
       try {
-        await axios.post("http://localhost:8080/users", {
+        const response = await axiosInstance.post("/users", {
           username: values.username,
           email: values.email,
           password: values.password,
+        });
+        const { token, id, username, email, avatarUrl } = response.data;
+
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(id)) {
+          throw new Error("Invalid user ID in signup response");
+        }
+
+        setAuthData({
+          userId: id,
+          userName: username,
+          email,
+          accessToken: token,
+          refreshToken: null,
+          avatar: avatarUrl || null,
         });
         document.getElementById("username-input")?.classList.add("border-green-500", "border-[0.3vh]");
         document.getElementById("email-input")?.classList.add("border-green-500", "border-[0.3vh]");
         document.querySelector("input[name='password']")?.classList.add("border-green-500", "border-[0.3vh]");
         document.querySelector("input[name='confirmPassword']")?.classList.add("border-green-500", "border-[0.3vh]");
-        toast.success("Sign up successful! Please sign in to continue.");
-        router.push("/sign_in");
-      } catch (error: any) {
-        const message = error.response?.data?.message || "Sign up failed";
+        toast.success("Sign up successful!");
+        router.push("/profile");
+      } catch (error: unknown) {
+        const message = axios.isAxiosError(error)
+          ? error.response?.data?.message || "Sign up failed"
+          : "Sign up failed";
         if (message.includes("username")) {
           setErrors((prev) => ({ ...prev, username: message }));
           document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
@@ -169,20 +189,20 @@ const SignUp = () => {
         setLoading(false);
       }
     },
-    [router]
+    [router, setAuthData]
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center md:justify-start text-white font-poppins font-bold relative">
-      <div className="w-[40vw] aspect-[1/1] ml-[5vw] mr-[3vw] relative md:block hidden">
-        <div className="w-full absolute aspect-[1/1] bg-[#DCB968] rounded-[50%] blur-[15vw] left-0 top-[50%] -translate-y-[50%]"></div>
+    <div className="min-h-screen text-white font-poppins font-bold relative md:flex md:justify-around md:items-center">
+      <div className="w-[35vw] aspect-[1/1] relative md:block hidden">
+        <div className="w-full absolute aspect-[1/1] bg-[#DBB968] rounded-[50%] blur-[15vw] left-0 top-[50%] -translate-y-[50%]"></div>
         <div
           className="w-full absolute aspect-[1/1] bg-no-repeat bg-center bg-contain left-0 top-[50%] -translate-y-[50%]"
           style={{ backgroundImage: "url('/FTC_Logo.png')" }}
         ></div>
       </div>
-      <div className="p-7">
-        <h2 className="text-center text-[7vh]">Sign Up</h2>
+      <div className="flex flex-col items-center justify-center">
+        <h2 className="text-center text-[5.5vh] mt-[1vh]">Sign Up</h2>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -199,10 +219,7 @@ const SignUp = () => {
                   <FormControl>
                     <div className="relative">
                       <MdPerson
-                        className="
-                          absolute text-black cursor-pointer
-                          top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
-                        "
+                        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[5vh] cursor-pointer"
                         onClick={() =>
                           document.getElementById("username-input")?.focus()
                         }
@@ -212,10 +229,7 @@ const SignUp = () => {
                         placeholder="Enter your username"
                         {...field}
                         className="
-                          pl-[7.5vw]
-                          sm:pl-[5.85vw]
-                          md:pl-[4.5vw]
-                          lg:pl-[3.75vw]
+                          !pl-[3.75vw]
                           py-[4vh] w-full
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -225,7 +239,9 @@ const SignUp = () => {
                     </div>
                   </FormControl>
                   {errors.username && (
-                    <p className="text-red-500 text-[2.5vh] font-bold">{errors.username}</p>
+                    <p className="text-red-500 text-[2.5vh] font-bold">
+                      {errors.username}
+                    </p>
                   )}
                 </FormItem>
               )}
@@ -235,16 +251,11 @@ const SignUp = () => {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-bold text-[3vh]">
-                    Email
-                  </FormLabel>
+                  <FormLabel className="font-bold text-[3vh]">Email</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <MdEmail
-                        className="
-                          absolute text-black cursor-pointer
-                          top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
-                        "
+                        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[5vh] cursor-pointer"
                         onClick={() =>
                           document.getElementById("email-input")?.focus()
                         }
@@ -254,10 +265,7 @@ const SignUp = () => {
                         placeholder="Enter your email"
                         {...field}
                         className="
-                          pl-[7.5vw]
-                          sm:pl-[5.85vw]
-                          md:pl-[4.5vw]
-                          lg:pl-[3.75vw]
+                          !pl-[3.75vw]
                           py-[4vh] w-full
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -267,7 +275,9 @@ const SignUp = () => {
                     </div>
                   </FormControl>
                   {errors.email && (
-                    <p className="text-red-500 text-[2.5vh] font-bold">{errors.email}</p>
+                    <p className="text-red-500 text-[2.5vh] font-bold">
+                      {errors.email}
+                    </p>
                   )}
                 </FormItem>
               )}
@@ -286,10 +296,7 @@ const SignUp = () => {
                         placeholder="Enter your password"
                         {...field}
                         className="
-                          pl-[7.5vw]
-                          sm:pl-[5.85vw]
-                          md:pl-[4.5vw]
-                          lg:pl-[3.75vw]
+                          !pl-[3.75vw]
                           py-[4vh] w-full
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -316,7 +323,9 @@ const SignUp = () => {
                     </li>
                   </ul>
                   {errors.password && (
-                    <p className="text-red-500 text-[2.5vh] font-bold">{errors.password}</p>
+                    <p className="text-red-500 text-[2.5vh] font-bold">
+                      {errors.password}
+                    </p>
                   )}
                 </FormItem>
               )}
@@ -335,10 +344,7 @@ const SignUp = () => {
                         placeholder="Confirm your password"
                         {...field}
                         className="
-                          pl-[7.5vw]
-                          sm:pl-[5.85vw]
-                          md:pl-[4.5vw]
-                          lg:pl-[3.75vw]
+                          !pl-[3.75vw]
                           py-[4vh] w-full
                           bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
                           !text-[3vh] font-normal rounded-[1.5vh]
@@ -347,7 +353,9 @@ const SignUp = () => {
                     </div>
                   </FormControl>
                   {errors.confirmPassword && (
-                    <p className="text-red-500 text-[2.5vh] font-bold">{errors.confirmPassword}</p>
+                    <p className="text-red-500 text-[2.5vh] font-bold">
+                      {errors.confirmPassword}
+                    </p>
                   )}
                 </FormItem>
               )}
@@ -355,15 +363,18 @@ const SignUp = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[4vh] mt-[1.75vh] rounded-[1.5vh]"
+              className="w-full bg-[#000000] mt-[1.75vh] mb-[1.75vh] !py-[3.5vh] !rounded-[1.5vh] !text-[3vh] !font-semibold hover:!bg-[#DBB968] !cursor-pointer"
             >
               {loading ? "Signing Up..." : "Sign Up"}
             </Button>
           </form>
         </Form>
-        <div className="text-center text-[#C4C4C4] text-[3vh] font-normal mt-[2vh]">
+        <div className="text-center text-[#C4C4C4] text-[3vh] font-normal my-[2vh]">
           Already have an account?{" "}
-          <a href="/sign_in" className="text-[#184BF2] font-bold hover:underline">
+          <a
+            href="/sign_in"
+            className="text-[#184BF2] font-bold hover:underline"
+          >
             Sign In
           </a>
         </div>

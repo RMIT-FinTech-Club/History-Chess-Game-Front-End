@@ -15,6 +15,8 @@ import { PasswordInput } from "@/components/ui/PasswordInput";
 import { MdEmail } from "react-icons/md";
 import { toast } from "sonner";
 import axios from "axios";
+import axiosInstance from "@/config/apiConfig";
+import basePath from "@/config/pathConfig";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
 const SignIn = () => {
@@ -131,17 +133,24 @@ const SignIn = () => {
         ?.classList.remove("border-red-500", "border-[0.3vh]");
 
       try {
-        const response = await axios.post("http://localhost:8080/users/login", {
+        const response = await axiosInstance.post("/users/login", {
           identifier,
           password,
         });
+        const { token, id, username, email, avatarUrl } = response.data;
+
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(id)) {
+          throw new Error("Invalid user ID in login response");
+        }
+
         setAuthData({
-          userId: response.data.user.id,
-          userName: response.data.user.username,
-          email: response.data.user.email,
-          accessToken: response.data.token,
+          userId: id,
+          userName: username,
+          email,
+          accessToken: token,
           refreshToken: null,
-          avatar: response.data.user.avatarUrl || null,
+          avatar: avatarUrl || null,
         });
         document
           .getElementById("identifier-input")
@@ -150,7 +159,7 @@ const SignIn = () => {
           .querySelector("input[type='password']")
           ?.classList.add("border-green-500", "border-[0.3vh]");
         toast.success("Sign in successful!");
-        router.push("/profile");
+        router.push("/home");
       } catch (err: unknown) {
         const message = axios.isAxiosError(err)
           ? err.response?.data?.message || "Sign in failed"
@@ -180,7 +189,7 @@ const SignIn = () => {
   const handleGoogleLogin = () => {
     const state = Math.random().toString(36).substring(2);
     const popup = window.open(
-      `http://localhost:8080/users/google-auth?state=${state}`,
+      `${basePath}/users/google-auth?state=${state}&prompt=consent`,
       "google-auth",
       "width=500,height=600"
     );
@@ -192,21 +201,29 @@ const SignIn = () => {
   const onUsernameSubmit = useCallback(
     async (values: UsernameFormValues) => {
       try {
-        const response = await axios.post(
-          "http://localhost:8080/users/complete-google-login",
+        const response = await axiosInstance.post(
+          "/users/complete-google-login",
           {
             tempToken,
             username: values.username,
           }
         );
+        const { token, id, username, email, avatarUrl } = response.data;
+
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(id)) {
+          throw new Error("Invalid user ID in Google login response");
+        }
+
         setAuthData({
-          userId: response.data.user.id,
-          userName: response.data.user.username,
-          email: response.data.user.email,
-          accessToken: response.data.token,
+          userId: id,
+          userName: username,
+          email,
+          accessToken: token,
           refreshToken: null,
-          avatar: response.data.user.avatarUrl || null,
+          avatar: avatarUrl,
         });
+
         toast.success("Google login successful!");
         setShowUsernamePrompt(false);
         router.push("/profile");
@@ -222,20 +239,25 @@ const SignIn = () => {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== "http://localhost:8080") return;
-      const { type, token, userId, username, email, tempToken, error } =
-        event.data;
+      if (event.origin !== basePath) return;
+      const { type, token, userId, username, email, avatarUrl, tempToken, error } = event.data;
       if (type === "google-auth") {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (!uuidRegex.test(userId)) {
+          toast.error("Invalid user ID from Google auth response");
+          return;
+        }
+
         setAuthData({
           userId,
           userName: username,
           email,
           accessToken: token,
           refreshToken: null,
-          avatar: null,
+          avatar: avatarUrl || null,
         });
         toast.success("Google login successful!");
-        router.push("/profile");
+        router.push("/home");
       } else if (type === "google-auth-prompt-username") {
         setGoogleEmail(email);
         setTempToken(tempToken);
@@ -255,16 +277,16 @@ const SignIn = () => {
   }, [router, setAuthData]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center md:justify-start text-white font-poppins font-bold relative">
-      <div className="w-[40vw] aspect-[1/1] ml-[5vw] mr-[3vw] relative md:block hidden">
+    <div className="min-h-screen text-white font-poppins font-bold relative md:flex md:justify-around md:items-center">
+      <div className="w-[35vw] aspect-[1/1] relative md:block hidden">
         <div className="w-full absolute aspect-[1/1] bg-[#DBB968] rounded-[50%] blur-[15vw] left-0 top-[50%] -translate-y-[50%]"></div>
         <div
           className="w-full absolute aspect-[1/1] bg-no-repeat bg-center bg-contain left-0 top-[50%] -translate-y-[50%]"
           style={{ backgroundImage: "url('/FTC_Logo.png')" }}
         ></div>
       </div>
-      <div className="p-7">
-        <h2 className="text-center text-[7vh]">Sign In</h2>
+      <div className="flex flex-col items-center">
+        <h2 className="text-center text-[4vh] md:text-[7vh]">Sign In</h2>
         {showUsernamePrompt ? (
           <Form {...usernameForm}>
             <form
@@ -316,16 +338,13 @@ const SignIn = () => {
                   name="identifier"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold text-[3vh]">
+                      <FormLabel className="font-bold text-[2.5vh] md:text-[3vh]">
                         Username/Email
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <MdEmail
-                            className="
-                              absolute text-black cursor-pointer
-                              top-[1.55vh] left-[1.45vw] sm:left-[1.2vw] md:left-[1vw] lg:left-[0.95vw] text-[5vh]
-                            "
+                            className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[3vh] md:text-[5vh] cursor-pointer"
                             onClick={() =>
                               document
                                 .getElementById("identifier-input")
@@ -337,13 +356,10 @@ const SignIn = () => {
                             placeholder="Enter your username or email"
                             {...field}
                             className="
-                              pl-[7.5vw]
-                              sm:pl-[5.85vw]
-                              md:pl-[4.5vw]
-                              lg:pl-[3.75vw]
-                              py-[4vh] w-full
+                              !pl-[4vw]
+                              py-[12vh] md:py-[4vh] w-full
                               bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
-                              !text-[3vh] font-normal rounded-[1.5vh]
+                              text-[2vh] md:text-[3vh] font-normal rounded-[1.5vh]
                             "
                             autoComplete="off"
                           />
@@ -362,7 +378,7 @@ const SignIn = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-bold text-[3vh]">
+                      <FormLabel className="font-bold text-[2.5vh] md:text-[3vh]">
                         Password
                       </FormLabel>
                       <FormControl>
@@ -371,13 +387,10 @@ const SignIn = () => {
                             placeholder="Enter your password"
                             {...field}
                             className="
-                              pl-[7.5vw]
-                              sm:pl-[5.85vw]
-                              md:pl-[4.5vw]
-                              lg:pl-[3.75vw]
-                              py-[4vh] w-full
+                              !pl-[4vw]
+                              py-[12vh] md:py-[4vh] w-full
                               bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
-                              !text-[3vh] font-normal rounded-[1.5vh]
+                              text-[2vh] md:text-[3vh] font-normal rounded-[1.5vh]
                             "
                           />
                         </div>
@@ -407,19 +420,19 @@ const SignIn = () => {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-[#000000] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#FFFFFF] font-bold text-[3.5vh] py-[4vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+                  className="w-full bg-[#000000] mt-[1.75vh] mb-[1.75vh] !py-[3.5vh] !rounded-[1.5vh] !text-[3vh] !font-semibold hover:!bg-[#DBB968] !cursor-pointer"
                 >
                   Sign In
                 </Button>
               </form>
             </Form>
-            <div className="text-center text-[#C4C4C4] text-[3vh] font-normal">
+            <div className="text-center text-[#C4C4C4] text-[2.75vh] md:text-[3vh] font-normal">
               or continue with
             </div>
-            <div className="space-y-2 sm:space-y-3 md:space-y-4">
-              <button
+            <div className="md:w-full">
+              <Button
                 onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center bg-[#ECECEC] cursor-pointer text-[#000000] font-bold text-[3vh] py-[1.5vh] md:py-[2.45vh] mt-[1.75vh] mb-[1.75vh] rounded-[1.5vh]"
+                className="md:w-full w-[80vw] !bg-[#ECECEC] mt-[1.75vh] mb-[1.75vh] !py-[3.5vh] !rounded-[1.5vh] !text-[3vh] !text-[#000000] !font-semibold hover:!bg-[#DBB968] !cursor-pointer"
               >
                 <img
                   src="/Google-Logo.svg"
@@ -427,9 +440,9 @@ const SignIn = () => {
                   className="mr-[1vw] md:mr-[0.5vw] w-[4vh] h-[4vh]"
                 />
                 Continue with Google
-              </button>
+              </Button>
             </div>
-            <div className="text-center text-[#C4C4C4] text-[3vh] font-normal">
+            <div className="text-center text-[#C4C4C4] text-[2.75vh] md:text-[3vh] font-normal">
               Don’t have an account?{" "}
               <a
                 href="/sign_up"

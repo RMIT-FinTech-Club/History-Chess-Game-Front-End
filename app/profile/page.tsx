@@ -1,37 +1,57 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowUp } from "@fortawesome/free-solid-svg-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import CountUp from "react-countup"
+import { useRouter } from "next/navigation"
+import axiosInstance from "@/config/apiConfig"
+import { toast } from "sonner"
 
 import styles from "@/css/profile.module.css"
 import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
 import CupIcon from "@/public/profile/SVG/cupIcon"
 import SettingIcon from "@/public/profile/SVG/settingIcon"
-import ProfilePlayers from "@/components/ui/profilePlayers"
-import ProfileMatches from "@/components/ui/profileMatches"
-import AccountSettings from "@/components/ui/account_settings"
+import ProfileMatches from "@/components/profile/profileMatches"
+import AccountSettings from "@/components/profile/accountSettings"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 
 export default function ProfilePage() {
-    const { userName, avatar } = useGlobalStorage()
-
+    const { userName, avatar, accessToken, isAuthenticated } = useGlobalStorage()
+    const router = useRouter()
     const profileRef = useRef<HTMLDivElement | null>(null)
     const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
     const [profileMenu, setProfileMenu] = useState(1)
 
+    // Validate token on mount
+    // useEffect(() => {
+    //     const getUserData = async () => {
+    //         try {
+    //             await axiosInstance.get("/users/profile", {
+    //                 headers: {
+    //                     "Content-Type": "application/json",
+    //                     Authorization: `Bearer ${accessToken}`,
+    //                 },
+    //             })
+    //         } catch (error: any) {
+    //             console.error("An error occurred while validating your session.", error);
+    //             toast.error("An error occurred while validating your session.");
+    //         }
+    //     }
+    //     getUserData()
+    // }, [accessToken, router])
+
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
     return (
-        <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3dvh] mx-[5vw] md:mx-[10vw] text-white relative h-[100ddvh]">
+        <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3dvh] mx-[5vw] md:mx-[10vw] text-white relative h-[calc(100dvh-var(--navbar-height))]">
             <div className={`w-full relative md:absolute ${isProfileOpened ? 'md:top-[3dvh]' : 'md:top-[calc(-12vw-2px)]'} top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3dvh] transition-all duration-300`}>
                 <Tooltip disableHoverableContent>
                     <TooltipTrigger asChild>
                         <div
                             ref={profileRef}
                             onClick={handleToggleProfile}
-                            className={`absolute w-[calc(2vw-2px)] aspect-square left-[31vw] ${isProfileOpened ? 'top-[11vw]' : 'top-[11.5vw]'} cursor-pointer bg-[#1D1D1D] border border-solid border-white rounded-[50%] hidden md:flex justify-center items-center`}
+                            className={`absolute w-[calc(2vw-2px)] aspect-square left-[76vw] top-[13vw] cursor-pointer bg-[#1D1D1D] border border-solid border-white rounded-[50%] hidden md:flex justify-center items-center`}
                         >
                             <FontAwesomeIcon
                                 icon={faArrowUp}
@@ -91,7 +111,7 @@ export default function ProfilePage() {
                     ))}
                 </div>
             </div>
-            <div className={`w-full ${isProfileOpened ? 'md:mt-[calc(12vw+2px+3dvh)]' : 'md:mt-0'} mt-0 ${isProfileOpened ? 'h-[calc(100dvh-3dvh-12vw-2px-6dvh)]' : 'h-[calc(100dvh-6dvh)]'} transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}>
+            <div className={`w-full ${isProfileOpened ? 'md:mt-[calc(12vw+2px+3dvh)]' : 'md:mt-0'} mt-0 ${isProfileOpened ? 'h-[calc(100dvh-var(--navbar-height)-3dvh-12vw-2px-6dvh)]' : 'h-[calc(100dvh-var(--navbar-height)-6dvh)]'} transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}>
                 <div className="md:w-[30%] w-full flex flex-col">
                     <div className="px-0 md:px-[2vw] py-[1vw] md:py-[2vw] w-full flex flex-row md:flex-col bg-[#1D1D1D] rounded-[2vw] mb-[3dvh] relative items-center justify-around">
                         <div className={`absolute ${profileMenu === 0 ? 'md:top-[2vw] md:left-0 top-0 left-0' : `${profileMenu === 1 ? 'md:top-[6vw] md:left-0 top-0 left-[30vw]' : 'md:top-[10vw] md:left-0 top-0 left-[60vw]'}`} left-0 md:h-[2vw] md:w-[calc(2vw/3)] w-1/3 h-[1vw] rounded-[0.5vw] md:rounded-[1vw] bg-[#DBB968] transition-all duration-200`}></div>
@@ -121,7 +141,6 @@ export default function ProfilePage() {
                             </div>
                         ))}
                     </div>
-                    {profileMenu === 1 && <ProfilePlayers isopen={isProfileOpened} />}
                 </div>
                 {profileMenu === 1 && <ProfileMatches />}
                 {profileMenu === 2 && <AccountSettings />}

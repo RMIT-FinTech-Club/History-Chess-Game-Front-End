@@ -21,10 +21,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CapturedPieces } from "@/components/CapturedPieces";
 import type { StockfishLevel } from "@/hooks/useStockfish";
-import {
-  TimeCounter,
-  TimeCounterHandle,
-} from "@/components/TimeCounter";
+import { TimeCounterHandle } from "@/components/TimeCounter";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useOfflineGame } from "@/hooks/useOfflineGame";
 
@@ -461,16 +458,14 @@ const OfflinePage = () => {
 
   if (!mounted) return <p>Loading Chessboard...</p>;
 
+
   return (
-    <div className="flex flex-col items-center w-full py-1 px-2 md:px-4 justify-between">
-      <h1 className="text-xl sm:text-2xl">Offline Chess Game</h1>
-      <div className="w-full max-w-7xl">
+    <div className="flex flex-col items-center w-full h-[calc(100dvh-var(--nav-height))] py-1 px-2 md:px-4 justify-between overflow-hidden">
+      <div className="w-full max-w-7xl flex flex-col flex-grow overflow-hidden">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 p-2">
           <span className="text-sm sm:text-base font-medium text-white">
             {isSinglePlayer
-              ? `Single Player (You: ${
-                  playerColor === "w" ? "White" : "Black"
-                }, AI Level: ${aiLevel})`
+              ? `Single Player (You: ${playerColor === "w" ? "White" : "Black"}, AI Level: ${aiLevel})`
               : "Two Players"}
           </span>
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
@@ -484,11 +479,10 @@ const OfflinePage = () => {
                 variant={autoRotateBoard ? "default" : "outline"}
                 size="sm"
                 onClick={toggleAutoRotate}
-                className={`text-xs sm:text-sm ${
-                  autoRotateBoard
-                    ? "bg-[#F7D27F] text-black hover:bg-[#E6C26E]"
-                    : "text-white border-white hover:text-[#F7D27F]"
-                }`}
+                className={`text-xs sm:text-sm ${autoRotateBoard
+                  ? "bg-[#F7D27F] text-black hover:bg-[#E6C26E]"
+                  : "text-white border-white hover:text-[#F7D27F]"
+                  }`}
               >
                 {autoRotateBoard ? "Auto-rotate: ON" : "Auto-rotate: OFF"}
               </Button>
@@ -503,110 +497,105 @@ const OfflinePage = () => {
             </Button>
           </div>
         </div>
-      </div>
-      <div className="flex flex-col lg:flex-row gap-3 w-full max-w-7xl flex-1 max-h-[calc(100vh-150px)]">
-        <div className="flex flex-col justify-between w-full">
-          <div className="flex justify-center md:justify-start">
-            <CapturedPieces color="Black" pieces={capturedBlack} />
-          </div>
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="flex justify-center items-center">
-              <Chessboard
-                id="historyChessBoard"
-                position={fen}
-                onPieceDrop={handleDrop}
-                onPieceClick={onPieceClick}
-                onSquareClick={onSquareClick}
-                onPieceDragBegin={onPieceDragBegin}
-                boardWidth={boardWidth}
-                animationDuration={300}
-                customSquareStyles={customSquareStyles}
-                boardOrientation={boardOrientation}
-              />
+
+        <div className="flex flex-col lg:flex-row gap-3 w-full flex-1 max-h-[calc(100dvh-var(--navbar-height))] overflow-hidden">
+          <div className="flex flex-col justify-between w-full flex-grow overflow-hidden">
+            <div className="flex justify-center md:justify-start">
+              <CapturedPieces color={boardOrientation === 'white' ? 'Black' : 'White'} pieces={boardOrientation === 'white' ? capturedWhite : capturedBlack} />
             </div>
-            <div className="md:hidden flex justify-center md:justify-start">
-              <CapturedPieces color="White" pieces={capturedWhite} />
-            </div>
-            <div className="w-full text-black flex flex-col flex-wrap justify-between gap-3">
-              <div>
-                <h2 className="text-white text-sm font-semibold px-2">
-                  Time Remaining{" "}
-                </h2>
-                <div className="rounded shadow-md bg-[#3B3433]">
-                  <TimeCounter
-                    ref={timerRef}
-                    initialTimeInSeconds={600}
-                    currentTurn={currentTurn}
-                    gameActive={gameActive}
-                    isGameOver={gameState.isGameOver}
-                    history={history.map((move) => move.san)}
-                  />
+
+            <div className="flex flex-col md:flex-row gap-3 flex-grow overflow-hidden">
+              <div className="flex justify-center items-center">
+                <Chessboard
+                  id="historyChessBoard"
+                  position={fen}
+                  onPieceDrop={handleDrop}
+                  onPieceClick={onPieceClick}
+                  onSquareClick={onSquareClick}
+                  onPieceDragBegin={onPieceDragBegin}
+                  boardWidth={boardWidth}
+                  animationDuration={300}
+                  customSquareStyles={customSquareStyles}
+                  boardOrientation={boardOrientation}
+                />
+              </div>
+
+              <div className="md:hidden flex justify-center md:justify-start">
+                <CapturedPieces color={boardOrientation === 'white' ? 'White' : 'Black'} pieces={boardOrientation === 'white' ? capturedBlack : capturedWhite} />
+              </div>
+
+              {/* Right Side (Timer + History + Buttons) */}
+              <div className="w-full text-black flex flex-col flex-grow overflow-hidden gap-3">
+                {/* Move History */}
+                <div className="flex flex-col flex-grow overflow-hidden">
+                  <h3 className="text-white text-sm font-semibold px-2">
+                    Move History
+                  </h3>
+                  <div className="rounded shadow-md bg-[#3B3433] flex-grow w-full overflow-hidden">
+                    <ScrollArea className="h-full w-full overflow-y-auto">
+                      <table className="w-full text-white">
+                        <thead className="sticky top-0 z-10 bg-[#3B3433]">
+                          <tr>
+                            <th className="py-2 px-2 sm:px-5 text-left text-xs sm:text-sm font-semibold">
+                              Turn
+                            </th>
+                            <th className="py-2 px-2 sm:px-5 text-left text-xs sm:text-sm font-semibold">
+                              White
+                            </th>
+                            <th className="py-2 px-2 sm:px-5 text-left text-xs sm:text-sm font-semibold">
+                              Black
+                            </th>
+                            <th className="py-2 px-2 sm:px-5 text-right text-xs sm:text-sm font-semibold">
+                              Time
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {moveHistoryPairs.map((pair) => (
+                            <MoveHistoryRow key={pair.turn} pair={pair} />
+                          ))}
+                        </tbody>
+                      </table>
+                    </ScrollArea>
+                  </div>
+                </div>
+
+                {/* Buttons */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={() => {
+                      const lastTurn = fen.split(" ")[1] === "w" ? "b" : "w";
+                      undoMove();
+                      timerRef.current?.undoTime(lastTurn, isSinglePlayer);
+                    }}
+                    disabled={history.length === 0}
+                    variant="default"
+                    size="sm"
+                    className="px-2 sm:px-4 py-3 sm:py-6 text-sm sm:text-lg"
+                  >
+                    Undo Move
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowGameModeDialog(true);
+                      timerRef.current?.reset();
+                    }}
+                    size="sm"
+                    className="px-2 sm:px-4 py-3 sm:py-6 bg-[#DBB968] text-sm sm:text-lg text-black hover:bg-[#C7A95D]"
+                  >
+                    New Game
+                  </Button>
                 </div>
               </div>
-              <div className="flex flex-col flex-grow overflow-hidden">
-                <h3 className="text-white text-sm font-semibold px-2">
-                  Move History
-                </h3>
-                <div className="rounded shadow-md bg-[#3B3433] h-96 w-full">
-                  <ScrollArea className="h-full w-full">
-                    <table className="w-full text-white">
-                      <thead className="sticky top-0 z-10 bg-[#3B3433]">
-                        <tr>
-                          <th className="py-2 px-2 sm:px-5 text-left text-xs sm:text-sm font-semibold">
-                            Turn
-                          </th>
-                          <th className="py-2 px-2 sm:px-5 text-left text-xs sm:text-sm font-semibold">
-                            White
-                          </th>
-                          <th className="py-2 px-2 sm:px-5 text-left text-xs sm:text-sm font-semibold">
-                            Black
-                          </th>
-                          <th className="py-2 px-2 sm:px-5 text-right text-xs sm:text-sm font-semibold">
-                            Time
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {moveHistoryPairs.map((pair) => (
-                          <MoveHistoryRow key={pair.turn} pair={pair} />
-                        ))}
-                      </tbody>
-                    </table>
-                  </ScrollArea>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  onClick={() => {
-                    const lastTurn = fen.split(" ")[1] === "w" ? "b" : "w";
-                    undoMove();
-                    timerRef.current?.undoTime(lastTurn, isSinglePlayer);
-                  }}
-                  disabled={history.length === 0}
-                  variant="default"
-                  size="sm"
-                  className="px-2 sm:px-4 py-3 sm:py-6 text-sm sm:text-lg"
-                >
-                  Undo Move
-                </Button>
-                <Button
-                  onClick={() => {
-                    setShowGameModeDialog(true);
-                    timerRef.current?.reset();
-                  }}
-                  size="sm"
-                  className="px-2 sm:px-4 py-3 sm:py-6 bg-[#DBB968] text-sm sm:text-lg text-black hover:bg-[#C7A95D]"
-                >
-                  New Game
-                </Button>
-              </div>
             </div>
-          </div>
-          <div className="md:block hidden flex justify-center md:justify-start">
-            <CapturedPieces color="White" pieces={capturedWhite} />
+
+            <div className="md:flex hidden justify-center md:justify-start">
+              <CapturedPieces color={boardOrientation === 'white' ? 'White' : 'Black'} pieces={boardOrientation === 'white' ? capturedBlack : capturedWhite} />
+            </div>
           </div>
         </div>
       </div>
+
       <GameOverDialog
         open={gameState.isGameOver}
         title={gameState.title}
