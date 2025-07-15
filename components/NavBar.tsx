@@ -52,7 +52,7 @@ export default function Navbar() {
   useEffect(() => {
     const setNavbarHeight = () => {
       const height = navRef.current?.offsetHeight || 0;
-      document.documentElement.style.setProperty('--navbar-height', ${height}px);
+      document.documentElement.style.setProperty('--navbar-height', `${height}px`);
     };
 
     setNavbarHeight();
@@ -117,7 +117,7 @@ export default function Navbar() {
               </div>
 
               <Button
-                onClick={() => router.push('/game')}
+                onClick={() => router.push('/game/online')}
                 className="px-4 py-2 w-[124px] h-[35px] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] hover:text-white transition-colors cursor-pointer duration-300 flex justify-center items-center" >
                 Play Game
               </Button>
@@ -156,6 +156,18 @@ export default function Navbar() {
           <span onClick={() => { router.push('/market'); setMobileOpen(false); }} className="text-[2rem] font-semibold cursor-pointer text-center w-full">
             Our Market
           </span>
+
+          {isLoggedIn && (
+            <>
+              <span onClick={() => { router.push('/game/online'); setMobileOpen(false); }} className="text-[2rem] font-semibold cursor-pointer text-center w-full hover:text-[#E9B654]">
+                Play Game
+              </span>
+              <span onClick={() => { router.push('/game/offline'); setMobileOpen(false); }} className="text-[2rem] font-semibold cursor-pointer text-center w-full hover:text-[#E9B654]">
+                AI Practice
+              </span>
+            </>
+          )}
+
           <div className="w-full flex flex-col gap-[1.5vh] mt-[2vh] items-center">
             {isLoggedIn ? (
               <Button onClick={() => setShowConfirmLogout(true)} className="w-[352px] h-[40px] text-[3.5vh] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#9E7C00] to-[#605715] flex justify-center items-center">
