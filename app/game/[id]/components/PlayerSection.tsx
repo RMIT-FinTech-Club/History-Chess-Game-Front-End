@@ -12,8 +12,9 @@ export const PlayerSection = ({
   isPaused, 
   gameActive,
   profileName,
-  profileImage 
-}: PlayerSectionProps) => {
+  profileImage,
+  elo 
+}: PlayerSectionProps & { elo?: number }) => {
   const [isHovered, setIsHovered] = useState(false);
   
   // Use profileName if provided, otherwise default to color
@@ -22,6 +23,9 @@ export const PlayerSection = ({
   // Use profileImage if provided, otherwise default to current image
   const displayImage = profileImage || "/footer/footer_bear.svg";
   
+  // Format ELO with comma as thousands separator
+  const formattedElo = elo;
+  
   // Calculate if we need to truncate
   const displayLimit = 4;
   const truncatedCount = pieces.length > displayLimit && !isHovered ? pieces.length - displayLimit : 0;
@@ -29,7 +33,7 @@ export const PlayerSection = ({
   // When hovered, show all pieces; otherwise show truncated list
   const displayPieces = isHovered ? pieces : 
                         truncatedCount > 0 ? pieces.slice(-displayLimit) : pieces;
-
+  
   // Format seconds into MM:SS
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -74,7 +78,7 @@ export const PlayerSection = ({
               onMouseLeave={() => setIsHovered(false)}
             >
               {pieces.length === 0 ? (
-                <span className="text-xs text-gray-400">None</span>
+                <span className="text-xs text-gray-400">ELO: {formattedElo}</span>
               ) : (
                 <div className={`flex flex-row items-center transition-all duration-300 ${isHovered ? 'flex-wrap' : ''}`}>
                   {displayPieces.map((piece, index) => (

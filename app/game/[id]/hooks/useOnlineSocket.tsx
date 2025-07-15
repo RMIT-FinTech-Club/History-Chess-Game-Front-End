@@ -135,7 +135,7 @@ export const useOnlineSocket = ({
           setBoardOrientation(playerColor);
         }
       }
-
+      
       // Update game state
       setGameState(prev => ({
         ...state,

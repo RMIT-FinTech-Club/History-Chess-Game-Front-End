@@ -42,6 +42,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
             gameActive={!gameState?.gameOver}
             profileName={boardOrientation === "white" ? blackProfile.name : whiteProfile.name}
             profileImage={boardOrientation === "white" ? blackProfile.image : whiteProfile.image}
+            elo={boardOrientation === "white" ? blackProfile.elo : whiteProfile.elo}
           />
         </div>
         
@@ -88,6 +89,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
             gameActive={!gameState?.gameOver}
             profileName={boardOrientation === "white" ? whiteProfile.name : blackProfile.name}
             profileImage={boardOrientation === "white" ? whiteProfile.image : blackProfile.image}
+            elo={boardOrientation === "white" ? whiteProfile.elo : blackProfile.elo}
           />
         </div>
       </div>
