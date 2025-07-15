@@ -179,8 +179,16 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
         capturedWhite={capturedWhite}
         capturedBlack={capturedBlack}
         gameState={gameState}
-        whiteProfile={whiteProfile}
-        blackProfile={blackProfile}
+        whiteProfile={{
+          name: whiteProfile.name,
+          image: whiteProfile.image,
+          elo: whiteProfile.elo || 0
+        }}
+        blackProfile={{
+          name: blackProfile.name,
+          image: blackProfile.image,
+          elo: blackProfile.elo || 0
+        }}
         formatTimeInSeconds={formatTimeInSeconds}
         handleDrop={handleDrop}
         onPieceClick={onPieceClick}
