@@ -32,7 +32,7 @@ export default function PlayerSelector({
     }, [showPlayerSelect, onCloseSelectAction]);
 
     return (
-        <div className="flex items-center w-full bg-[#3B3433] rounded-[2vh] px-[2vw] py-[2vh] relative">
+        <div className="flex items-center w-full bg-[#3B3433] rounded-[2vh] px-[2vw] py-[2vh] mb-[2vh] relative">
             <div
                 className="bg-center bg-cover bg-no-repeat h-full aspect-square rounded-full border border-solid border-white mr-[2vh]"
                 style={{ backgroundImage: `url(${selectedPlayer.avt})` }}
@@ -51,8 +51,8 @@ export default function PlayerSelector({
             </p>
 
             {showPlayerSelect && (
-                <div className="absolute top-[calc(100%+2vh)] left-0 w-full bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div ref={playerListRef} className="bg-[#2F2A29] rounded-[2vh] p-[2vh] w-full text-white">
+                <div className="absolute top-[calc(100%+2vh)] rounded-[2vh] overflow-hidden left-0 w-full bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div ref={playerListRef} className="bg-[#2F2A29] p-[2vh] w-full text-white">
                         <h2 className="text-[1.5rem] font-bold mb-[1vh]">Select a player</h2>
                         <div className="flex flex-col gap-[1vh] max-h-[50vh] overflow-y-auto list-container">
                             {players.map((player, index) => (

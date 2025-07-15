@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaUser, FaPuzzlePiece, FaSignOutAlt, FaWallet, FaChevronDown } from 'react-icons/fa';
 import { HiOutlineMenuAlt3, HiX } from 'react-icons/hi';
@@ -14,6 +14,38 @@ export default function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  const navRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const setNavbarHeight = () => {
+      const height = navRef.current?.offsetHeight || 0;
+      document.documentElement.style.setProperty('--navbar-height', `${height}px`);
+    };
+
+    setNavbarHeight();
+    window.addEventListener('resize', setNavbarHeight);
+
+    return () => window.removeEventListener('resize', setNavbarHeight);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const router = useRouter();
 
@@ -33,9 +65,10 @@ export default function Navbar() {
   const avatarUrl = avatar || "/img/DefaultUser.png";
 
   return (
-
-
-    <nav className="w-full bg-black text-white px-6 py-4">
+    <nav
+      ref={navRef} 
+      className="w-full bg-black text-white px-6 py-4"
+    >
       {toast && (
         <Toast
           type={toast.type}

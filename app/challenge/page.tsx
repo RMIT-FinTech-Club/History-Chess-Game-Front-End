@@ -97,9 +97,9 @@ export default function Challenge() {
     };
 
     return (
-        <div className="w-full min-h-max p-[2vw] text-white gap-[2vh] overflow-hidden">
+        <div className="w-full h-[calc(100dvh-var(--navbar-height))] p-[2vw] text-white gap-[2vh] overflow-hidden">
             <div className="h-full grid grid-cols-1 md:grid-cols-2 gap-4 items-start justify-between">
-                <div className="w-full max-w-full">
+                <div className="w-[max-content] mx-auto">
                     <Chessboard
                         id="historyChessBoard"
                         position="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -108,8 +108,8 @@ export default function Challenge() {
                         arePiecesDraggable={false}
                     />
                 </div>
-                <div className="h-full col-span-1 flex flex-col justify-between">
-                    <div className="h-full mb-[2vw] text-white flex flex-col justify-start gap-[4vh]">
+                <div className={`${window.innerWidth > 768 ? 'h-[600px]' : window.innerWidth > 480 ? 'h-[400px]' : 'h-[300px]'} flex flex-col`}>
+                    <div className="h-full bg-[transparent] bg-[linear-gradient(120deg,rgba(255,255,255,0.3),rgba(0,0,0,0.2))] backdrop-blur-[20px] mb-[2vh] text-white flex flex-col p-[2vh] rounded-[2vh]">
                         <PlayerSelector
                             selectedPlayer={selectedPlayer}
                             players={onlinePlayers}
