@@ -54,36 +54,6 @@ export default function Challenge() {
         setIsChallengingAction: setIsChallengingSomeone,
     });
 
-    // --- REMOVE THIS useEffect: gameStarting is now handled globally by GlobalGameRedirector ---
-    // useEffect(() => {
-    //     if (!socket || !userId) {
-    //         console.log("Challenge Page gameStarting useEffect: Socket or userId not ready. Skipping.");
-    //         return;
-    //     }
-    //     console.log("Challenge Page gameStarting useEffect: Setting up gameStarting listener.");
-    //     const handleGameStarting = (data: { gameId: string; playMode: string; colorPreference: string }) => {
-    //         console.log("Challenge Page: Game starting! Redirecting...", data);
-    //         toast.success("Game starting! Redirecting...");
-    //         localStorage.setItem(
-    //             "gameData",
-    //             JSON.stringify({
-    //                 gameId: data.gameId,
-    //                 gameMode: data.playMode,
-    //                 colorPreference: data.colorPreference,
-    //                 userId: userId,
-    //             })
-    //         );
-    //         router.push(`/game/${data.gameId}`);
-    //     };
-    //     socket.on("gameStarting", handleGameStarting);
-    //     return () => {
-    //         if (socket) {
-    //             socket.off("gameStarting", handleGameStarting);
-    //         }
-    //     };
-    // }, [socket, userId, router]);
-    // --- END REMOVE ---
-
     const handleSendChallenge = () => {
         if (!selectedMode || !selectedSide || !selectedPlayer.id) {
             toast.error("Please select all options before sending a challenge");

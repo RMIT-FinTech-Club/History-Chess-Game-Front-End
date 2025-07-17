@@ -1,48 +1,54 @@
 import { defaultPieces } from "../../../../components/Pieces";
-import { useState } from "react";
+import { useState, useLayoutEffect } from "react";
 import Image from "next/image";
 import { PlayerSectionProps } from "../types";
 import { useBoardSize } from "@/hooks/useBoardSize";
 
-export const PlayerSection = ({ 
-  color, 
-  pieces, 
-  timeInSeconds, 
-  isCurrentTurn, 
-  isPaused, 
+export const PlayerSection = ({
+  color,
+  pieces,
+  isCurrentTurn,
   gameActive,
   profileName,
-  profileImage 
+  profileImage
 }: PlayerSectionProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  
+
   // Use profileName if provided, otherwise default to color
   const displayName = profileName || color;
-  
+
   // Use profileImage if provided, otherwise default to current image
   const displayImage = profileImage || "/footer/footer_bear.svg";
-  
+
   // Calculate if we need to truncate
   const displayLimit = 4;
   const truncatedCount = pieces.length > displayLimit && !isHovered ? pieces.length - displayLimit : 0;
-  
-  // When hovered, show all pieces; otherwise show truncated list
-  const displayPieces = isHovered ? pieces : 
-                        truncatedCount > 0 ? pieces.slice(-displayLimit) : pieces;
 
-  // Format seconds into MM:SS
-  const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
-  };
+  // When hovered, show all pieces; otherwise show truncated list
+  const displayPieces = isHovered ? pieces :
+    truncatedCount > 0 ? pieces.slice(-displayLimit) : pieces;
 
   // Get the board width from the custom hook
   const boardWidth = useBoardSize();
 
+  // Calculate the height for avatar
+  const [avtHeight, setAvtHeight] = useState(60);
+  useLayoutEffect(() => {
+    const calculateAvtHeight = () => {
+      if (typeof window === "undefined") return 60;
+      return window.innerHeight / 100 * 8 // 8vh
+    };
+
+    const handleResize = () => setAvtHeight(calculateAvtHeight);
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [])
+
   return (
-    <div 
-      className="py-3 rounded-md flex items-center gap-4"
+    <div
+      className="flex items-center h-[10vh] overflow-y-hidden my-[1vh]"
       style={{ width: `${boardWidth}px` }}
     >
       {/* Avatar */}
@@ -50,19 +56,19 @@ export const PlayerSection = ({
         <Image
           src={displayImage}
           alt={`${displayName} player avatar`}
-          width={60}
-          height={50}
-          className="rounded-full h-[60px] border-2 border-gray-300"
+          width={avtHeight}
+          height={avtHeight}
+          className="rounded-full aspect-square border-2 border-gray-300 mr-[1vh]"
         />
       </div>
-      
+
       {/* Player Info Section */}
       <div className="flex-1 flex justify-between gap-2">
         {/* Player Name and Time */}
         <div className="flex flex-col">
-          <h2 className={`text-sm sm:text-lg font-bold text-white ${isCurrentTurn && !isPaused && gameActive ? "text-[#F7D27F]" : ""}`}>
+          <h2 className={`text-[2vh] font-bold text-white ${isCurrentTurn && gameActive ? "text-[#F7D27F]" : ""}`}>
             {displayName}
-            {isCurrentTurn && !isPaused && gameActive && (
+            {isCurrentTurn && gameActive && (
               <span className="animate-pulse text-[#F7D27F] ml-2">●</span>
             )}
           </h2>
@@ -74,7 +80,7 @@ export const PlayerSection = ({
               onMouseLeave={() => setIsHovered(false)}
             >
               {pieces.length === 0 ? (
-                <span className="text-xs text-gray-400">None</span>
+                <span className="text-[1.5vh] text-gray-400">None</span>
               ) : (
                 <div className={`flex flex-row items-center transition-all duration-300 ${isHovered ? 'flex-wrap' : ''}`}>
                   {displayPieces.map((piece, index) => (
@@ -91,7 +97,7 @@ export const PlayerSection = ({
                       {defaultPieces[piece] || <span>?</span>}
                     </div>
                   ))}
-                  
+
                   {/* Display truncation indicator after the last piece */}
                   {truncatedCount > 0 && !isHovered && (
                     <div
@@ -109,12 +115,6 @@ export const PlayerSection = ({
               )}
             </div>
           </div>
-        </div>
-        {/* Time Display */}
-        <div className="flex items-center gap-2">
-          <span className={`font-mono text-4xl text-[#F7D27F] ${timeInSeconds < 60 ? "text-red-500" : ""} ${isCurrentTurn && !isPaused && gameActive ? "text-[#F7D27F] font-bold" : ""}`}>
-            {formatTime(timeInSeconds)}
-          </span>
         </div>
       </div>
     </div>
