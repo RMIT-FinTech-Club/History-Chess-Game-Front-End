@@ -18,11 +18,12 @@ import AccountSettings from "@/components/profile/accountSettings"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 
 export default function ProfilePage() {
-    const { userName, avatar, accessToken, isAuthenticated } = useGlobalStorage()
+    const { userId, userName, avatar, accessToken, isAuthenticated } = useGlobalStorage()
     const router = useRouter()
     const profileRef = useRef<HTMLDivElement | null>(null)
     const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
     const [profileMenu, setProfileMenu] = useState(1)
+    const [wonMatches, setWonMatches] = useState<number>(0)
 
     // Validate token on mount
     // useEffect(() => {
@@ -41,6 +42,26 @@ export default function ProfilePage() {
     //     }
     //     getUserData()
     // }, [accessToken, router])
+
+    // Fetch won matches
+    useEffect(() => {
+        const fetchWonMatches = async () => {
+            try {
+                const response = await axiosInstance.get(`/game/history/${userId}`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    }
+                });
+                const victories = response.data.filter((match: any) => match.result === 'Victory').length;
+                setWonMatches(victories);
+            } catch (err) {
+                console.error('Error fetching match history:', err);
+                toast.error('Failed to load won matches');
+            }
+        };
+
+        fetchWonMatches();
+    }, [userId, accessToken]);
 
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
     return (
@@ -98,7 +119,7 @@ export default function ProfilePage() {
                         {
                             icon: styles.profile_icon_4,
                             content: 'Won Matches',
-                            number: 120
+                            number: wonMatches
                         },
                     ].map((card, index) => (
                         <div key={index} className="w-[10vw] md:w-[8vw] h-[11vw] md:h-[10vw] flex flex-col justify-center items-center bg-black rounded-[1vw] border border-solid border-[#77878B]">
