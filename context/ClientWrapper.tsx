@@ -44,7 +44,7 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/sign_in',
     '/sign_up',
     '/game/offline',
-    '/game/online',
+    '/game',
     '/home'
   ];
 
@@ -53,7 +53,7 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/sign_in',
     '/sign_up',
     '/game/offline',
-    '/game/online'
+    '/game'
   ];
 
   // Add the '/' route here as well
