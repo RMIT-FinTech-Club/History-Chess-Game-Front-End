@@ -42,14 +42,18 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/profile',
     '/otp',
     '/sign_in',
-    '/sign_up'
+    '/sign_up',
+    '/game/offline',
+    '/game',
+    '/home'
   ];
 
   const noNavBarRoutes = [
     '/',
-    '/otp',
     '/sign_in',
-    '/sign_up'
+    '/sign_up',
+    '/game/offline',
+    '/game'
   ];
 
   // Add the '/' route here as well
