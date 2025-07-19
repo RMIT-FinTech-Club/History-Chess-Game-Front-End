@@ -24,6 +24,7 @@ export default function ProfilePage() {
     const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
     const [profileMenu, setProfileMenu] = useState(1)
     const [wonMatches, setWonMatches] = useState<number>(0)
+    const [globalRank, setGlobalRank] = useState<number>(100)
 
     // Validate token on mount
     // useEffect(() => {
@@ -63,6 +64,27 @@ export default function ProfilePage() {
         fetchWonMatches();
     }, [userId, accessToken]);
 
+    //Fetch global ranking based on Elo
+    useEffect(() => {
+        const fetchGlobalRank = async () => {
+            try {
+                const response = await axiosInstance.get(`/users?limit=1000&offset=0`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    }
+                });
+                const users = response.data.users.sort((a: any, b: any) => b.elo - a.elo);
+                const rank = users.findIndex((user: any) => user.id === userId) + 1;
+                setGlobalRank(rank > 0 ? rank : 100); //Fallback to 100 if not found
+            } catch (err) {
+                console.error('Error fetching users for ranking:', err);
+                toast.error('Failed to load global ranking');
+            }
+        };
+
+        fetchGlobalRank();
+    }, [userId, accessToken]);
+
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
     return (
         <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3dvh] mx-[5vw] md:mx-[10vw] text-white relative h-[calc(100dvh-var(--navbar-height))]">
@@ -94,7 +116,7 @@ export default function ProfilePage() {
                     ></div>
                     <div className="w-[23vw] md:w-[24vw] flex flex-col justify-between items-start">
                         <p className="text-[2vw] font-bold w-full whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
-                        <p className="text-[1.2vw] font-thin my-[0.5vw] md:my-0">Global Ranking: #100</p>
+                        <p className="text-[1.2vw] font-thin my-[0.5vw] md:my-0">Global Ranking: #{globalRank}</p>
                         <p className="text-[1.2vw] font-thin">Player ID: 31082007</p>
                     </div>
                 </div>
