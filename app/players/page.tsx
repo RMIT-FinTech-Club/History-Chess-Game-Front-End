@@ -11,7 +11,7 @@ import { useSocketContext } from "@/context/WebSocketContext"
 
 interface Players {
   username: string
-  avt: string
+  avatarUrl: string
   elo: number
   id: string
 }
@@ -61,13 +61,13 @@ export default function PlayerList() {
       });
 
       const results = await Promise.all(userDetailsPromises);
-
+      console.log(results);
       const formattedPlayers = results
         .filter((result): result is { success: true, data: Players } => result.success)
         .map(({ data: userData }) => ({
           id: userData.id,
           username: userData.username || "Unknown",
-          avt: userData.avt || "https://i.imgur.com/RoRONDn.jpeg",
+          avatarUrl: userData.avatarUrl || "https://i.imgur.com/RoRONDn.jpeg",
           elo: userData.elo || 0,
         }))
         .filter((player) => player.id !== userId);
@@ -169,7 +169,7 @@ export default function PlayerList() {
             <div key={index} className={`w-full h-[8dvh] sm:h-[15vh] mb-[5vh] rounded-[2vw] bg-[rgba(255,255,255,0.3)] border-[0.1px] border-solid border-[#EEFF07] flex justify-start items-center ${styles.player}`}>
               <div
                 className="sm:h-[9dvh] h-[5vh] aspect-square rounded-[50%] mx-[1dvh] sm:mx-[3dvh] border border-solid border-white bg-center bg-cover bg-no-repeat"
-                style={{ backgroundImage: `url(https://i.imgur.com/RoRONDn.jpeg)` }}>
+                style={{ backgroundImage: `url(${user.avatarUrl})` }}>
               </div>
               <div className="flex justify-center items-center w-[calc(100%-8dvh-2vw)] sm:w-[calc(100%-15vh-2vw)] h-full ml-[2vw]">
                 <div className="flex flex-col w-[calc(70%/2)] md:w-[calc(70%/3)] h-full items-start justify-center">
