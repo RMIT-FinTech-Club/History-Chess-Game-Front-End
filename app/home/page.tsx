@@ -28,7 +28,7 @@ export default function HomePage() {
                     </div>
                 </div>
                 <div 
-                    onClick={() => router.push("/game/find")}
+                    onClick={() => router.push("/game/offline")}
                     className={`${styles.item2} border border-white border-solid overflow-hidden rounded-[4vw] flex flex-row md:flex-col bg-[linear-gradient(180deg,#E9B654,#363624)] cursor-pointer`}
                 >
                     <div className={`w-[40vw] md:w-full aspect-square bg-center bg-cover bg-no-repeat ${styles.chessboardBG}`}></div>
