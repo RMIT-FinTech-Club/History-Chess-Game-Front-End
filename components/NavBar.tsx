@@ -117,7 +117,7 @@ export default function Navbar() {
               </div>
 
               <Button
-                onClick={() => router.push('/game/online')}
+                onClick={() => router.push('/game/find')}
                 className="px-4 py-2 w-[124px] h-[35px] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] hover:text-white transition-colors cursor-pointer duration-300 flex justify-center items-center" >
                 Play Game
               </Button>

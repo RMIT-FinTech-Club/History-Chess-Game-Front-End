@@ -175,8 +175,8 @@ export default function ProfilePage() {
                             >
                                 <div
                                     className={`${index === profileMenu
-                                            ? `${styles.profile_menu_icon} border-[#DBB968]`
-                                            : "border-white"
+                                        ? `${styles.profile_menu_icon} border-[#DBB968]`
+                                        : "border-white"
                                         } h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid rounded-[50%]`}
                                 >
                                     {
@@ -188,8 +188,8 @@ export default function ProfilePage() {
                                 </div>
                                 <p
                                     className={`${index === profileMenu
-                                            ? `text-[#DBB968]`
-                                            : "text-white group-hover:md:left-[0.3vw]"
+                                        ? `text-[#DBB968]`
+                                        : "text-white group-hover:md:left-[0.3vw]"
                                         } text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:text-[#DBB968] transition-all duration-200`}
                                 >
                                     {menu.content}
