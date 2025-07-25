@@ -17,6 +17,7 @@ export default function ProfileMatches() {
     const { userId, accessToken } = useGlobalStorage()
     const [matches, setMatches] = useState<Match[]>([])
     const [error, setError] = useState<string | null>(null)
+    const [userAvatars, setUserAvatars] = useState<{ [key: string]: string }>({})
 
     useEffect(() => {
         const fetchMatchHistory = async () => {
@@ -28,10 +29,24 @@ export default function ProfileMatches() {
                     }
                 })
 
+                // Fetch all users to get avatars (assuming small user base; adjust limit as needed)
+                const usersResponse = await axiosInstance.get(`/users?limit=1000&offset=0`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    }
+                });
+
+                const avatarsMap: { [key: string]: string } = {};
+                usersResponse.data.users.forEach((user: any) => {
+                    avatarsMap[user.username.toLowerCase()] = user.avatarUrl || '';
+                });
+                setUserAvatars(avatarsMap);
+
                 const formattedMatches = response.data.map((match: any) => {
+                    const opponentLower = (match.opponentName || 'Unknown').toLowerCase();
                     return {
                         opponent: match.opponentName || 'Unknown',
-                        avt: match.opponentAvatar || 'https://i.imgur.com/RoRONDn.jpeg',
+                        avt: avatarsMap[opponentLower],
                         playMode: match.gameMode,
                         // Use the computed duration as your 'time' field
                         totalTime: match.totalTime,

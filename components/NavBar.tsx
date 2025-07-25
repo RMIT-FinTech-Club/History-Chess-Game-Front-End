@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { FaUser, FaPuzzlePiece, FaSignOutAlt, FaWallet, FaChevronDown } from 'react-icons/fa';
 import { HiOutlineMenuAlt3, HiX } from 'react-icons/hi';
 import Image from 'next/image';
@@ -12,9 +12,10 @@ export default function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+  const pathname = usePathname();
 
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
-  const mobileDrawerRef = useRef<HTMLDivElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);  
+  const mobileDrawerRef = useRef<HTMLDivElement | null>(null); 
 
   const router = useRouter();
 
@@ -34,12 +35,9 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Close avatar dropdown if clicked outside
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
-
-      // Close mobile drawer if clicked outside
       if (mobileDrawerRef.current && !mobileDrawerRef.current.contains(event.target as Node)) {
         setMobileOpen(false);
       }
@@ -48,6 +46,11 @@ export default function Navbar() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+      setShowDropdown(false);
+      setMobileOpen(false);
+    }, [pathname]); 
 
   useEffect(() => {
     const setNavbarHeight = () => {
@@ -63,7 +66,7 @@ export default function Navbar() {
 
   return (
     <nav ref={navRef} className="w-full bg-black text-white px-6 py-4">
-      {/* <Toast type="success" message="Logged In" onClose={() => setToast(null)} /> */}
+      <Toast type="success" message="Logged In" onClose={() => setToast(null)} /> 
 
       <ConfirmModal
         isOpen={showConfirmLogout}

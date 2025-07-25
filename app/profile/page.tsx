@@ -18,11 +18,13 @@ import AccountSettings from "@/components/profile/accountSettings"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 
 export default function ProfilePage() {
-    const { userName, avatar, accessToken, isAuthenticated } = useGlobalStorage()
+    const { userId, userName, avatar, accessToken, isAuthenticated } = useGlobalStorage()
     const router = useRouter()
     const profileRef = useRef<HTMLDivElement | null>(null)
     const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
     const [profileMenu, setProfileMenu] = useState(1)
+    const [wonMatches, setWonMatches] = useState<number>(0)
+    const [globalRank, setGlobalRank] = useState<number>(100)
 
     // Validate token on mount
     // useEffect(() => {
@@ -41,6 +43,47 @@ export default function ProfilePage() {
     //     }
     //     getUserData()
     // }, [accessToken, router])
+
+    // Fetch won matches
+    useEffect(() => {
+        const fetchWonMatches = async () => {
+            try {
+                const response = await axiosInstance.get(`/game/history/${userId}`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    }
+                });
+                const victories = response.data.filter((match: any) => match.result === 'Victory').length;
+                setWonMatches(victories);
+            } catch (err) {
+                console.error('Error fetching match history:', err);
+                toast.error('Failed to load won matches');
+            }
+        };
+
+        fetchWonMatches();
+    }, [userId, accessToken]);
+
+    //Fetch global ranking based on Elo
+    useEffect(() => {
+        const fetchGlobalRank = async () => {
+            try {
+                const response = await axiosInstance.get(`/users?limit=1000&offset=0`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    }
+                });
+                const users = response.data.users.sort((a: any, b: any) => b.elo - a.elo);
+                const rank = users.findIndex((user: any) => user.id === userId) + 1;
+                setGlobalRank(rank > 0 ? rank : 100); //Fallback to 100 if not found
+            } catch (err) {
+                console.error('Error fetching users for ranking:', err);
+                toast.error('Failed to load global ranking');
+            }
+        };
+
+        fetchGlobalRank();
+    }, [userId, accessToken]);
 
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
     return (
@@ -73,7 +116,7 @@ export default function ProfilePage() {
                     ></div>
                     <div className="w-[23vw] md:w-[24vw] flex flex-col justify-between items-start">
                         <p className="text-[2vw] font-bold w-full whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
-                        <p className="text-[1.2vw] font-thin my-[0.5vw] md:my-0">Global Ranking: #100</p>
+                        <p className="text-[1.2vw] font-thin my-[0.5vw] md:my-0">Global Ranking: #{globalRank}</p>
                         <p className="text-[1.2vw] font-thin">Player ID: 31082007</p>
                     </div>
                 </div>
@@ -98,7 +141,7 @@ export default function ProfilePage() {
                         {
                             icon: styles.profile_icon_4,
                             content: 'Won Matches',
-                            number: 120
+                            number: wonMatches
                         },
                     ].map((card, index) => (
                         <div key={index} className="w-[10vw] md:w-[8vw] h-[11vw] md:h-[10vw] flex flex-col justify-center items-center bg-black rounded-[1vw] border border-solid border-[#77878B]">
