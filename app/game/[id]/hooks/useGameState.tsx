@@ -51,10 +51,9 @@ export const useGameState = () => {
         }
     })
       .then((response) => {
-        console.log("whiteUser", response.data);
         setWhiteProfile({
           name: response.data.username,
-          image: response.data.avatar,
+          image: response.data.avatarUrl,
           elo: response.data.elo
         });
       })
@@ -68,7 +67,7 @@ export const useGameState = () => {
       .then((response) => {
         setBlackProfile({
           name: response.data.username,
-          image: response.data.avatar,
+          image: response.data.avatarUrl,
           elo: response.data.elo
         });
       })
@@ -77,8 +76,7 @@ export const useGameState = () => {
   
   // Update board orientation when auto-rotate changes
   useEffect(() => {
-     console.log("gameState", gameState);
-     fetchUsers();
+    fetchUsers();
     if (gameState && autoRotateBoard) {
       setBoardOrientation(gameState.turn === "w" ? "white" : "black");
     } else if (gameState?.playerColor) {
