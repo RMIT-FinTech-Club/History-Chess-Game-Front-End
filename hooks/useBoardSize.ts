@@ -8,17 +8,38 @@ export const useBoardSize = () => {
       if (typeof window === "undefined") return 580;
       const width = window.innerWidth;
       const height = window.innerHeight;
-      if (width < 480) return Math.min(width - 48, 480);
-      if (width < 768) return Math.min(width - 48, 580);
-      return height * 0.75; // Default to 75% of viewport height
+      return Math.min((height * 0.71), (width/2));
     };
 
     const handleResize = () => setBoardWidth(calculateBoardSize());
-    
+
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return boardWidth;
+};
+
+export const useBoardHeight = () => {
+  const [boardHeight, setBoardHeight] = useState(580);
+
+  useLayoutEffect(() => {
+    const calculateBoardSize = () => {
+      if (typeof window === "undefined") return 580;
+      const width = window.innerWidth;
+      let height = window.innerHeight;
+      height = height - parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--navbar-height").trim()) || 0;
+
+      return Math.min((height * 0.9), (width/2));
+    };
+
+    const handleResize = () => setBoardHeight(calculateBoardSize());
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return boardHeight;
 };

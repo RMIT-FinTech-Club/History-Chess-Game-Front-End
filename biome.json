@@ -1,0 +1,54 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+    "files": {
+        "includes": [
+            "app/**/*.ts",
+            "app/**/*.tsx",
+            "components/**/*.ts",
+            "components/**/*.tsx",
+            "__test__/**/*.test.ts",
+            "!**/.next"
+        ]
+    },
+    "assist": {
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "a11y": {
+                "noAriaUnsupportedElements": "warn",
+                "useAltText": "warn",
+                "useAriaPropsForRole": "warn",
+                "useValidAriaProps": "warn",
+                "useValidAriaValues": "warn"
+            },
+            "complexity": {
+                "noBannedTypes": "error",
+                "noUselessTypeConstraint": "error"
+            },
+            "style": {
+                "noNamespace": "error",
+                "useAsConstAssertion": "error"
+            },
+            "suspicious": {
+                "noCommentText": "error",
+                "noDuplicateJsxProps": "error",
+                "noExplicitAny": "error",
+                "noExtraNonNullAssertion": "error",
+                "noMisleadingInstantiator": "error",
+                "noUnsafeDeclarationMerging": "error"
+            }
+        }
+    },
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "tab",
+        "indentWidth": 4
+    }
+}

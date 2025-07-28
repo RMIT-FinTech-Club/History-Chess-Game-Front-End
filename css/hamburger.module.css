@@ -1,0 +1,127 @@
+@keyframes item1-open {
+    0% {
+        top: 25%;
+    }
+    50% {
+        top: 50%;
+    }
+    100% {
+        top: 50%;
+        transform: rotate(45deg);
+    }
+}
+
+@keyframes item2-open {
+    0% {
+        top: 50%;
+        opacity: 1;
+    }
+    50% {
+        top: 50%;
+        opacity: 0;
+    }
+    100% {
+        top: 50%;
+        opacity: 0;
+    }
+}
+
+@keyframes item3-open {
+    0% {
+        top: 75%;
+    }
+    50% {
+        top: 50%;
+    }
+    100% {
+        top: 50%;
+        transform: rotate(-45deg);
+    }
+}
+
+@keyframes item1-close {
+    0% {
+        top: 50%;
+        transform: rotate(45deg);
+    }
+    100% {
+        top: 25%;
+        transform: rotate(0deg) translateY(-50%);
+    }
+}
+
+@keyframes item2-close {
+    0% {
+        top: 50%;
+        opacity: 0;
+    }
+    30% {
+        top: 50%;
+        opacity: 0;
+    }
+    100% {
+        top: 50%;
+        opacity: 1;
+    }
+}
+
+@keyframes item3-close {
+    0% {
+        top: 50%;
+        transform: rotate(-45deg);
+    }
+    100% {
+        top: 75%;
+        transform: rotate(0deg) translateY(-50%);
+    }
+}
+
+/* Animations */
+
+/* Classes */
+
+.hamburger_item {
+    position: absolute;
+    background-color: white;
+    left: 20%;
+    height: 7%;
+    width: 60%;
+    transform: translateY(-50%);
+    border-radius: 2px;
+}
+
+.item1 {
+    top: 25%;
+}
+
+.item2 {
+    top: 50%;
+}
+
+.item3 {
+    top: 75%;
+}
+
+.opened .item1 {
+    animation: item1-open ease 0.3s forwards;
+}
+
+.opened .item2 {
+    animation: item2-open ease 0.3s forwards;
+}
+
+.opened .item3 {
+    animation: item3-open ease 0.3s forwards;
+}
+
+.closed .item1 {
+    animation: item1-close 0.3s ease forwards;
+}
+
+.closed .item2 {
+    animation: item2-close 0.3s ease forwards;
+}
+
+.closed .item3 {
+    animation: item3-close 0.3s ease forwards;
+}

@@ -6,8 +6,8 @@ import { MoveHistoryTableProps } from "../types";
 export const MoveHistoryTable: React.FC<MoveHistoryTableProps> = ({
   moveHistoryPairs,
 }) => (
-  <div className="rounded shadow-md bg-[#3B3433] h-full w-full p-5 rounded-[0.625rem]">
-    <ScrollArea className="h-full w-full">
+  <div className="shadow-md bg-[#3B3433] h-full w-full p-5 rounded-[0.625rem] min-h-0 flex flex-col overflow-hidden">
+    <ScrollArea className="flex-1 min-h-0 w-full overflow-y-auto">
       <table className="w-full text-white">
         <thead className="sticky top-0 z-10 bg-[#3B3433]">
           <tr className="grid grid-cols-4">

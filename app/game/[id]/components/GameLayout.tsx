@@ -1,7 +1,8 @@
 import React from "react";
 import { PlayerSection } from "./PlayerSection";
 import { ChessBoardSection } from "./ChessBoardSection";
-import { MoveHistoryTable } from "./MoveHistoryTable";
+// import { MoveHistoryTable } from "./MoveHistoryTable";
+import { MoveHistoryTable } from "../../offline/components/MoveHistoryTable";
 import { GameControls } from "./GameControls";
 import { GameLayoutProps } from "../types";
 
@@ -28,14 +29,14 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
       <div className="flex flex-col justify-between w-full min-h-0">
         {/* Top Player */}
         <div className="flex justify-center w-full md:justify-start">
-          <PlayerSection 
+          <PlayerSection
             color={boardOrientation === "white" ? "Black" : "White"}
             pieces={boardOrientation === "white" ? capturedBlack : capturedWhite}
             timeInSeconds={formatTimeInSeconds(
               boardOrientation === "white" ? gameState?.blackTimeLeft : gameState?.whiteTimeLeft
             )}
-            isCurrentTurn={boardOrientation === "white" 
-              ? gameState?.turn === "b" 
+            isCurrentTurn={boardOrientation === "white"
+              ? gameState?.turn === "b"
               : gameState?.turn === "w"
             }
             isPaused={false}
@@ -45,7 +46,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
             elo={boardOrientation === "white" ? blackProfile.elo : whiteProfile.elo}
           />
         </div>
-        
+
         {/* Board and Move History Row */}
         <div className="flex flex-col md:flex-row gap-3">
           {/* Chess Board */}
@@ -60,11 +61,11 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
             boardOrientation={boardOrientation}
             isCurrentPlayerTurn={isCurrentPlayerTurn}
           />
-          
+
           {/* Right Side - Move History and Controls */}
-          <div className="w-full text-black flex flex-col justify-between gap-3">
+          <div className="w-full h-[71dvh] text-black flex flex-col justify-between gap-3">
             <MoveHistoryTable moveHistoryPairs={moveHistoryPairs} />
-            
+
             <GameControls
               onNewGame={handleNewGame}
               canUndo={false}
@@ -72,7 +73,7 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
             />
           </div>
         </div>
-        
+
         {/* Bottom Player */}
         <div className="flex justify-center md:justify-start">
           <PlayerSection
@@ -81,8 +82,8 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
             timeInSeconds={formatTimeInSeconds(
               boardOrientation === "white" ? gameState?.whiteTimeLeft : gameState?.blackTimeLeft
             )}
-            isCurrentTurn={boardOrientation === "white" 
-              ? gameState?.turn === "w" 
+            isCurrentTurn={boardOrientation === "white"
+              ? gameState?.turn === "w"
               : gameState?.turn === "b"
             }
             isPaused={false}
