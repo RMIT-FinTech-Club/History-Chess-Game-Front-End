@@ -3,7 +3,7 @@
 import { createContext, useState } from "react"
 
 const user = {
-    name: "Negic Legend",
+    name: "Skibidi Toilet",
     dept: "Tech",
     balance: 1000
 }

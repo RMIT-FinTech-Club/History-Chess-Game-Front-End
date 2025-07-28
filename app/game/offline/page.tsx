@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Chessboard } from "react-chessboard";
@@ -16,7 +16,6 @@ import { GameModeDialog } from "./components/GameModeDialog";
 import { MoveHistoryTable } from "./components/MoveHistoryTable";
 import { GameControls } from "./components/GameControls";
 import type { StockfishLevel } from "@/app/game/offline/hooks/useStockfish";
-import { TimeCounterHandle } from "./types";
 import YellowLight from "@/components/decor/YellowLight";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
@@ -29,7 +28,6 @@ const OfflinePage = () => {
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
   const [autoRotateBoard, setAutoRotateBoard] = useState(false);
 
-  const timerRef = useRef<TimeCounterHandle>(null);
   const boardWidth = useBoardSize();
   const { isAuthenticated } = useGlobalStorage();
   const router = useRouter();

@@ -13,10 +13,10 @@
     z-index: -1;
 }
 
-@media (width >=48rem) {
+@media (orientation: landscape) {
     .container {
         grid-template-rows: 1fr;
-        grid-template-columns: 1fr 60vh 1fr 60vh 1fr;
+        grid-template-columns: 1fr 40vh 1fr 40vh 1fr;
     }
 
     .item1 {
@@ -28,7 +28,7 @@
     }
 }
 
-@media (width <48rem) {
+@media (orientation: portrait) {
     .container {
         grid-template-rows: 1fr 40vw 1fr 40vw 1fr;
         grid-template-columns: 1fr 80vw 1fr;
