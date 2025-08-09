@@ -40,6 +40,7 @@ export type Side = "white" | "black" | "random";
 export interface SideSelectorProps {
     selectedSide: Side;
     onSideChangeAction: (side: Side) => void;
+    chessBoard: string; // NEW
 }
 
 export const sideOptions = [

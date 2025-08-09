@@ -1,24 +1,10 @@
 :root {
     --black: #c0c0c0;
-  }
+}
 
-  body {
+/* General styles for body */
+body {
     background-color: #151515;
-    background-image:
-        -o-repeating-linear-gradient(
-            bottom,
-            rgba(255, 255, 255, 0.1),
-            rgba(255, 255, 255, 0.1) 1px,
-            transparent 1px,
-            transparent 10vw
-        ),
-        -o-repeating-linear-gradient(
-            left,
-            rgba(255, 255, 255, 0.1),
-            rgba(255, 255, 255, 0.1) 1px,
-            transparent 1px,
-            transparent 10vw
-        );
     background-image:
         repeating-linear-gradient(
             0deg,
@@ -38,6 +24,7 @@
     background-position: -5vw -5vw;
 }
 
+/* Chessboard 1: History Chessboard */
 [data-boardid="historyChessBoard"] {
     border-radius: 5px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
@@ -48,50 +35,86 @@
     transition: background-color 0.3s ease-in-out;
 }
 
-[title="Choose promotion piece"] [data-piece*="Q"], [title="Choose promotion piece"] [data-piece*="B"] {
+[data-boardid="historyChessBoard"] [data-square-color="white"] {
+    background: transparent !important;
+}
+
+[data-boardid="historyChessBoard"] [data-square-color="black"] {
+    background-color: var(--black) !important;
+}
+
+/* Chessboard 2: brown Chessboard - updated for subtle warm tones */
+[data-boardid="brownChessBoard"] {
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    background-image: linear-gradient(135deg, #a77a4f, #4b3b2a);
+}
+
+[data-boardid="brownChessBoard"] [data-square-color="white"] {
+    background: #e4d3b8 !important; /* soft warm light beige */
+}
+
+[data-boardid="brownChessBoard"] [data-square-color="black"] {
+    background-color: #6b4f34 !important; /* rich, soft dark brown */
+}
+
+/* Chessboard 3: blue Chessboard - updated for subtle, natural blue shades */
+[data-boardid="blueChessBoard"] {
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    background-image: linear-gradient(135deg, #7a9ea6, #324a56);
+}
+
+[data-boardid="blueChessBoard"] [data-square-color="white"] {
+    background: #d6dde0 !important; /* soft light gray-blue */
+}
+
+[data-boardid="blueChessBoard"] [data-square-color="black"] {
+    background-color: #2b4151 !important; /* muted navy blue */
+}
+
+/* Promotion piece styles */
+[title="Choose promotion piece"] [data-piece*="Q"], 
+[title="Choose promotion piece"] [data-piece*="B"] {
     background-image: linear-gradient(#E9B654, #83662F)  !important;
 }
 
-[title="Choose promotion piece"] [data-piece*="R"], [title="Choose promotion piece"] [data-piece*="N"] {
+[title="Choose promotion piece"] [data-piece*="R"], 
+[title="Choose promotion piece"] [data-piece*="N"] {
     background-color: var(--black) !important;
 }
 
 /* Custom pieces fixed size */
-[data-boardid="historyChessBoard"] img {
+[data-boardid="historyChessBoard"] img,
+[data-boardid="brownChessBoard"] img,
+[data-boardid="blueChessBoard"] img {
     max-width: 100% !important;
     max-height: 100% !important;
 }
 
-/* Change square colors */
-[data-boardid="historyChessBoard"] [data-square-color="white"] {
-  background: transparent !important;
-}
-
-[data-boardid="historyChessBoard"] [data-square-color="black"] {
-  background-color: var(--black) !important;
-}
-
 /* AI thinking animation */
 @keyframes pulseBorder {
-  0% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(255, 204, 0, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); }
+    0% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 204, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); }
 }
 
-[data-boardid="historyChessBoard"].ai-thinking {
-  animation: pulseBorder 2s infinite;
+[data-boardid="historyChessBoard"].ai-thinking,
+[data-boardid="brownChessBoard"].ai-thinking,
+[data-boardid="blueChessBoard"].ai-thinking {
+    animation: pulseBorder 2s infinite;
 }
 
 /* Custom animation for thinking indicator */
 .thinking-indicator {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
 }

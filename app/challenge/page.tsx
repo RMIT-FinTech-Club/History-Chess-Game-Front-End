@@ -12,9 +12,10 @@ import PlayerSelector from "./PlayerSelector";
 import GameModeSelector from "./GameModeSelector";
 import SideSelector from "./SideSelector";
 import { GameMode, Player, Side } from "./types";
+import BoardChoose, {getCustomPieces} from  "./PiecesBoardSelector";
 
 import "@/css/chessboard.css";
-import { he } from "zod/v4/locales";
+import { he, tr } from "zod/v4/locales";
 
 export default function Challenge() {
     const height = useBoardHeight();
@@ -39,6 +40,8 @@ export default function Challenge() {
         avt: "https://i.imgur.com/RoRONDn.jpeg",
         elo: 0,
     });
+    
+    const [boardId, setBoardId] = useState("historyChessBoard"); // default
 
     // EFFECT: Set initial selected player from URL when onlinePlayers are available
     useEffect(() => {
@@ -74,11 +77,12 @@ export default function Challenge() {
             <div className="h-full grid grid-cols-1 md:grid-cols-2 gap-4 items-start justify-between">
                 <div className="w-[max-content] mx-auto">
                     <Chessboard
-                        id="historyChessBoard"
+                        id={boardId}
                         position="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
                         boardWidth={height}
                         animationDuration={0}
                         arePiecesDraggable={false}
+                        customPieces={getCustomPieces(boardId)}
                     />
                 </div>
                 <div className="flex flex-col" style={{ height: `${height}px` }}>
@@ -93,8 +97,8 @@ export default function Challenge() {
                         />
 
                         <GameModeSelector selectedMode={selectedMode} onModeChange={setSelectedMode} />
-
-                        <SideSelector selectedSide={selectedSide} onSideChangeAction={setSelectedSide} />
+                        <BoardChoose selected={boardId} onSelect={setBoardId} />
+                        <SideSelector selectedSide={selectedSide} onSideChangeAction={setSelectedSide} chessBoard={boardId}/>
                     </div>
                     <div
                         className="bg-[#F7D27F] text-black text-center text-[1.5rem] font-bold py-[1vh] rounded-[0.625rem] cursor-pointer transition-colors duration-200 hover:text-white"
