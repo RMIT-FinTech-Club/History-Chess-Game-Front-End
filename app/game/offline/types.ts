@@ -58,7 +58,6 @@ export type GameHeaderProps = {
   isSinglePlayer: boolean;
   playerColor: "w" | "b";
   aiLevel: StockfishLevel;
-  isThinking: boolean;
   autoRotateBoard: boolean;
   onToggleAutoRotate: () => void;
   onChangeGameMode: () => void;
@@ -81,9 +80,7 @@ export interface TimeCounterHandle {
 export interface PlayerSectionProps {
   color: string;
   pieces: string[];
-  timeInSeconds: number;
   isCurrentTurn: boolean;
-  isPaused: boolean;
   gameActive: boolean;
   profileName?: string;
   profileImage?: string;
