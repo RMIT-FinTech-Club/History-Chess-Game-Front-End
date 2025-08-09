@@ -2,9 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Square } from "chess.js";
-import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import YellowLight from "@/components/decor/YellowLight";
-import { toast } from "sonner";
 
 // Import hooks
 import { useBoardSize } from "@/hooks/useBoardSize";
@@ -21,14 +19,12 @@ import { ConnectionStatus } from "./components/ConnectionStatus";
 import { GameLayout } from "./components/GameLayout";
 import { GameOverDialog } from "./components/GameOverDialog";
 import { OpponentDisconnectionWarning } from "./components/OpponentDisconnectionWarning";
-import { useRouter } from "next/navigation";
 
 const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   const [mounted, setMounted] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState<Square | null>(null);
 
   // Get userId from GlobalStorage
-  const { userId } = useGlobalStorage();
 
   // Unwrap the params Promise
   const resolvedParams = React.use(params);
@@ -121,6 +117,12 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("selectedBoardTheme")) {
+      localStorage.setItem("selectedBoardTheme", "historyChessBoard");
+    }
+  }, []);
+
   // Convert time from milliseconds to seconds
   const formatTimeInSeconds = (ms?: number) => {
     if (typeof ms !== "number") return 0;
@@ -161,7 +163,6 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
 
   return (
     <div className="min-h-screen flex flex-col items-center w-full py-5 px-2 md:px-4">
-      <h1 className="text-4xl font-semibold">ONLINE CHESS GAME</h1>
       <YellowLight top={'30vh'} left={'55vw'} />
 
       {/* Connection Status */}
@@ -179,8 +180,16 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
         capturedWhite={capturedWhite}
         capturedBlack={capturedBlack}
         gameState={gameState}
-        whiteProfile={whiteProfile}
-        blackProfile={blackProfile}
+        whiteProfile={{
+          name: whiteProfile.name,
+          image: whiteProfile.image,
+          elo: whiteProfile.elo || 0
+        }}
+        blackProfile={{
+          name: blackProfile.name,
+          image: blackProfile.image,
+          elo: blackProfile.elo || 0
+        }}
         formatTimeInSeconds={formatTimeInSeconds}
         handleDrop={handleDrop}
         onPieceClick={onPieceClick}

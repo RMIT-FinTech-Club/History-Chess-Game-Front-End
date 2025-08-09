@@ -7,6 +7,17 @@
 @theme {
   --font-sans: "Poppins", sans-serif;
   --font-mono: "Roboto Mono", monospace;
+  --color-active: #81DC00;
+  --color-primary-yellow-1: #DCB968;
+  --color-primary-yellow-2: #A28436;
+  --color-primary-yellow-3: #F7D27F;
+  --color-primary-yellow-4: #FFEFCA;
+  --color-primary-blue-1: #2C305F;
+  --color-primary-blue-2: #0D1742;
+  --color-primary-blue-3: #5E5E92;
+  --color-primary-blue-4: #F0EDFF;
+  --color-secondary-yellow: #F8DA92;
+  --color-secondary-blue: #97ABD6;
 }
 
 :root {

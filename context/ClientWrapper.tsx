@@ -35,6 +35,8 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     return null; // Prevent rendering until the component is mounted
   }
 
+  const isGamePage = pathname.startsWith('/game/');
+
   const noFooterRoutes = [
     '/challenge',
     '/loadout',
@@ -43,8 +45,6 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/otp',
     '/sign_in',
     '/sign_up',
-    '/game/offline',
-    '/game',
     '/home'
   ];
 
@@ -53,7 +53,6 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/sign_in',
     '/sign_up',
     '/game/offline',
-    '/game'
   ];
 
   // Add the '/' route here as well
@@ -64,13 +63,13 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/sign_up'
   ];
 
-  const showFooter = !noFooterRoutes.includes(pathname);
-  const showNavBar = !noNavBarRoutes.includes(pathname);
+  const showFooter = !noFooterRoutes.includes(pathname) && !isGamePage;
+  const showNavBar = !noNavBarRoutes.includes(pathname) && !isGamePage;
   const applySocketProvider = !noSocketRoutes.includes(pathname); // Renamed for clarity
 
   return (
     <>
-      {showNavBar && <NavBar />}
+      {(showNavBar) && <NavBar />}
       {applySocketProvider ? (
         <SocketProvider>
           <LobbyProvider>
