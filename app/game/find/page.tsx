@@ -16,6 +16,13 @@ const FindMatchPage = () => {
   const boardWidth = useBoardSize();
   const router = useRouter();
 
+  const [theme, setTheme] = useState({
+      frame: '#E9B654',
+      frame2: '#363624',
+      light: '#F0D9B5',
+      dark: '#B58863',
+  });
+
   useEffect(() => {
     if (!isAuthenticated) {
       toast.error("Please sign in to play game.");
@@ -30,7 +37,16 @@ const FindMatchPage = () => {
   if (!mounted) return <p>Loading...</p>;
 
   return (
-    <div className="grid grid-cols-2 items-center justify-center p-4 my-10 relative">
+    <div className="grid grid-cols-2 items-center justify-center p-4 my-10 relative"
+         style={
+            {
+              ['--board-frame' as any]: theme.frame,
+              ['--board-frame-2' as any]: theme.frame2,
+              ['--board-light' as any]: theme.light,
+              ['--board-dark' as any]: theme.dark,
+            } as React.CSSProperties
+        }
+      >
       <YellowLight top={'-50vh'} left={'80vw'} />
       <Chessboard
         id="historyChessBoard"

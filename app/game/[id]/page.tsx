@@ -136,6 +136,13 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   // Check if game is over (either from server or timeout)
   const isGameOver = gameState?.gameOver || timeoutGameOver;
   const gameOverTitle = timeoutGameOver ? "Time's Up!" : (gameState?.result || "Game Over");
+  const [theme, setTheme] = useState({
+      frame: '#E9B654',   // màu khung / viền
+      frame2: '#363624',  // màu gradient thứ 2
+      light: '#F0D9B5',   // màu ô sáng
+      dark: '#B58863',    // màu ô tối
+    });
+
   const gameOverMessage = (() => {
     if (timeoutGameOver) {
       return timeoutResult;
@@ -160,7 +167,16 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   })();
 
   return (
-    <div className="min-h-screen flex flex-col items-center w-full py-5 px-2 md:px-4">
+    <div className="min-h-screen flex flex-col items-center w-full py-5 px-2 md:px-4"
+         style={
+            {
+              ['--board-frame' as any]: theme.frame,
+              ['--board-frame-2' as any]: theme.frame2,
+              ['--board-light' as any]: theme.light,
+              ['--board-dark' as any]: theme.dark,
+            } as React.CSSProperties
+          }
+      >
       <h1 className="text-4xl font-semibold">ONLINE CHESS GAME</h1>
       <YellowLight top={'30vh'} left={'55vw'} />
 

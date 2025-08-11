@@ -31,15 +31,15 @@ const OfflinePage = () => {
 
   const timerRef = useRef<TimeCounterHandle>(null);
   const boardWidth = useBoardSize();
-  const { isAuthenticated } = useGlobalStorage();
+  // const { isAuthenticated } = useGlobalStorage();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      toast.error("Please sign in to play game.");
-      router.push('/sign_in')
-    }
-  }, [isAuthenticated, router])
+  // useEffect(() => {
+  //   if (!isAuthenticated) {
+  //     toast.error("Please sign in to play game.");
+  //     router.push('/sign_in')
+  //   }
+  // }, [isAuthenticated, router])
 
   const {
     fen,
