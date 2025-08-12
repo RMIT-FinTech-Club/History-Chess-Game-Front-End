@@ -45,6 +45,9 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/otp',
     '/sign_in',
     '/sign_up',
+    '/reset_password',
+    '/game/offline',
+    '/game/online',
     '/home'
   ];
 
