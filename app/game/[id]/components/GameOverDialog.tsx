@@ -12,7 +12,6 @@ import type { GameOverDialogProps } from "../types";
 export const GameOverDialog: React.FC<GameOverDialogProps> = ({
   open,
   title,
-  message,
   onNewGame,
   eloUpdate
 }) => {

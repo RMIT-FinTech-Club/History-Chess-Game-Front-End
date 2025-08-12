@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { UseSocketProps } from "./types"; // Ensure this path is correct relative to the hook
 
 // IMPORT THE GLOBAL SOCKET CONTEXT HOOK

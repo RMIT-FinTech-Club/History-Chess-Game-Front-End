@@ -14,12 +14,10 @@ import SideSelector from "./SideSelector";
 import { GameMode, Player, Side } from "./types";
 
 import "@/css/chessboard.css";
-import { he } from "zod/v4/locales";
 
 export default function Challenge() {
     const height = useBoardHeight();
     const searchParams = useSearchParams();
-    const router = useRouter();
     const usernameFromURL = searchParams.get("player");
 
     // Get the global context values
@@ -50,12 +48,6 @@ export default function Challenge() {
             }
         }
     }, [usernameFromURL, onlinePlayers]);
-
-    // This hook handles socket events specific to the challenge *sending* flow (responses, errors)
-    // No change needed here, it still only takes setIsChallengingAction.
-    const { socket } = useChallengeSocket({
-        setIsChallengingAction: setIsChallengingSomeone,
-    });
 
     const handleSendChallenge = () => {
         if (!selectedMode || !selectedSide || !selectedPlayer.id) {
