@@ -48,7 +48,8 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/reset_password',
     '/game/offline',
     '/game/online',
-    '/home'
+    '/home',
+    '/market'
   ];
 
   const noNavBarRoutes = [
