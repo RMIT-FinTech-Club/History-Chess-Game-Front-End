@@ -7,6 +7,8 @@ import { useGlobalStorage } from '@/hooks/GlobalStorage';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
+const MOCK_MODE = true;
+
 // --- Type Definitions ---
 type SocketContextType = {
   socket: Socket | null;
@@ -16,12 +18,13 @@ type SocketContextType = {
 };
 
 // --- Context Creation ---
-const SocketContext = createContext<SocketContextType>({
-  socket: null,
-  isConnected: false,
-  userId: null,
-  accessToken: null,
-});
+const SocketContext = createContext<SocketContextType | undefined>(undefined);
+// const SocketContext = createContext<SocketContextType>({
+//   socket: null,
+//   isConnected: false,
+//   userId: null,
+//   accessToken: null,
+// });
 
 // --- Socket Provider Component ---
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
@@ -38,24 +41,24 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // --- Centralized Authentication Check ---
-    if (!userId || !accessToken) {
-      console.warn("SocketContext: userId or accessToken missing. Cannot establish socket connection.");
+    // if (!userId || !accessToken) {
+    //   console.warn("SocketContext: userId or accessToken missing. Cannot establish socket connection.");
 
-      // If a socket was previously connected, disconnect it.
-      if (socketInstanceRef.current) {
-        console.log("SocketContext: Disconnecting existing socket due to missing credentials.");
-        socketInstanceRef.current.disconnect();
-        socketInstanceRef.current = null; // Clear the ref
-        setSocket(null);
-        setIsConnected(false);
-      }
+    //   // If a socket was previously connected, disconnect it.
+    //   if (socketInstanceRef.current) {
+    //     console.log("SocketContext: Disconnecting existing socket due to missing credentials.");
+    //     socketInstanceRef.current.disconnect();
+    //     socketInstanceRef.current = null; // Clear the ref
+    //     setSocket(null);
+    //     setIsConnected(false);
+    //   }
 
-      // Redirect user to login and show a toast
-      toast.error("Your session has expired or is invalid. Please log in again.", { duration: 5000 });
-      clearAuth(); // Clear any partial or old data
-      router.push('/sign_in'); // Redirect to your login page
-      return; // Stop further execution of this effect
-    }
+    //   // Redirect user to login and show a toast
+    //   toast.error("Your session has expired or is invalid. Please log in again.", { duration: 5000 });
+    //   clearAuth(); // Clear any partial or old data
+    //   router.push('/sign_in'); // Redirect to your login page
+    //   return; // Stop further execution of this effect
+    // }
 
     // If a socket instance already exists and the user is authenticated, do nothing.
     if (socketInstanceRef.current) {
@@ -140,6 +143,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     </SocketContext.Provider>
   );
 };
+
 
 // --- Custom Hook to Consume Context ---
 export const useSocketContext = () => {

@@ -16,12 +16,12 @@ const FindMatchPage = () => {
   const height = useBoardHeight();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      toast.error("Please sign in to play game.");
-      router.push('/sign_in')
-    }
-  }, [isAuthenticated, router])
+  // useEffect(() => {
+  //   if (!isAuthenticated) {
+  //     toast.error("Please sign in to play game.");
+  //     router.push('/sign_in')
+  //   }
+  // }, [isAuthenticated, router])
 
   useEffect(() => {
     setMounted(true);

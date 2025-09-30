@@ -32,12 +32,12 @@ const OfflinePage = () => {
   const { isAuthenticated } = useGlobalStorage();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      toast.error("Please sign in to play game.");
-      router.push('/sign_in')
-    }
-  }, [isAuthenticated, router])
+  // useEffect(() => {
+  //   if (!isAuthenticated) {
+  //     toast.error("Please sign in to play game.");
+  //     router.push('/sign_in')
+  //   }
+  // }, [isAuthenticated, router])
 
   const {
     fen,
@@ -165,9 +165,13 @@ const OfflinePage = () => {
         onChangeGameMode={() => setShowGameModeDialog(true)}
       />
 
-      <div className="flex flex-col lg:flex-row gap-3 w-[90vw] flex-1">
-        <div className="flex flex-col justify-between w-full min-h-0">
-          <div className="flex justify-center md:justify-start">
+      {/* MAIN GAME LAYOUT - 3 COLUMNS */}
+      <div className="flex flex-row gap-4 w-full max-w-[95vw] flex-1 px-4 py-2">
+
+        {/* LEFT COLUMN - PLAYER INFO (VERTICAL) */}
+        <div className="flex flex-col justify-start gap-4 w-[280px]">
+          {/* Black Player - Top */}
+          <div className="flex-shrink-0">
             <PlayerSection
               color="Black"
               pieces={capturedBlack}
@@ -176,8 +180,23 @@ const OfflinePage = () => {
             />
           </div>
 
-          <div className="flex flex-col md:flex-row gap-3">
+           {/* White Player - Bottom */}
+          <div className="flex-shrink-0">
+            <PlayerSection
+              color="White"
+              pieces={capturedWhite}
+              isCurrentTurn={currentTurn === "w"}
+              gameActive={gameActive}
+            />
+          </div>
+          </div>
+
+        {/* MIDDLE COLUMN - CHESSBOARD + CONTROLS */}
+          <div className="flex flex-col items-center justify-center gap-3 flex-shrink-0">
+
+            {/* Chessboard */}
             <div className="flex justify-center items-center">
+
               <Chessboard
                 id="historyChessBoard"
                 position={fen}
@@ -192,26 +211,23 @@ const OfflinePage = () => {
               />
             </div>
 
-            <div className="w-full h-[71dvh] text-black flex flex-col justify-between gap-3">
-              <MoveHistoryTable moveHistoryPairs={moveHistoryPairs} />
-
-              <GameControls
-                onUndo={handleUndo}
-                onNewGame={handleNewGame}
-                canUndo={history.length > 0}
+            {/* Controls Below Board */}
+          <div className="w-full max-w-[600px]">
+            <GameControls
+              onUndo={handleUndo}
+              onNewGame={handleNewGame}
+              canUndo={history.length > 0}
               />
             </div>
           </div>
 
-          <div className="flex justify-center md:justify-start">
-            <PlayerSection
-              color="White"
-              pieces={capturedWhite}
-              isCurrentTurn={currentTurn === "w"}
-              gameActive={gameActive}
-            />
+            {/* RIGHT COLUMN - MOVE HISTORY */}
+        <div className="flex-1 min-w-[320px] max-w-[400px]">
+          <div className="max-h-[250px] overflow-y-auto">
+            <MoveHistoryTable moveHistoryPairs={moveHistoryPairs} />
           </div>
         </div>
+
       </div>
 
       <GameOverDialog

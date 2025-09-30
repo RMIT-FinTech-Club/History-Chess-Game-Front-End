@@ -6,31 +6,41 @@ import { MoveHistoryTableProps } from "../types";
 export const MoveHistoryTable: React.FC<MoveHistoryTableProps> = ({
   moveHistoryPairs,
 }) => (
-  <div className="shadow-md bg-[#3B3433] h-full w-full p-5 rounded-[0.625rem] min-h-0 flex flex-col overflow-hidden">
-    <ScrollArea className="flex-1 min-h-0 w-full overflow-y-auto">
-      <table className="w-full text-white">
-        <thead className="sticky top-0 z-10 bg-[#3B3433]">
-          <tr className="grid grid-cols-4">
-            <th className="col-span-1 py-2 px-2 sm:px-5 text-center text-lg font-semibold">
-              Turn
-            </th>
-            <th className="col-span-1 py-2 px-2 sm:px-5 text-center text-lg font-semibold">
-              White
-            </th>
-            <th className="col-span-1 py-2 px-2 sm:px-5 text-center text-lg font-semibold">
-              Black
-            </th>
-            <th className="col-span-1 py-2 px-2 sm:px-5 text-center text-lg  font-semibold">
-              Time
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {moveHistoryPairs.map((pair) => (
-            <MoveHistoryRow key={pair.turn} pair={pair} />
-          ))}
-        </tbody>
-      </table>
-    </ScrollArea>
+  <div className="h-full w-full flex flex-col overflow-hidden rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 shadow-2xl">
+    {/* Header */}
+    <div className="px-6 py-4 border-b border-white/10">
+      <h3 className="text-white text-xl font-semibold tracking-wide">
+        Move History
+      </h3>
+    </div>
+
+    {/* Table Container */}
+    <div className="flex-1 min-h-0 overflow-hidden">
+      <ScrollArea className="h-full w-full">
+        <table className="w-full text-white">
+          <thead className="sticky top-0 z-10 bg-black/60 backdrop-blur-sm">
+            <tr className="grid grid-cols-4 border-b border-white/5">
+              <th className="col-span-1 py-3 px-3 text-center text-sm font-medium text-white/70 uppercase tracking-wider">
+                Turn
+              </th>
+              <th className="col-span-1 py-3 px-3 text-center text-sm font-medium text-white/70 uppercase tracking-wider">
+                White
+              </th>
+              <th className="col-span-1 py-3 px-3 text-center text-sm font-medium text-white/70 uppercase tracking-wider">
+                Black
+              </th>
+              <th className="col-span-1 py-3 px-3 text-center text-sm font-medium text-white/70 uppercase tracking-wider">
+                Time
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {moveHistoryPairs.map((pair) => (
+              <MoveHistoryRow key={pair.turn} pair={pair} />
+            ))}
+          </tbody>
+        </table>
+      </ScrollArea>
+    </div>
   </div>
 );

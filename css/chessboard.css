@@ -3,39 +3,27 @@
   }
 
   body {
-    background-color: #151515;
+    background-color: #060606;
     background-image:
-        -o-repeating-linear-gradient(
-            bottom,
-            rgba(255, 255, 255, 0.1),
-            rgba(255, 255, 255, 0.1) 1px,
-            transparent 1px,
-            transparent 10vw
+        /* Top-left glow */
+        radial-gradient(
+            ellipse 800px 580px at top left,
+            rgb(233, 182, 84, 1) 20%,
+            rgba(233, 182, 84, 0.5) 60%,
+            rgba(233, 182, 0, 0) 100%,
+            transparent 70%
         ),
-        -o-repeating-linear-gradient(
-            left,
-            rgba(255, 255, 255, 0.1),
-            rgba(255, 255, 255, 0.1) 1px,
-            transparent 1px,
-            transparent 10vw
+        /* Bottom-right glow */
+        radial-gradient(
+            ellipse 800px 580px at bottom right,
+             rgb(233, 182, 84, 1) 20%,
+            rgba(233, 182, 84, 0.5) 60%,
+            rgba(233, 182, 0, 0) 100%,
+            transparent 70%
         );
-    background-image:
-        repeating-linear-gradient(
-            0deg,
-            rgba(255, 255, 255, 0.1),
-            rgba(255, 255, 255, 0.1) 1px,
-            transparent 1px,
-            transparent 10vw
-        ),
-        repeating-linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.1),
-            rgba(255, 255, 255, 0.1) 1px,
-            transparent 1px,
-            transparent 10vw
-        );
-    background-size: 10vw 10vw;
-    background-position: -5vw -5vw;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 [data-boardid="historyChessBoard"] {
