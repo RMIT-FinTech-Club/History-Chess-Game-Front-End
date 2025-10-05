@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Chessboard } from "react-chessboard";
@@ -27,7 +27,7 @@ const OfflinePage = () => {
   const [gameActive, setGameActive] = useState(false);
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
   const [autoRotateBoard, setAutoRotateBoard] = useState(false);
-
+  const [savedTheme, setSavedTheme] = useState<{ light?: string; dark?: string } | null>(null);
   const boardWidth = useBoardSize();
   const { isAuthenticated } = useGlobalStorage();
   const router = useRouter();
@@ -147,6 +147,23 @@ const OfflinePage = () => {
     }
   }, [isSinglePlayer, autoRotateBoard, currentTurn]);
 
+  useEffect(() => {
+    try {
+      const s = localStorage.getItem("chessTheme");
+      if (s) setSavedTheme(JSON.parse(s));
+    } catch {}
+  }, []);
+
+  const boardVars = useMemo(
+    () =>
+      ({
+        ["--board-light" as any]: savedTheme?.light ?? "#F0D9B5",
+        ["--board-dark" as any]: savedTheme?.dark ?? "#B58863",
+        ["--board-frame" as any]: "#E9B654",
+        ["--board-frame-2" as any]: "#363624",
+      }) as React.CSSProperties,
+    [savedTheme]
+  );
   const difficultyLevels: StockfishLevel[] = [1, 2, 3, 5, 8, 10, 15, 20];
 
   if (!mounted) return <p>Loading Chessboard...</p>;
@@ -177,7 +194,7 @@ const OfflinePage = () => {
           </div>
 
           <div className="flex flex-col md:flex-row gap-3">
-            <div className="flex justify-center items-center">
+            <div className="flex justify-center items-center" style={boardVars}>
               <Chessboard
                 id="historyChessBoard"
                 position={fen}

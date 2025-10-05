@@ -58,17 +58,21 @@
 
 /* Custom pieces fixed size */
 [data-boardid="historyChessBoard"] img {
-    max-width: 100% !important;
-    max-height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
 }
 
-/* Change square colors */
+[data-boardid="historyChessBoard"] {
+  background-image: linear-gradient(var(--board-frame, #E9B654),
+                                    var(--board-frame-2, #d2cac2ff));
+}
+
 [data-boardid="historyChessBoard"] [data-square-color="white"] {
-  background: transparent !important;
+  background-color: var(--board-light, #E9B654) !important;
 }
 
 [data-boardid="historyChessBoard"] [data-square-color="black"] {
-  background-color: var(--black) !important;
+  background-color: var(--board-dark, #d2cac2ff) !important;
 }
 
 /* AI thinking animation */
