@@ -27,7 +27,6 @@ const OfflinePage = () => {
 	const router = useRouter();
 	const searchParams = useSearchParams(); 
 
-	// Redirect if not authenticated
 	useEffect(() => {
 		if (!isAuthenticated) {
 			toast.error("Please sign in to play game.");
@@ -86,25 +85,19 @@ const OfflinePage = () => {
 		isAuthenticated,
 	]);
 
-	// Cập nhật lượt đi hiện tại và hướng bàn cờ
 	useEffect(() => {
 		setCurrentTurn(gameTurn);
-		// Luôn giữ hướng bàn cờ là quân trắng vì chỉ có một người chơi
-		// Bỏ logic tự động xoay bàn cờ
 	}, [gameTurn]);
 
-	// Thiết lập trạng thái ban đầu của component
 	useEffect(() => {
 		setMounted(true);
 	}, []);
 
-	// Cập nhật trạng thái game active
 	useEffect(() => {
 		setGameActive(!gameState.isGameOver && history.length > 0);
 	}, [gameState.isGameOver, history.length]);
 
 	const handleNewGame = useCallback(() => {
-		// Bắt đầu lại game với cài đặt mặc định
 		startSinglePlayerGame(playerColorDefault, aiDifficulty);
 	}, [startSinglePlayerGame, playerColorDefault, aiDifficulty]);
 
