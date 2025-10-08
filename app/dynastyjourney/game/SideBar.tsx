@@ -47,6 +47,12 @@ const SideBar = ({ isOpen }: { isOpen: boolean }) => {
 					Home
 				</Link>
 				<Link
+					href="/dynastyjourney"
+					className="flex items-center my-[2vh] gap-[1vh] font-bold text-[3vh] hover:text-[#DBB968] hover:scale-105 transition-all duration-200"
+				>
+					Dynasty Journey
+				</Link>
+				<Link
 					href="/loadout"
 					className="flex items-center my-[2vh] gap-[1vh] font-bold text-[3vh] hover:text-[#DBB968] hover:scale-105 transition-all duration-200"
 				>

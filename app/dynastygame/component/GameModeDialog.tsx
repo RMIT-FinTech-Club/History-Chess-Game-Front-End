@@ -1,12 +1,12 @@
 import React from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import type { GameModeDialogProps } from "../types";
+import type { GameModeDialogProps } from "./types";
 
 export const GameModeDialog: React.FC<GameModeDialogProps> = ({
 	open,
@@ -36,20 +36,10 @@ export const GameModeDialog: React.FC<GameModeDialogProps> = ({
 								Select AI difficulty:
 							</p>
 							<div className="flex flex-wrap gap-2">
-								{difficultyLevels.map((level) => (
 									<Button
-										key={level}
 										size="sm"
-										onClick={() => setAiDifficulty(level)}
-										className={`!text-xs ${
-											aiDifficulty === level
-												? "!bg-black !text-white border border-white hover:!bg-gray-800"
-												: "text-white hover:!text-[#F7D27F]"
-										}`}
 									>
-										{level}
 									</Button>
-								))}
 							</div>
 						</div>
 						<div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
@@ -59,13 +49,6 @@ export const GameModeDialog: React.FC<GameModeDialogProps> = ({
 								disabled={!isAiReady}
 							>
 								Play as White
-							</Button>
-							<Button
-								onClick={() => handleStartSinglePlayer("b")}
-								className="flex-1 !font-medium"
-								disabled={!isAiReady}
-							>
-								Play as Black
 							</Button>
 						</div>
 						{!isAiReady && (
