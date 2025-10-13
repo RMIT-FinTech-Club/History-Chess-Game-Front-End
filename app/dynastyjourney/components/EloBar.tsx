@@ -17,8 +17,8 @@ const EloBar = ({ userElo, levelStartElo, levelEndElo }: EloBar) => {
     
     
     return (
-			<section className="relative flex justify-center pt-20">
-				<div className="max-w-[1000px] w-[1000px] max-h-[40px] h-[40px] rounded-xl bg-amber-50 relative overflow-hidden">
+			<section className="relative flex justify-center items-center">
+				<div className="w-[68vw] h-[4.5vh] rounded-xl bg-amber-50 relative overflow-hidden">
 					<div
 						className={`absolute top-0 left-0 h-full bg-amber-400 rounded-xl transition-all duration-500 ease-in-out`}
 						style={{ width: `${percentage}%` }}
@@ -33,8 +33,6 @@ const EloBar = ({ userElo, levelStartElo, levelEndElo }: EloBar) => {
 };
 
 export default EloBar;
-
-
 
 
 
