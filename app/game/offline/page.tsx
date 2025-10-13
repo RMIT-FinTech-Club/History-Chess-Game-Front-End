@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Chessboard } from "react-chessboard";
 import "@/css/chessboard.css";
@@ -19,18 +19,56 @@ import type { StockfishLevel } from "@/app/game/offline/hooks/useStockfish";
 import YellowLight from "@/components/decor/YellowLight";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
+const VALID_STOCKFISH_LEVELS: StockfishLevel[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20];
+
+const parseStockfishLevel = (value: string | null): StockfishLevel | null => {
+  if (!value) return null;
+  const level = Number(value);
+  return (VALID_STOCKFISH_LEVELS as number[]).includes(level) ? (level as StockfishLevel) : null;
+};
+
+const parseColorParam = (value: string | null): "w" | "b" =>
+  value === "black" || value === "b" ? "b" : "w";
+
+const isTruthyParam = (value: string | null): boolean =>
+  value === "1" || value === "true";
+
 const OfflinePage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const autoStartLevel = parseStockfishLevel(searchParams?.get("level"));
+  const autoStartMode = searchParams?.get("mode");
+  const autoStartFlag = isTruthyParam(searchParams?.get("autostart"));
+  const shouldAutoStart = autoStartMode === "singleplayer" && autoStartFlag && autoStartLevel !== null;
+  const autoStartColor = parseColorParam(searchParams?.get("color"));
+
   const [mounted, setMounted] = useState(false);
-  const [showGameModeDialog, setShowGameModeDialog] = useState(false);
-  const [aiDifficulty, setAiDifficulty] = useState<StockfishLevel>(5);
+  const [showGameModeDialog, setShowGameModeDialog] = useState(!shouldAutoStart);
+  const [aiDifficulty, setAiDifficulty] = useState<StockfishLevel>(autoStartLevel ?? 5);
   const [currentTurn, setCurrentTurn] = useState<"w" | "b">("w");
   const [gameActive, setGameActive] = useState(false);
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
   const [autoRotateBoard, setAutoRotateBoard] = useState(false);
+  const [autoStartTriggered, setAutoStartTriggered] = useState(false);
+  const [moveTimeHistory, setMoveTimeHistory] = useState<{ white: number; black: number }[]>([]);
 
   const boardWidth = useBoardSize();
   const { isAuthenticated } = useGlobalStorage();
-  const router = useRouter();
+
+  useEffect(() => {
+    setShowGameModeDialog(!shouldAutoStart);
+  }, [shouldAutoStart]);
+
+  useEffect(() => {
+    if (autoStartLevel && aiDifficulty !== autoStartLevel) {
+      setAiDifficulty(autoStartLevel);
+    }
+  }, [autoStartLevel, aiDifficulty]);
+
+  useEffect(() => {
+    setAutoStartTriggered(false);
+  }, [autoStartLevel, shouldAutoStart]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -73,6 +111,32 @@ const OfflinePage = () => {
     makeMove,
   });
 
+  useEffect(() => {
+    if (!mounted || !shouldAutoStart || autoStartTriggered || !autoStartLevel) {
+      return;
+    }
+
+    if (!isAiReady) {
+      return;
+    }
+
+    setAiDifficulty(autoStartLevel);
+    startSinglePlayerGame(autoStartColor, autoStartLevel);
+    setShowGameModeDialog(false);
+    setBoardOrientation(autoStartColor === "w" ? "white" : "black");
+    setAutoRotateBoard(false);
+    setMoveTimeHistory([]);
+    setAutoStartTriggered(true);
+  }, [
+    autoStartColor,
+    autoStartLevel,
+    autoStartTriggered,
+    isAiReady,
+    mounted,
+    shouldAutoStart,
+    startSinglePlayerGame,
+  ]);
+
   // Update current turn and orientation
   useEffect(() => {
     setCurrentTurn(gameTurn);
@@ -83,7 +147,6 @@ const OfflinePage = () => {
 
   useEffect(() => {
     setMounted(true);
-    setShowGameModeDialog(true);
   }, []);
 
   useEffect(() => {
@@ -96,9 +159,6 @@ const OfflinePage = () => {
       setAutoRotateBoard(false);
     }
   }, [isSinglePlayer, playerColor]);
-
-  // Add a new state to track time for each move
-  const [moveTimeHistory, setMoveTimeHistory] = useState<{ white: number, black: number }[]>([]);
 
   // Reset times when starting new game
   const handleNewGame = useCallback(() => {

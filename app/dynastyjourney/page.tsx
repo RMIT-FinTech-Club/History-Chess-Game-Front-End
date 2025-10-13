@@ -1,24 +1,19 @@
 "use client";
-import { useState} from "react";
+import { useState } from "react";
 import { StockfishLevel } from "@/app/game/offline/hooks/useStockfish";
 import type React from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick-theme.css";
 import "slick-carousel/slick/slick.css";
-import "./components/carousel.css";
 import DynastyCard from "./components/DynastyCard";
 import EloBar from "./components/EloBar";
-import Level from "./components/Level";
+import { useRouter } from "next/navigation";
 
 type datatype = {
 	id: number;
 	image_url: string;
 	name: string;
-	level1: string;
-	level2: string;
-	level3: string;
-	level4: string;
-	level5: string;
+	botLevel: StockfishLevel;
 	EloRange: string;
 };
 
@@ -28,12 +23,8 @@ const dynasty: datatype[] = [
 		image_url:
 			"https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
 		name: "Ngo Dynasty",
-		level1: "40",
-		level2: "80",
-		level3: "120",
-		level4: "160",
-		level5: "200",
-		EloRange: "0-200",
+		botLevel: 1,
+		EloRange: "0 - 200",
 	},
 
 	{
@@ -41,12 +32,8 @@ const dynasty: datatype[] = [
 		image_url:
 			"https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
 		name: "Tran Dynasty",
-		level1: "240",
-		level2: "280",
-		level3: "320",
-		level4: "360",
-		level5: "400",
-		EloRange: "100-200",
+		botLevel: 1,
+		EloRange: "100 - 200",
 	},
 
 	{
@@ -54,12 +41,8 @@ const dynasty: datatype[] = [
 		image_url:
 			"https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
 		name: "Ngo Dynasty",
-		level1: "40",
-		level2: "80",
-		level3: "120",
-		level4: "160",
-		level5: "200",
-		EloRange: "100-200",
+		botLevel: 2,
+		EloRange: "100 - 200",
 	},
 
 	{
@@ -67,12 +50,8 @@ const dynasty: datatype[] = [
 		image_url:
 			"https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
 		name: "Ngo Dynasty",
-		level1: "40",
-		level2: "80",
-		level3: "120",
-		level4: "160",
-		level5: "200",
-		EloRange: "100-200",
+		botLevel: 2,
+		EloRange: "100 - 200",
 	},
 
 	{
@@ -80,12 +59,8 @@ const dynasty: datatype[] = [
 		image_url:
 			"https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
 		name: "Ngo Dynasty",
-		level1: "40",
-		level2: "80",
-		level3: "120",
-		level4: "160",
-		level5: "200",
-		EloRange: "100-200",
+		botLevel: 3,
+		EloRange: "100 - 200",
 	},
 
 	{
@@ -93,12 +68,8 @@ const dynasty: datatype[] = [
 		image_url:
 			"https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
 		name: "Ngo Dynasty",
-		level1: "40",
-		level2: "80",
-		level3: "120",
-		level4: "160",
-		level5: "200",
-		EloRange: "100-200",
+		botLevel: 5,
+		EloRange: "100 - 200",
 	},
 
 	{
@@ -106,12 +77,8 @@ const dynasty: datatype[] = [
 		image_url:
 			"https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
 		name: "Ngo Dynasty",
-		level1: "40",
-		level2: "80",
-		level3: "120",
-		level4: "160",
-		level5: "200",
-		EloRange: "100-200",
+		botLevel: 8,
+		EloRange: "100 - 200",
 	},
 
 	{
@@ -119,12 +86,8 @@ const dynasty: datatype[] = [
 		image_url:
 			"https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
 		name: "Ngo Dynasty",
-		level1: "40",
-		level2: "80",
-		level3: "120",
-		level4: "160",
-		level5: "200",
-		EloRange: "100-200",
+		botLevel: 10,
+		EloRange: "100 - 200",
 	},
 
 	{
@@ -132,12 +95,8 @@ const dynasty: datatype[] = [
 		image_url:
 			"https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
 		name: "Ngo Dynasty",
-		level1: "40",
-		level2: "80",
-		level3: "120",
-		level4: "160",
-		level5: "200",
-		EloRange: "100-200",
+		botLevel: 15,
+		EloRange: "100 - 200",
 	},
 
 	{
@@ -145,114 +104,67 @@ const dynasty: datatype[] = [
 		image_url:
 			"https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
 		name: "Ngo Dynasty",
-		level1: "40",
-		level2: "80",
-		level3: "120",
-		level4: "160",
-		level5: "200",
-		EloRange: "100-200",
+		botLevel: 20,
+		EloRange: "100 - 200",
 	},
 ];
 
-
-
 export default function DynastyJourney() {
 	const [imageIndex, setImageIndex] = useState(1);
-	const [showLevels, setShowLevels] = useState<datatype | null>(null);
 	const currentLevelStartElo = 40;
 	const currentLevelEndElo = 2000;
-	const [userElo, setUserElo] = useState<number>(400);
-	const [unlockedDynastyid, setUnlockedDynastyid] = useState<number[]>([]);
-	const difficultyLevels: StockfishLevel[] = [1, 2, 3, 5, 8, 10, 15, 20];
+	const [userElo] = useState<number>(400);
+	const router = useRouter();
 
-	const mapEloToDepth = (elo: number): StockfishLevel => {
-		const baseElo = 40;
-		const baseDepth = 1;
-		const depthIncrement = Math.floor(Math.max(0, elo - baseElo) / 40);
-		let calculatedDepth = baseDepth + depthIncrement;
-		
-		return Math.min(20, calculatedDepth) as StockfishLevel;
-	};
-
-
-	const handleButtonClick = (dynastyData: datatype) => {
-		const Elo = parseInt(dynastyData.EloRange.split("-")[0]);
-		const isUnlocked = unlockedDynastyid.includes(dynastyData.id);
-
-		if (isUnlocked) {
-			setShowLevels(dynastyData);
-		} else {
-			if (userElo >= Elo) {
-				setShowLevels(dynastyData);
-			} else {
-				alert(`You need Elo ${Elo} to unlock ${dynastyData.name}`);
-				setShowLevels(null);
-			}
+	const updateActiveCard = (index: number) => {
+		const nextDynasty = dynasty[index];
+		if (nextDynasty) {
+			setImageIndex(nextDynasty.id);
 		}
 	};
 
 	const settings = {
 		infinite: true,
-		speed: 200,
+		speed: 400,
 		focusOnSelect: true,
 		lazyload: true,
-		slidesToShow: 3,
+		slidesToShow: 5,
 		centerMode: true,
 		centerPadding: "0px",
-		adaptiveHeight: true,
+		adaptiveHeight: false,
 		arrows: false,
+		beforeChange: (_: number, next: number) => updateActiveCard(next),
 		afterChange: (currentpage: number) => {
-			const dynastycurrent = dynasty[currentpage];
-			if (dynastycurrent) {
-				setImageIndex(dynastycurrent.id);
-			}
+			updateActiveCard(currentpage);
 		},
 	};
-	
+	const handlePlay = (level: StockfishLevel) => {
+		router.push(`/game/offline?mode=singleplayer&level=${level}&autostart=1&color=white`);
+	};
 
 	return (
-		<section className="pb-32">
-			<div className="page">
-				<Slider {...settings} className="gap-20">
+		<section className="h-[calc(100dvh-var(--navbar-height))] flex flex-col p-[5vh]">
+			<div className="my-auto">
+				<Slider {...settings}>
 					{dynasty.map((item) => (
-						<div className={item.id === imageIndex ? "activeSlide": "slide"}>
-
-								<DynastyCard
-									key={item.id}
-									id={item.id}
-									image_url={item.image_url}
-									name={item.name}
-									EloRange={item.EloRange}
-									onPlayClick={() => handleButtonClick(item)}
-								/>
-							</div>
+						<div key={item.id} className="px-[1.5vh] flex justify-center">
+							<DynastyCard
+								id={item.id}
+								image_url={item.image_url}
+								name={item.name}
+								EloRange={item.EloRange}
+								active={item.id === imageIndex}
+								onPlay={() => handlePlay(item.botLevel)}
+							/>
+						</div>
 					))}
 				</Slider>
-</div>
-			<div className="">
-				{showLevels && showLevels.id === imageIndex ? (
-					<Level
-						level1={showLevels.level1}
-						level2={showLevels.level2}
-						level3={showLevels.level3}
-						level4={showLevels.level4}
-						level5={showLevels.level5}
-						mapEloToDepth={mapEloToDepth}
-						elo={userElo}
-					/>
-				) : (
-					""
-				)}
-				<div>
-					<EloBar
-						userElo={userElo}
-						levelStartElo={currentLevelStartElo}
-						levelEndElo={currentLevelEndElo}
-					/>
-				</div>
 			</div>
+			<EloBar
+				userElo={userElo}
+				levelStartElo={currentLevelStartElo}
+				levelEndElo={currentLevelEndElo}
+			/>
 		</section>
 	);
 }
-
-

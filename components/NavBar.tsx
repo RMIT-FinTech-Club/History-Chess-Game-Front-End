@@ -118,7 +118,12 @@ export default function Navbar() {
 					>
 						Our Market
 					</span>
-
+					<span
+						onClick={() => router.push("/dynastyjourney")}
+						className="cursor-pointer hover:text-[#E9B654]"
+					>
+						Dynasty
+					</span>
 					{isLoggedIn ? (
 						<div className="flex items-center gap-[2vw]">
 							<div className="flex items-center gap-[0.5vw]">
