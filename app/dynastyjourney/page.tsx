@@ -144,7 +144,7 @@ export default function DynastyJourney() {
 
 	return (
 		<section className="h-[calc(100dvh-var(--navbar-height))] flex flex-col p-[5vh]">
-			<div className="my-auto">
+			<div className="my-auto w-full">
 				<Slider {...settings}>
 					{dynasty.map((item) => (
 						<div key={item.id} className="px-[1.5vh] flex justify-center">

@@ -17,13 +17,13 @@ const DynastyCard: React.FC<DynastyCardProps> = ({
 	active,
 	onPlay,
 }: DynastyCardProps) => {
-	const cardClassName = `group relative flex justify-center items-end h-[45vh] aspect-[2/3] rounded-[2vh] border-2 border-[#bba16780] overflow-hidden transition-transform duration-300 ease-out will-change-transform ${
+	const cardClassName = `group relative flex justify-center items-end h-[50vh] aspect-[2/3] rounded-[2vh] border-2 border-[#bba16780] overflow-hidden transition-transform duration-300 ease-out will-change-transform ${
 		active
 			? "scale-100 border-[#d9b76b] shadow-[0px_18px_38px_rgba(0,0,0,0.45)] z-10"
-			: "scale-90 cursor-pointer bg-black"
+			: "scale-85 cursor-pointer bg-black"
 	}`;
 
-	const cardBodyClasses = `w-full h-full bg-center bg-cover bg-no-repeat transition-transform duration-300 ${active ? "" : "opacity-70 hover:opacity-100"}`;
+	const cardBodyClasses = `w-full h-full bg-center bg-cover bg-no-repeat transition-transform duration-300 overflow-hidden ${active ? "" : "opacity-70 hover:opacity-100"}`;
 
 	const titleClassName = `uppercase text-center font-bold tracking-[0.1vh] transition-all duration-300 ${
 		active ? "text-[3vh]" : "text-[2vh]"
