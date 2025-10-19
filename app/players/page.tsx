@@ -291,12 +291,16 @@ export default function PlayerList() {
           sortedPlayers.map((user, index) => {
             const isOnline = onlinePlayerIds.includes(user.id);
             return (
-              <PlayerCard
+              <div
                 key={user.id || index}
-                user={user}
-                isOnline={isOnline}
-                onChallengeClick={handleChallengeClick}
-              />
+                className="w-full transition-all duration-300 transform hover:scale-[1.02] hover:bg-[rgba(255,255,255,0.1)] hover:shadow-[0_0_15px_rgba(238,255,7,0.4)] rounded-[1vw]"
+              >
+                <PlayerCard
+                  user={user}
+                  isOnline={isOnline}
+                  onChallengeClick={handleChallengeClick}
+                />
+              </div>
             );
           })
         )}
@@ -339,11 +343,20 @@ const PlayerCard = ({
   user: Players;
   isOnline: boolean;
   onChallengeClick: (username: string, isOnline: boolean) => void;
-}) => (
+}) => {
+
+  const router = useRouter();
+  const handleProfileClick = ()=> {
+    router.push(`/player_profile`);
+  };
+
+  return (
   <div
     className={`w-full h-[8dvh] sm:h-[15vh] mb-[5vh] rounded-[2vw] bg-[rgba(255,255,255,0.3)] border-[0.1px] border-solid border-[#EEFF07] flex justify-start items-center ${styles.player}`}
   >
+    {/* Avatar clickable */}
     <div
+      onClick={handleProfileClick}
       className="relative sm:h-[9dvh] h-[5vh] aspect-square rounded-[50%] mx-[1dvh] sm:mx-[3dvh] border border-solid border-white bg-center bg-cover bg-no-repeat"
       style={{
         backgroundImage: `url(${user.avatarUrl || "https://i.imgur.com/RoRONDn.jpeg"})`,
@@ -394,4 +407,5 @@ const PlayerCard = ({
       </div>
     </div>
   </div>
-);
+  );
+};

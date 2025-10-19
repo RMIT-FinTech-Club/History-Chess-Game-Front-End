@@ -1,0 +1,190 @@
+"use client"
+
+import { useRef, useState, useEffect } from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faArrowUp } from "@fortawesome/free-solid-svg-icons"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import CountUp from "react-countup"
+import { useRouter } from "next/navigation"
+import axiosInstance from "@/config/apiConfig"
+import { toast } from "sonner"
+
+import styles from "@/css/playerprofile.module.css"
+import GamePadIcon from "@/public/player_profile/SVG/gamePadIcon"
+import CupIcon from "@/public/player_profile/SVG/cupIcon"
+import ItemIcon from "@/public/player_profile/SVG/itemIcon"
+import PlayerProfileMatches from "@/components/player_profile/playerProfileMatches"
+import ItemsEquippedProfile from "@/components/player_profile/itemsEquippedProfile"
+import { useGlobalStorage } from "@/hooks/GlobalStorage"
+import { ArrowLeft } from "lucide-react"
+
+export default function PlayerProfilePage() {
+    const { userId, userName, avatar, accessToken, isAuthenticated } = useGlobalStorage()
+    const router = useRouter()
+    const profileRef = useRef<HTMLDivElement | null>(null)
+    const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
+    const [profileMenu, setProfileMenu] = useState(1)
+    const [streak, setStreak] = useState(0)
+    const [wonMatches, setWonMatches] = useState<number>(0)
+    const [globalRank, setGlobalRank] = useState<number>(100)
+
+    // Fetch won matches
+    useEffect(() => {
+        const fetchWonMatches = async () => {
+            try {
+                const response = await axiosInstance.get(`/game/history/${userId}`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    }
+                });
+                const victories = response.data.filter((match: any) => match.result === 'Victory').length;
+                setWonMatches(victories);
+            } catch (err) {
+                console.error('Error fetching match history:', err);
+                toast.error('Failed to load won matches');
+            }
+        };
+
+        fetchWonMatches();
+    }, [userId, accessToken]);
+
+    //Fetch global ranking based on Elo
+    useEffect(() => {
+        const fetchGlobalRank = async () => {
+            try {
+                const response = await axiosInstance.get(`/users?limit=1000&offset=0`, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    }
+                });
+                const users = response.data.users.sort((a: any, b: any) => b.elo - a.elo);
+                const rank = users.findIndex((user: any) => user.id === userId) + 1;
+                setGlobalRank(rank > 0 ? rank : 100); //Fallback to 100 if not found
+            } catch (err) {
+                console.error('Error fetching users for ranking:', err);
+                toast.error('Failed to load global ranking');
+            }
+        };
+
+        fetchGlobalRank();
+    }, [userId, accessToken]);
+
+    const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
+    return (
+        <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3dvh] mx-[5vw] md:mx-[10vw] text-white relative h-[calc(100dvh-var(--navbar-height))]">
+            <div className={`w-full relative md:absolute ${isProfileOpened ? 'md:top-[3dvh]' : 'md:top-[calc(-12vw-2px)]'} top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3dvh] transition-all duration-300`}>
+                <Tooltip disableHoverableContent>
+                    <TooltipTrigger asChild>
+                        <div
+                            ref={profileRef}
+                            onClick={handleToggleProfile}
+                            className={`absolute w-[calc(2vw-2px)] aspect-square left-[76vw] top-[13vw] cursor-pointer bg-[#1D1D1D] border border-solid border-white rounded-[50%] hidden md:flex justify-center items-center`}
+                        >
+                            <FontAwesomeIcon
+                                icon={faArrowUp}
+                                className={`${isProfileOpened ? 'rotate-none' : 'rotate-[180deg]'} text-[1vw]`}
+                            />
+                        </div>
+                    </TooltipTrigger>
+                    <TooltipContent
+                        side="bottom"
+                        className="text-white bg-black rounded-lg px-2 py-1 shadow-lg"
+                    >
+                        {isProfileOpened ? "Close Profile" : "Open Profile"}
+                    </TooltipContent>
+                </Tooltip>
+                <div className="w-[35vw] md:w-[32vw] flex justify-between items-center">
+                    <div
+                        style={{ backgroundImage: `url(${avatar})` }}
+                        className="w-[10vw] md:w-[8vw] m-[2vw] aspect-square rounded-[50%] bg-center bg-cover bg-no-repeat border border-white border-solid"
+                    ></div>
+                    <div className="w-[23vw] md:w-[24vw] flex flex-col justify-between items-start">
+                        <p className="text-[2vw] font-bold w-full whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
+                        <p className="text-[1.2vw] font-thin my-[0.5vw] md:my-0">Global Ranking: #{globalRank}</p>
+                        <p className="text-[1.2vw] font-thin">Player ID: 31082007</p>
+                    </div>
+                </div>
+                <div className="w-[65vw] md:w-[48vw] flex justify-around items-center py-[2vw]">
+                    {[
+                        {
+                            icon: styles.profile_icon_1,
+                            content: 'Elo',
+                            number: 2000,
+                        },
+                        {
+                            icon: styles.profile_icon_2,
+                            content: 'Game Mode',
+                            number: '1vs1'
+                        },
+                        {
+                            icon: styles.profile_icon_3,
+                            content: 'Current Streak',
+                            number: streak,
+                            prefix: 'K'
+                        },
+                        {
+                            icon: styles.profile_icon_4,
+                            content: 'Won Matches',
+                            number: wonMatches
+                        },
+                    ].map((card, index) => (
+                        <div key={index} className="w-[10vw] md:w-[8vw] h-[11vw] md:h-[10vw] flex flex-col justify-center items-center bg-black rounded-[1vw] border border-solid border-[#77878B]">
+                            <div className={`w-[2.5vw] aspect-square bg-center bg-contain bg-no-repeat ${card.icon}`}></div>
+                            <p className="text-[1.2vw] md:text-[1vw] text-[#77878B] my-[0.5dvh] md:my-[1dvh]">{card.content}</p>
+                            <p className="text-[1.5vw] leading-[1vw]">
+                                {typeof (card.number) === 'number' ? <CountUp start={0} end={card.number} useEasing={false} duration={2} /> : `${card.number}`}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <div className={`w-full ${isProfileOpened ? 'md:mt-[calc(12vw+2px+3dvh)]' : 'md:mt-0'} mt-0 ${isProfileOpened ? 'h-[calc(100dvh-var(--navbar-height)-3dvh-12vw-2px-6dvh)]' : 'h-[calc(100dvh-var(--navbar-height)-6dvh)]'} transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}>
+                <div className="md:w-[30%] w-full flex flex-col">
+                    <div className="px-0 md:px-[2vw] py-[1vw] md:py-[2vw] w-full flex flex-row md:flex-col bg-[#1D1D1D] rounded-[2vw] mb-[3dvh] relative items-center justify-around">
+                        <div className={`absolute ${profileMenu === 0 ? 'md:top-[2vw] md:left-0 top-0 left-0' : `${profileMenu === 1 ? 'md:top-[6vw] md:left-0 top-0 left-[30vw]' : 'md:top-[10vw] md:left-0 top-0 left-[60vw]'}`} left-0 md:h-[2vw] md:w-[calc(2vw/3)] w-1/3 h-[1vw] rounded-[0.5vw] md:rounded-[1vw] bg-[#DBB968] transition-all duration-200`}></div>
+                        {[
+                            {
+                                icon: CupIcon,
+                                content: 'Statistic'
+                            },
+                            {
+                                icon: GamePadIcon,
+                                content: 'Matches'
+                            },
+                            {
+                                icon: ItemIcon,
+                                content: 'Equipped Items'
+                            },
+                        ].map((menu, index) => (
+                            <div
+                                key={index}
+                                className={`flex justify-center mr-0 md:mr-auto w-1/3 md:w-[max-content] max-w-[100%] cursor-pointer group ${index % 2 === 1 ? 'my-[2vw]' : ''}`}
+                                onClick={() => { if (index !== profileMenu) setProfileMenu(index) }}
+                            >
+                                <div className={`${index === profileMenu ? `${styles.profile_menu_icon} border-[#DBB968]` : 'border-white'} h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid rounded-[50%]`}>
+                                    {<menu.icon width="60%" fill={`${index === profileMenu ? '#DBB968' : 'white'}`} />}
+                                </div>
+                                <p className={`${index === profileMenu ? `text-[#DBB968]` : 'text-white group-hover:md:left-[0.3vw]'} text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:text-[#DBB968] transition-all duration-200`}>{menu.content}</p>
+                            </div>
+                        ))}
+                    </div>
+                    {/* Return Button */}
+                    <div className="relative mt-6">
+                        <button
+                            onClick={() => router.back()}
+                            className="absolute top-[-4vw] md:top-[-2vw] left-0 flex items-center gap-2 px-[2vw] py-[1vw]
+                                    bg-[#1D1D1D] text-[#DBB968] border border-solid border-[#DBB968] rounded-full
+                                    hover:bg-[#DBB968] hover:text-[#1D1D1D]
+                                    transition-all duration-200 shadow-sm"
+                        >
+                            <ArrowLeft size={18} color="#DBB968" className="transition-colors duration-200 group-hover:fill-[#1D1D1D]" />
+                            <span className="text-[2.5vw] md:text-[1vw] font-medium">Back</span>
+                        </button>
+                    </div>
+                </div>
+                {profileMenu === 1 && <PlayerProfileMatches onStreakUpdate={setStreak} />}
+                {profileMenu === 2 && <ItemsEquippedProfile />}
+            </div>
+        </div>
+    );
+};
