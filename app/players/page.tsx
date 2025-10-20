@@ -8,6 +8,7 @@ import axiosInstance from "@/config/apiConfig";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import { toast } from "sonner";
 import { useSocketContext } from "@/context/WebSocketContext";
+
 interface Players {
   username: string;
   avatarUrl: string;
@@ -347,7 +348,7 @@ const PlayerCard = ({
 
   const router = useRouter();
   const handleProfileClick = ()=> {
-    router.push(`/player_profile`);
+    router.push(`/player_profile/${user.id}`);
   };
 
   return (

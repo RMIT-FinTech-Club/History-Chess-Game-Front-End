@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowUp } from "@fortawesome/free-solid-svg-icons"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import CountUp from "react-countup"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import axiosInstance from "@/config/apiConfig"
 import { toast } from "sonner"
 
@@ -19,20 +19,66 @@ import { useGlobalStorage } from "@/hooks/GlobalStorage"
 import { ArrowLeft } from "lucide-react"
 
 export default function PlayerProfilePage() {
-    const { userId, userName, avatar, accessToken, isAuthenticated } = useGlobalStorage()
+    const params = useParams() // dynamic player ID from URL
+    const id = params?.id as string // Ensure valid ID
+
+    const { userId, userName, avatar, accessToken } = useGlobalStorage()
     const router = useRouter()
+
     const profileRef = useRef<HTMLDivElement | null>(null)
     const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
     const [profileMenu, setProfileMenu] = useState(1)
     const [streak, setStreak] = useState(0)
     const [wonMatches, setWonMatches] = useState<number>(0)
     const [globalRank, setGlobalRank] = useState<number>(100)
+    const [elo, setElo] = useState<number>(1000)
+    const [profileName, setProfileName] = useState<string>("")
+    const [profileAvatar, setProfileAvatar] = useState<string>("")
+    const [loading, setLoading] = useState(true)
 
+    // Fetch player info (if it's not your own)
+    useEffect(() => {
+        if (!accessToken || !id) return;
+
+        const fetchProfile = async () => {
+            setLoading(true)
+            try {
+                if (id === userId) {
+                // Current user (use cached data)
+                setProfileName(userName || "");
+                setProfileAvatar(avatar || "");
+                setLoading(false);
+                return;
+                }
+
+                // Player's profile (fetch from backend)
+                const res = await axiosInstance.get(`/users/${id}`, {
+                headers: { Authorization: `Bearer ${accessToken}` },
+                });
+
+                setProfileName(res.data.username || "Unknown Player");
+                setProfileAvatar(res.data.avatarUrl || "https://i.imgur.com/RoRONDn.jpeg");
+                setElo(res.data.elo || 2000);
+                // setLoading(false)
+            } catch (err) {
+                console.error("Error fetching player:", err);
+                toast.error("Failed to load player profile");
+                router.push("/players");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfile();
+    }, [id, accessToken, userId, userName, avatar, router]);
+    
     // Fetch won matches
     useEffect(() => {
+        if (!accessToken || !id) return
+
         const fetchWonMatches = async () => {
             try {
-                const response = await axiosInstance.get(`/game/history/${userId}`, {
+                const response = await axiosInstance.get(`/game/history/${id}`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     }
@@ -46,10 +92,12 @@ export default function PlayerProfilePage() {
         };
 
         fetchWonMatches();
-    }, [userId, accessToken]);
+    }, [id, accessToken]);
 
     //Fetch global ranking based on Elo
     useEffect(() => {
+        if (!accessToken || !id) return
+
         const fetchGlobalRank = async () => {
             try {
                 const response = await axiosInstance.get(`/users?limit=1000&offset=0`, {
@@ -58,7 +106,7 @@ export default function PlayerProfilePage() {
                     }
                 });
                 const users = response.data.users.sort((a: any, b: any) => b.elo - a.elo);
-                const rank = users.findIndex((user: any) => user.id === userId) + 1;
+                const rank = users.findIndex((user: any) => user.id === id) + 1;
                 setGlobalRank(rank > 0 ? rank : 100); //Fallback to 100 if not found
             } catch (err) {
                 console.error('Error fetching users for ranking:', err);
@@ -67,12 +115,23 @@ export default function PlayerProfilePage() {
         };
 
         fetchGlobalRank();
-    }, [userId, accessToken]);
+    }, [id, accessToken]);
 
     const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen text-white text-2xl">
+                Loading player profile...
+            </div>
+        );
+    }
+
     return (
         <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3dvh] mx-[5vw] md:mx-[10vw] text-white relative h-[calc(100dvh-var(--navbar-height))]">
+            {/* === PROFILE HEADER === */}
             <div className={`w-full relative md:absolute ${isProfileOpened ? 'md:top-[3dvh]' : 'md:top-[calc(-12vw-2px)]'} top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3dvh] transition-all duration-300`}>
+                {/* Toggle Button */}
                 <Tooltip disableHoverableContent>
                     <TooltipTrigger asChild>
                         <div
@@ -93,15 +152,17 @@ export default function PlayerProfilePage() {
                         {isProfileOpened ? "Close Profile" : "Open Profile"}
                     </TooltipContent>
                 </Tooltip>
+
+                {/* Avatar + Info */}
                 <div className="w-[35vw] md:w-[32vw] flex justify-between items-center">
                     <div
-                        style={{ backgroundImage: `url(${avatar})` }}
+                        style={{ backgroundImage: `url(${profileAvatar})` }}
                         className="w-[10vw] md:w-[8vw] m-[2vw] aspect-square rounded-[50%] bg-center bg-cover bg-no-repeat border border-white border-solid"
                     ></div>
                     <div className="w-[23vw] md:w-[24vw] flex flex-col justify-between items-start">
-                        <p className="text-[2vw] font-bold w-full whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
+                        <p className="text-[2vw] font-bold w-full whitespace-nowrap overflow-hidden text-ellipsis">{profileName || "UnknownPlayer"}</p>
                         <p className="text-[1.2vw] font-thin my-[0.5vw] md:my-0">Global Ranking: #{globalRank}</p>
-                        <p className="text-[1.2vw] font-thin">Player ID: 31082007</p>
+                        {/* <p className="text-[1.2vw] font-thin">Player ID: {id}</p> */}
                     </div>
                 </div>
                 <div className="w-[65vw] md:w-[48vw] flex justify-around items-center py-[2vw]">
@@ -109,7 +170,7 @@ export default function PlayerProfilePage() {
                         {
                             icon: styles.profile_icon_1,
                             content: 'Elo',
-                            number: 2000,
+                            number: elo,
                         },
                         {
                             icon: styles.profile_icon_2,
@@ -119,8 +180,7 @@ export default function PlayerProfilePage() {
                         {
                             icon: styles.profile_icon_3,
                             content: 'Current Streak',
-                            number: streak,
-                            prefix: 'K'
+                            number: streak
                         },
                         {
                             icon: styles.profile_icon_4,

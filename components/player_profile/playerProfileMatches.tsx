@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 import styles from "@/css/playerprofile.module.css"
 import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
+import { useParams } from "next/navigation"
 
 interface Match {
     opponent: string;
@@ -17,7 +18,10 @@ interface ProfileMatchesProps {
 }
 
 export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesProps) {
-    const { userId, accessToken } = useGlobalStorage()
+    const params = useParams()
+    const id = params?.id as string; // dynamic player ID from URL
+
+    const { accessToken } = useGlobalStorage()
     const [matches, setMatches] = useState<Match[]>([])
     const [error, setError] = useState<string | null>(null)
     const [userAvatars, setUserAvatars] = useState<{ [key: string]: string }>({})
@@ -37,16 +41,18 @@ export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesP
     }
 
     useEffect(() => {
+        if (!accessToken || !id) return
+
         const fetchMatchHistory = async () => {
             try {
-                // Replace with actual userId - e.g., from auth context, localStorage, or route params
-                const response = await axiosInstance.get(`/game/history/${userId}`, {
+                // Fetch match history for the player being viewed
+                const response = await axiosInstance.get(`/game/history/${id}`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     }
                 })
 
-                // Fetch all users to get avatars (assuming small user base; adjust limit as needed)
+                // Fetch all users to get avatars 
                 const usersResponse = await axiosInstance.get(`/users?limit=1000&offset=0`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
@@ -59,6 +65,7 @@ export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesP
                 });
                 setUserAvatars(avatarsMap);
 
+                // Format match data
                 const formattedMatches = response.data.map((match: any) => {
                     const opponentLower = (match.opponentName || 'Unknown').toLowerCase();
                     return {
@@ -89,7 +96,7 @@ export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesP
         }
 
         fetchMatchHistory()
-    }, [])
+    }, [id, accessToken])
 
     return (
         <div className="w-full md:w-[60%] flex flex-col">
