@@ -5,7 +5,7 @@ import type React from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick-theme.css";
 import "slick-carousel/slick/slick.css";
-import DynastyCard from "./components/DynastyCard";
+import DynastyCard, { DynastyCardVariant } from "./components/DynastyCard";
 import EloBar from "./components/EloBar";
 import { useRouter } from "next/navigation";
 
@@ -109,6 +109,33 @@ const dynasty: datatype[] = [
 	},
 ];
 
+const getCardVariant = (
+	cardIndex: number,
+	activeIndex: number,
+	totalCards: number,
+): DynastyCardVariant => {
+	if (activeIndex === -1) {
+		return "inactive";
+	}
+
+	if (cardIndex === activeIndex) {
+		return "active";
+	}
+
+	const leftNeighbor = (activeIndex - 1 + totalCards) % totalCards;
+	const rightNeighbor = (activeIndex + 1) % totalCards;
+
+	if (cardIndex === leftNeighbor) {
+		return "left";
+	}
+
+	if (cardIndex === rightNeighbor) {
+		return "right";
+	}
+
+	return "inactive";
+};
+
 export default function DynastyJourney() {
 	const [imageIndex, setImageIndex] = useState(1);
 	const currentLevelStartElo = 40;
@@ -142,18 +169,23 @@ export default function DynastyJourney() {
 		router.push(`/game/offline?mode=singleplayer&level=${level}&autostart=1&color=white`);
 	};
 
+	const activeIndex = dynasty.findIndex((item) => item.id === imageIndex);
+
 	return (
 		<section className="h-[calc(100dvh-var(--navbar-height))] flex flex-col p-[5vh]">
 			<div className="my-auto w-full">
 				<Slider {...settings}>
-					{dynasty.map((item) => (
+					{dynasty.map((item, index) => (
 						<div key={item.id} className="px-[1.5vh] flex justify-center">
+							{
+								/* card variant ensures neighbors are scaled differently */
+							}
 							<DynastyCard
 								id={item.id}
 								image_url={item.image_url}
 								name={item.name}
 								EloRange={item.EloRange}
-								active={item.id === imageIndex}
+								variant={getCardVariant(index, activeIndex, dynasty.length)}
 								onPlay={() => handlePlay(item.botLevel)}
 							/>
 						</div>
