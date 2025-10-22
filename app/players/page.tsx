@@ -294,7 +294,7 @@ export default function PlayerList() {
             return (
               <div
                 key={user.id || index}
-                className="w-full transition-all duration-300 transform hover:scale-[1.02] hover:bg-[rgba(255,255,255,0.1)] hover:shadow-[0_0_15px_rgba(238,255,7,0.4)] rounded-[1vw]"
+                className="w-full rounded-[1vw]"
               >
                 <PlayerCard
                   user={user}
@@ -339,74 +339,85 @@ const FilterOption = ({
 const PlayerCard = ({
   user,
   isOnline,
-  onChallengeClick
+  onChallengeClick,
 }: {
   user: Players;
   isOnline: boolean;
   onChallengeClick: (username: string, isOnline: boolean) => void;
 }) => {
-
   const router = useRouter();
-  const handleProfileClick = ()=> {
+
+  const handleProfileClick = () => {
     router.push(`/player_profile/${user.id}`);
   };
 
+  const handleChallenge = (e: React.MouseEvent) => {
+    e.stopPropagation(); // prevent triggering profile click
+    onChallengeClick(user.username, isOnline);
+  };
+
   return (
-  <div
-    className={`w-full h-[8dvh] sm:h-[15vh] mb-[5vh] rounded-[2vw] bg-[rgba(255,255,255,0.3)] border-[0.1px] border-solid border-[#EEFF07] flex justify-start items-center ${styles.player}`}
-  >
-    {/* Avatar clickable */}
     <div
       onClick={handleProfileClick}
-      className="relative sm:h-[9dvh] h-[5vh] aspect-square rounded-[50%] mx-[1dvh] sm:mx-[3dvh] border border-solid border-white bg-center bg-cover bg-no-repeat"
-      style={{
-        backgroundImage: `url(${user.avatarUrl || "https://i.imgur.com/RoRONDn.jpeg"})`,
-      }}
+      className={`w-full h-[8dvh] sm:h-[15vh] mb-[5vh] rounded-[2vw]
+      bg-[rgba(255,255,255,0.15)] border border-solid border-[#EEFF07]
+      flex justify-start items-center cursor-pointer transition-all duration-300
+      hover:shadow-[0_0_20px_rgba(238,255,7,0.6)]
+      hover:border-[#FFFF66] ${styles.player}`}
     >
-      {isOnline && (
-        <div
-          className="absolute bottom-0 right-0 w-4 h-4 sm:w-6 sm:h-6 bg-green-500 rounded-full border-2 border-black"
-          title="Online"
-        ></div>
-      )}
+      {/* Avatar */}
+      <div
+        className="relative sm:h-[9dvh] h-[5vh] aspect-square rounded-full mx-[1dvh] sm:mx-[3dvh]
+          border border-solid border-white bg-center bg-cover bg-no-repeat"
+        style={{
+          backgroundImage: `url(${user.avatarUrl || "https://i.imgur.com/RoRONDn.jpeg"})`,
+        }}
+      >
+        {isOnline && (
+          <div
+            className="absolute bottom-0 right-0 w-4 h-4 sm:w-6 sm:h-6 bg-green-500 
+              rounded-full border-2 border-black"
+            title="Online"
+          ></div>
+        )}
+      </div>
+
+      {/* Player Info */}
+      <div className="flex justify-center items-center w-[calc(100%-8dvh-2vw)] sm:w-[calc(100%-15vh-2vw)] h-full ml-[2vw]">
+        <div className="flex flex-col w-[calc(70%/2)] md:w-[calc(70%/3)] h-full items-start justify-center">
+          <p className="text-[#C4C4C4] sm:text-[1.3rem] text-[1rem] mb-[1dvh]">Player</p>
+          <p className="font-bold sm:text-[1.3rem] text-[1rem] whitespace-nowrap overflow-hidden text-ellipsis w-full">
+            {user.username}
+          </p>
+        </div>
+        <div className="flex flex-col w-[calc(70%/2)] md:w-[calc(70%/3)] h-full items-start justify-center">
+          <p className="text-[#C4C4C4] sm:text-[1.3rem] text-[1rem] mb-[1dvh]">Elo</p>
+          <p className="font-bold sm:text-[1.3rem] text-[1rem]">{user.elo}</p>
+        </div>
+        <div className="md:flex hidden flex-col w-[calc(70%/3)] h-full items-start justify-center">
+          <p className="text-[#C4C4C4] text-[1.3rem] mb-[1dvh]">Status</p>
+          <p className="font-bold sm:text-[1.3rem] text-[1rem]">
+            {isOnline ? "Online" : "Offline"}
+          </p>
+        </div>
+
+        {/* Challenge button */}
+        <div className="w-[30%] h-full flex justify-start items-center">
+          <p
+            onClick={handleChallenge}
+            className={`
+              sm:ml-[1vw] ml-0 text-[1.4rem] sm:text-[2rem]
+              font-bold relative transition-all duration-200
+              ${isOnline
+                ? "text-[#EEFF07] hover:text-[#fff] hover:drop-shadow-[0_0_5px_#EEFF07] cursor-pointer"
+                : "text-[#cfdab1] opacity-50 cursor-not-allowed"}
+              ${styles.challenge} ${isOnline ? styles.challengeOnline : ""}
+            `}
+          >
+            Challenge
+          </p>
+        </div>
+      </div>
     </div>
-    <div className="flex justify-center items-center w-[calc(100%-8dvh-2vw)] sm:w-[calc(100%-15vh-2vw)] h-full ml-[2vw]">
-      <div className="flex flex-col w-[calc(70%/2)] md:w-[calc(70%/3)] h-full items-start justify-center">
-        <p className="text-[#C4C4C4] sm:text-[1.3rem] text-[1rem] mb-[1dvh]">
-          Player
-        </p>
-        <p className="font-bold sm:text-[1.3rem] text-[1rem] whitespace-nowrap overflow-hidden text-ellipsis w-full">
-          {user.username}
-        </p>
-      </div>
-      <div className="flex flex-col w-[calc(70%/2)] md:w-[calc(70%/3)] h-full items-start justify-center">
-        <p className="text-[#C4C4C4] sm:text-[1.3rem] text-[1rem] mb-[1dvh]">
-          Elo
-        </p>
-        <p className="font-bold sm:text-[1.3rem] text-[1rem]">{user.elo}</p>
-      </div>
-      <div className="md:flex hidden flex-col w-[calc(70%/3)] h-full items-start justify-center">
-        <p className="text-[#C4C4C4] text-[1.3rem] mb-[1dvh]">Status</p>
-        <p className="font-bold sm:text-[1.3rem] text-[1rem]">
-          {isOnline ? "Online" : "Offline"}
-        </p>
-      </div>
-      <div className="w-[30%] h-full flex justify-start items-center">
-        <p
-          className={`
-            sm:ml-[1vw] ml-0 text-[1.4rem] sm:text-[2rem] 
-            ${isOnline
-              ? "text-[#EEFF07] cursor-pointer"
-              : "text-[#cfdab1] opacity-50 cursor-not-allowed"
-            }
-            relative font-bold ${styles.challenge} ${isOnline ? styles.challengeOnline : ""}
-          `}
-          onClick={() => onChallengeClick(user.username, isOnline)}
-        >
-          Challenge
-        </p>
-      </div>
-    </div>
-  </div>
   );
 };
