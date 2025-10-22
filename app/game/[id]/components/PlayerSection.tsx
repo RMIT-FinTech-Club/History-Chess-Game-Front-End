@@ -1,124 +1,139 @@
-import { defaultPieces } from "../../../../components/Pieces";
-import { useState } from "react";
+// PlayerSection.tsx (ONLINE – giữ nguyên props như bạn đang truyền)
 import Image from "next/image";
-import { PlayerSectionProps } from "../types";
+import { useMemo } from "react";
 import { useBoardSize } from "@/hooks/useBoardSize";
 
-export const PlayerSection = ({ 
-  color, 
-  pieces, 
-  timeInSeconds, 
-  isCurrentTurn, 
-  isPaused, 
+export type PlayerSectionProps = {
+  color: "White" | "Black";
+  pieces: string[];              // chưa dùng ở UI này nhưng giữ để tương thích
+  timeInSeconds: number;         // bạn đã đưa đúng kiểu number
+  isCurrentTurn: boolean;
+  isPaused: boolean;
+  gameActive: boolean;
+  profileName?: string;
+  profileImage?: string | null;
+  elo?: number;
+};
+
+export const PlayerSection = ({
+  color,
+  pieces,
+  timeInSeconds,
+  isCurrentTurn,
+  isPaused,
   gameActive,
   profileName,
   profileImage,
-  elo 
-}: PlayerSectionProps & { elo?: number }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  
-  // Use profileName if provided, otherwise default to color
-  const displayName = profileName || color;
-  
-  // Use profileImage if provided, otherwise default to current image
-  const displayImage = profileImage || "/footer/footer_bear.svg";
-  
-  // Format ELO with comma as thousands separator
-  const formattedElo = elo;
-  
-  // Calculate if we need to truncate
-  const displayLimit = 4;
-  const truncatedCount = pieces.length > displayLimit && !isHovered ? pieces.length - displayLimit : 0;
-  
-  // When hovered, show all pieces; otherwise show truncated list
-  const displayPieces = isHovered ? pieces : 
-                        truncatedCount > 0 ? pieces.slice(-displayLimit) : pieces;
-  
-  // Format seconds into MM:SS
-  const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
+  elo = 1247,
+}: PlayerSectionProps) => {
+  const name = profileName || color;
+  const boardWidth = useBoardSize() || 350;
+
+  // Khóa đúng 350 theo mock, vẫn tính từ hook nếu bạn muốn nới sau
+  const WIDTH = Math.min(350, boardWidth);
+  const AVATAR = 48;
+  const DOT = 22;
+
+  const initials = useMemo(
+    () =>
+      name
+        .split(/[\s_]+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map(w => w[0]!.toUpperCase())
+        .join("") || "??",
+    [name]
+  );
+
+  // Suy ra side từ color (không cần prop mới)
+  const side = color === "White" ? "w" : "b";
+
+  // H:MM:SS giống design
+  const formatHMS = (total: number) => {
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const s = total % 60;
+    return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  // Get the board width from the custom hook
-  const boardWidth = useBoardSize()
+  const timeLabel = useMemo(() => {
+    const you = name.toLowerCase() === "you";
+    if (isCurrentTurn && !isPaused && gameActive) {
+      return you ? "Your turn" : `${color}'s turn`;
+    }
+    return you ? "Your time" : `${color}'s time`;
+  }, [name, isCurrentTurn, isPaused, gameActive, color]);
 
   return (
-    <div 
-      className="py-3 rounded-md flex items-center gap-4"
-      style={{ width: `${boardWidth}px` }}
+    <div
+      className="
+        relative overflow-hidden rounded-xl
+        border border-white/10 bg-white/5 backdrop-blur-[2px]
+        shadow-[0_6px_18px_rgba(0,0,0,.35)]
+        px-4 py-3 text-[#EBEBEB]
+        after:content-[''] after:absolute after:inset-1.5
+        after:rounded-lg after:border after:border-white/10 after:pointer-events-none
+      "
+      style={{ width: `${WIDTH}px`, height: "180px" }}
     >
-      {/* Avatar */}
-      <div className="flex-shrink-0">
-        <Image
-          src={displayImage}
-          alt={`${displayName} player avatar`}
-          width={60}
-          height={50}
-          className="rounded-full h-[60px] border-2 border-gray-300"
-        />
-      </div>
-      
-      {/* Player Info Section */}
-      <div className="flex-1 flex justify-between gap-2">
-        {/* Player Name and Time */}
-        <div className="flex flex-col">
-          <h2 className={`text-sm sm:text-lg font-bold text-white ${isCurrentTurn && !isPaused && gameActive ? "text-[#F7D27F]" : ""}`}>
-            {displayName}
-            {isCurrentTurn && !isPaused && gameActive && (
-              <span className="animate-pulse text-[#F7D27F] ml-2">●</span>
-            )}
-          </h2>
-          {/* Captured Pieces Section */}
-          <div className="flex items-center gap-2">
-            <div
-              className="flex relative transition-all duration-300 ease-in-out flex-1"
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-            >
-              {pieces.length === 0 ? (
-                <span className="text-xs text-gray-400">ELO: {formattedElo}</span>
-              ) : (
-                <div className={`flex flex-row items-center transition-all duration-300 ${isHovered ? 'flex-wrap' : ''}`}>
-                  {displayPieces.map((piece, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-center"
-                      style={{
-                        transform: !isHovered && index > 0 ? `translateX(${-80 * index}%)` : 'translateX(0)',
-                        zIndex: !isHovered ? index : 0,
-                        position: 'relative',
-                        transition: 'transform 0.3s ease-in-out',
-                      }}
-                    >
-                      {defaultPieces[piece] || <span>?</span>}
-                    </div>
-                  ))}
-                  
-                  {/* Display truncation indicator after the last piece */}
-                  {truncatedCount > 0 && !isHovered && (
-                    <div
-                      className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center bg-gray-200 rounded-full text-xs sm:text-sm text-black font-bold ml-1"
-                      style={{
-                        transform: displayPieces.length > 0 ? `translateX(${-80 * (displayPieces.length + 3)}%)` : 'translateX(0)',
-                        position: 'relative',
-                        zIndex: displayPieces.length,
-                      }}
-                    >
-                      +{truncatedCount}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+      {/* Hàng trên: avatar + tên/ELO + chấm màu */}
+      <div className="h-[58px] flex items-center gap-3">
+        {profileImage ? (
+          <Image
+            src={profileImage}
+            alt={`${name} avatar`}
+            width={AVATAR}
+            height={AVATAR}
+            className="rounded-full object-cover bg-[#4A4A4A] shrink-0"
+          />
+        ) : (
+          <div
+            className="grid place-items-center rounded-full bg-[#4A4A4A] text-white shrink-0"
+            style={{ width: AVATAR, height: AVATAR }}
+          >
+            <span className="font-semibold text-[18px] leading-none">{initials}</span>
           </div>
-        </div>
-        {/* Time Display */}
-        <div className="flex items-center gap-2">
-          <span className={`font-mono text-4xl text-[#F7D27F] ${timeInSeconds < 60 ? "text-red-500" : ""} ${isCurrentTurn && !isPaused && gameActive ? "text-[#F7D27F] font-bold" : ""}`}>
-            {formatTime(timeInSeconds)}
+        )}
+
+        <div className="min-w-0 flex-1 flex flex-col justify-center">
+          <span className="truncate font-medium text-[18px] leading-tight">{name}</span>
+          <span className="text-[13px] leading-tight opacity-85 tabular-nums">
+            ELO: {elo.toLocaleString("en-US")}
           </span>
+        </div>
+
+        <div className="shrink-0">
+          <div
+            className={[
+              "rounded-full border-[3px] border-[#EBEBEB]",
+              side === "w" ? "bg-white" : "bg-black",
+              isCurrentTurn && gameActive && !isPaused ? "ring-2 ring-[#F7D27F]" : "",
+            ].join(" ")}
+            style={{ width: DOT, height: DOT }}
+            aria-label={side === "w" ? "White" : "Black"}
+          />
+        </div>
+      </div>
+
+      {/* Khung thời gian ở giữa giống mock */}
+      <div
+        className="
+          mt-3 w-full h-[76px]
+          rounded-lg bg-black/35 border border-white/10
+          grid place-items-center
+        "
+      >
+        <div className="text-center leading-tight">
+          <div
+            className={[
+              "font-mono tabular-nums text-[34px] sm:text-[36px]",
+              isCurrentTurn && !isPaused && gameActive ? "text-[#F7D27F] font-semibold" : "text-[#F7D27F]",
+              timeInSeconds < 60 ? "text-red-400" : "",
+            ].join(" ")}
+          >
+            {formatHMS(timeInSeconds)}
+          </div>
+          <div className="text-[13px] opacity-90">{timeLabel}</div>
         </div>
       </div>
     </div>

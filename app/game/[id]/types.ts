@@ -61,11 +61,12 @@ export type GameControlsProps = {
 export type GameHeaderProps = {
   isSinglePlayer: boolean;
   playerColor: "w" | "b";
-  aiLevel: StockfishLevel;
+  elo: number;
   isThinking: boolean;
   autoRotateBoard: boolean;
   onToggleAutoRotate: () => void;
   onChangeGameMode: () => void;
+  isConnected: boolean;
 };
 
 export interface TimeCounterProps {
@@ -162,6 +163,8 @@ export interface GameLayoutProps {
   isCurrentPlayerTurn: boolean;
   moveHistoryPairs: any[];
   handleNewGame: () => void;
+  currentTurn: "w" | "b";
+  totalMove: number;
 }
 
 

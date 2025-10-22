@@ -2,7 +2,6 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { GameControlsProps } from "../types";
 
-// Thêm prop onSurrender vào interface
 interface CustomGameControlsProps extends GameControlsProps {
   onSurrender: () => void;
 }
