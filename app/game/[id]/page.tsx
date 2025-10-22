@@ -117,6 +117,12 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("selectedBoardTheme")) {
+      localStorage.setItem("selectedBoardTheme", "historyChessBoard");
+    }
+  }, []);
+
   // Convert time from milliseconds to seconds
   const formatTimeInSeconds = (ms?: number) => {
     if (typeof ms !== "number") return 0;
