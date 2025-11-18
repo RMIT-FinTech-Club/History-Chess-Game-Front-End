@@ -65,7 +65,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav ref={navRef} className="w-full bg-black text-white px-6 py-4">
+    <nav ref={navRef} className="w-full bg-black text-white px-6 py-4 z-9999">
       <Toast type="success" message="Logged In" onClose={() => setToast(null)} /> 
 
       <ConfirmModal

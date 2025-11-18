@@ -45,7 +45,8 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/otp',
     '/sign_in',
     '/sign_up',
-    '/home'
+    '/home',
+    '/market'
   ];
 
   const noNavBarRoutes = [

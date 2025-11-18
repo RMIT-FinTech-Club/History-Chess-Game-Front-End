@@ -18,6 +18,10 @@
   --color-primary-blue-4: #F0EDFF;
   --color-secondary-yellow: #F8DA92;
   --color-secondary-blue: #97ABD6;
+  --color-background-color: #151515;
+  --color-secondary-bg-color: #27272A;
+  --color-grey-smoke: #CAC4D0;
+  --color-rarity-legendary: #F1C40E;
 }
 
 :root {
