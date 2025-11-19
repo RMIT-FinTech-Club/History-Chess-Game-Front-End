@@ -1,21 +1,26 @@
 'use client'
 
 import ItemProfile from '@/components/market/ItemProfile'
+import AdminAddItemCard from '@/components/market/AdminAddItemCard'
 import { useState } from 'react'
 
 export default function Market() {
     const [profileMounted, setProfileMounted] = useState(false)
-
-    function handleTurnOnProfile() {
-        setProfileMounted(true)
-    }
+    const [addItemMounted, setAddItemMounted] = useState(false)
 
     function handleTurnOffProfile() {
         setProfileMounted(false)
     }
 
+    function handleTurnOffAddItem() {
+        setAddItemMounted(false)
+    }
+
     return (
         <div className="relative h-[calc(100dvh-var(--navbar-height))]">
+            {addItemMounted && <AdminAddItemCard 
+                handleTurnOffAddItem={handleTurnOffAddItem}
+            />}
             {profileMounted && <ItemProfile
                 name={'Vong Gom'}
                 rarity={'Legendary'}

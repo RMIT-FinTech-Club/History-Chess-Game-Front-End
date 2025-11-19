@@ -5,14 +5,13 @@ interface ItemProfileProps {
     status: string
     desc: string
     imgSrc: string
-    handleTurnOffProfile: Function
+    handleTurnOffProfile: () => void
 }
 
 export default function ItemProfile({ rarity, name, price, status, desc, imgSrc, handleTurnOffProfile }: ItemProfileProps) {
-
     return (
         <div className="absolute z-100 top-0 left-0 w-full h-full flex justify-center items-center">
-            <div 
+            <div
                 className="bg-[rgba(255,255,255,0.1)] blur-[20px] absolute top-0 left-0 w-full h-full cursor-pointer"
                 onClick={handleTurnOffProfile}
             ></div>
@@ -27,10 +26,11 @@ export default function ItemProfile({ rarity, name, price, status, desc, imgSrc,
                     <p className="text-[2vh] leading-[2vh] text-rarity-legendary font-bold">Status: {status}</p>
                     <p className="text-[2vh] leading-[3vh] w-full">{desc}</p>
                     <div className="flex justify-end items-center gap-[2vw]">
-                        <div
+                        <button
+                            type="button"
                             className="flex justify-center items-center py-[0.5vh] px-[2vw] rounded-[0.5vh] font-bold border-2 border-white cursor-pointer"
                             onClick={handleTurnOffProfile}
-                        >Cancel</div>
+                        >Cancel</button>
                         <div className="flex justify-center items-center py-[0.5vh] px-[2vw] rounded-[0.5vh] font-bold border-2 border-white cursor-pointer text-black bg-[#E9B654]">Buy Item</div>
                     </div>
                 </div>
