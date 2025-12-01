@@ -5,6 +5,7 @@ import ItemProfile from "@/components/market/ItemProfile";
 import AdminAddItemCard from "@/components/market/AdminAddItemCard";
 import LimitedItemsCarousel from "@/components/market/LimitedItemsCarousel";
 import ComboItemsCarousel from "@/components/market/ComboItemsCarousel";
+import FilterMenu from '@/components/market/FilterMenu';
 import ItemDisplayCard, {
   MarketItem,
 } from "@/components/market/ItemDisplayCard";
@@ -12,6 +13,16 @@ import ItemDisplayCard, {
 // thanh category phía dưới
 const categories = ["Badge", "Hat", "Bracelet", "Effect"];
 type Category = (typeof categories)[number];
+
+const FILTER_KEYS = ["dynasty", "rarity", "status", "price"] as const
+type FilterKey = (typeof FILTER_KEYS)[number]
+
+const FILTER_OPTIONS: Record<FilterKey, string[]> = {
+  dynasty: ['Đinh', 'Tiền Lê', 'Lý', 'Trần', 'Hồ', 'Hậu Trần', 'Lê Sơ', 'Mạc', 'Hậu Lê', 'Tây Sơn', 'Nguyễn'],
+  rarity: ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'],
+  status: ['Available', 'Sold out', 'Coming soon'],
+  price: ['< 0.01 ETH', '0.01 – 0.05 ETH', '> 0.05 ETH'],
+}
 
 // mock data – sau này thay bằng data từ backend
 const allItems: (MarketItem & { category: Category })[] = [
@@ -31,6 +42,8 @@ const allItems: (MarketItem & { category: Category })[] = [
 export default function Market() {
   const [profileMounted, setProfileMounted] = useState(false);
   const [addItemMounted, setAddItemMounted] = useState(false);
+  const [activeFilterKey, setActiveFilterKey] = useState<FilterKey>("dynasty")
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("Sword");
 
@@ -51,7 +64,7 @@ export default function Market() {
   });
 
   return (
-    <div className="relative h-[calc(100dvh-var(--navbar-height))] bg-[#050507] text-white">
+    <div className="relative h-[calc(100dvh-var(--navbar-height))] text-white">
       {/* ===== Modal / popup layer ===== */}
       {addItemMounted && (
         <AdminAddItemCard handleTurnOffAddItem={handleTurnOffAddItem} />
@@ -111,12 +124,23 @@ export default function Market() {
         {/* Main layout: left filter + right content */}
         <div className="flex-1 flex flex-col lg:flex-row gap-6">
           {/* ==== LEFT FILTER CARD ==== */}
-          <aside className="w-full lg:w-64">
+          <aside className="w-full lg:w-64 relative">
+            {isFilterOpen && (
+              <FilterMenu
+                options={FILTER_OPTIONS[activeFilterKey]}
+                onClose={() => setIsFilterOpen(false)}
+              />
+            )}
+
             <div className="rounded-3xl bg-[#413D3DB0] px-5 py-6 shadow-lg border border-[#2b2b2b] flex flex-col gap-4">
               {/* Dynasty */}
               <button
                 className="flex items-center justify-start gap-2"
                 style={{ background: "none", padding: "0.2rem 0.5rem" }}
+                onClick={() => {
+                  setActiveFilterKey("dynasty")
+                  setIsFilterOpen(true)
+                }}
               >
                 <span>Dynasty</span>
                 <span className="text-xs opacity-70">▼</span>
@@ -126,6 +150,10 @@ export default function Market() {
               <button
                 className="flex items-center justify-start gap-2"
                 style={{ background: "none", padding: "0.2rem 0.5rem" }}
+                onClick={() => {
+                  setActiveFilterKey("rarity")
+                  setIsFilterOpen(true)
+                }}
               >
                 <span>Rarity</span>
                 <span className="text-xs opacity-70">▼</span>
@@ -135,6 +163,10 @@ export default function Market() {
               <button
                 className="flex items-center justify-start gap-2"
                 style={{ background: "none", padding: "0.2rem 0.5rem" }}
+                onClick={() => {
+                  setActiveFilterKey("status")
+                  setIsFilterOpen(true)
+                }}
               >
                 <span>Status</span>
                 <span className="text-xs opacity-70">▼</span>
@@ -144,6 +176,10 @@ export default function Market() {
               <button
                 className="flex items-center justify-start gap-2"
                 style={{ background: "none", padding: "0.2rem 0.5rem" }}
+                onClick={() => {
+                  setActiveFilterKey("price")
+                  setIsFilterOpen(true)
+                }}
               >
                 <span>Price range</span>
                 <span className="text-xs opacity-70">▼</span>
@@ -162,6 +198,7 @@ export default function Market() {
               </button>
             </div>
           </aside>
+
 
           {/* ==== RIGHT CONTENT ==== */}
           <section className="flex-1 flex flex-col gap-6">
