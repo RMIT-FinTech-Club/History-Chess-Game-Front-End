@@ -5,7 +5,7 @@ import ItemProfile from "@/components/market/ItemProfile";
 import AdminAddItemCard from "@/components/market/AdminAddItemCard";
 import LimitedItemsCarousel from "@/components/market/LimitedItemsCarousel";
 import ComboItemsCarousel from "@/components/market/ComboItemsCarousel";
-import FilterMenu from '@/components/market/FilterMenu';
+import FilterMenu from "@/components/market/FilterMenu";
 import ItemDisplayCard, {
   MarketItem,
 } from "@/components/market/ItemDisplayCard";
@@ -14,18 +14,60 @@ import ItemDisplayCard, {
 const categories = ["Badge", "Hat", "Bracelet", "Effect"];
 type Category = (typeof categories)[number];
 
-const FILTER_KEYS = ["dynasty", "rarity", "status", "price"] as const
-type FilterKey = (typeof FILTER_KEYS)[number]
+const FILTER_KEYS = ["dynasty", "rarity", "status", "price"] as const;
+type FilterKey = (typeof FILTER_KEYS)[number];
 
 const FILTER_OPTIONS: Record<FilterKey, string[]> = {
-  dynasty: ['Đinh', 'Tiền Lê', 'Lý', 'Trần', 'Hồ', 'Hậu Trần', 'Lê Sơ', 'Mạc', 'Hậu Lê', 'Tây Sơn', 'Nguyễn'],
-  rarity: ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'],
-  status: ['Available', 'Sold out', 'Coming soon'],
-  price: ['< 0.01 ETH', '0.01 – 0.05 ETH', '> 0.05 ETH'],
-}
+  dynasty: [
+    "Đinh",
+    "Tiền Lê",
+    "Lý",
+    "Trần",
+    "Hồ",
+    "Hậu Trần",
+    "Lê Sơ",
+    "Mạc",
+    "Hậu Lê",
+    "Tây Sơn",
+    "Nguyễn",
+  ],
+  rarity: ["Common", "Uncommon", "Rare", "Epic", "Legendary"],
+  status: ["Available", "Sold out", "Coming soon"],
+  price: ["< 0.01 ETH", "0.01 – 0.05 ETH", "> 0.05 ETH"],
+};
 
 // mock data – sau này thay bằng data từ backend
 const allItems: (MarketItem & { category: Category })[] = [
+  {
+    id: "1",
+    name: "Vong Gom",
+    imageUrl: "https://iili.io/fJXUUan.png",
+    rarity: "Legendary",
+    price: 80000,
+    currency: "ETH",
+    status: "Available",
+    category: "Bracelet",
+  },
+  {
+    id: "1",
+    name: "Vong Gom",
+    imageUrl: "https://iili.io/fJXUUan.png",
+    rarity: "Legendary",
+    price: 80000,
+    currency: "ETH",
+    status: "Available",
+    category: "Bracelet",
+  },
+  {
+    id: "1",
+    name: "Vong Gom",
+    imageUrl: "https://iili.io/fJXUUan.png",
+    rarity: "Legendary",
+    price: 80000,
+    currency: "ETH",
+    status: "Available",
+    category: "Bracelet",
+  },
   {
     id: "1",
     name: "Vong Gom",
@@ -42,8 +84,8 @@ const allItems: (MarketItem & { category: Category })[] = [
 export default function Market() {
   const [profileMounted, setProfileMounted] = useState(false);
   const [addItemMounted, setAddItemMounted] = useState(false);
-  const [activeFilterKey, setActiveFilterKey] = useState<FilterKey>("dynasty")
-  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [activeFilterKey, setActiveFilterKey] = useState<FilterKey>("dynasty");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("Sword");
 
@@ -138,8 +180,8 @@ export default function Market() {
                 className="flex items-center justify-start gap-2"
                 style={{ background: "none", padding: "0.2rem 0.5rem" }}
                 onClick={() => {
-                  setActiveFilterKey("dynasty")
-                  setIsFilterOpen(true)
+                  setActiveFilterKey("dynasty");
+                  setIsFilterOpen(true);
                 }}
               >
                 <span>Dynasty</span>
@@ -151,8 +193,8 @@ export default function Market() {
                 className="flex items-center justify-start gap-2"
                 style={{ background: "none", padding: "0.2rem 0.5rem" }}
                 onClick={() => {
-                  setActiveFilterKey("rarity")
-                  setIsFilterOpen(true)
+                  setActiveFilterKey("rarity");
+                  setIsFilterOpen(true);
                 }}
               >
                 <span>Rarity</span>
@@ -164,8 +206,8 @@ export default function Market() {
                 className="flex items-center justify-start gap-2"
                 style={{ background: "none", padding: "0.2rem 0.5rem" }}
                 onClick={() => {
-                  setActiveFilterKey("status")
-                  setIsFilterOpen(true)
+                  setActiveFilterKey("status");
+                  setIsFilterOpen(true);
                 }}
               >
                 <span>Status</span>
@@ -177,8 +219,8 @@ export default function Market() {
                 className="flex items-center justify-start gap-2"
                 style={{ background: "none", padding: "0.2rem 0.5rem" }}
                 onClick={() => {
-                  setActiveFilterKey("price")
-                  setIsFilterOpen(true)
+                  setActiveFilterKey("price");
+                  setIsFilterOpen(true);
                 }}
               >
                 <span>Price range</span>
@@ -198,7 +240,6 @@ export default function Market() {
               </button>
             </div>
           </aside>
-
 
           {/* ==== RIGHT CONTENT ==== */}
           <section className="flex-1 flex flex-col gap-6">
@@ -270,22 +311,22 @@ export default function Market() {
                 })}
               </div>
             </div>
-
-            {/* Items grid */}
-            <div className="flex flex-wrap gap-6">
-              {filteredItems.map((item) => (
-                <ItemDisplayCard
-                  key={item.id}
-                  item={item}
-                  onBuy={(i) => console.log("Buy clicked", i)}
-                />
-              ))}
-
-              {filteredItems.length === 0 && (
-                <p className="text-xs text-gray-500">No items found.</p>
-              )}
-            </div>
           </section>
+        </div>
+
+        {/* Items grid */}
+        <div className="flex flex-wrap justify-center gap-6">
+          {filteredItems.map((item) => (
+            <ItemDisplayCard
+              key={item.id}
+              item={item}
+              onBuy={(i) => console.log("Buy clicked", i)}
+            />
+          ))}
+
+          {filteredItems.length === 0 && (
+            <p className="text-xs text-gray-500">No items found.</p>
+          )}
         </div>
       </div>
     </div>

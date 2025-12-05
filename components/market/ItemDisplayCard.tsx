@@ -19,9 +19,9 @@ export default function ItemDisplayCard({ item, onBuy }: ItemCardProps) {
   const isAvailable = item.status === "Available";
 
   return (
-    <div className="flex flex-col items-center justify-between rounded-[32px] border border-white/40 bg-black/80 px-10 py-8 shadow-[0_0_40px_rgba(0,0,0,0.7)]">
+    <div className="relative mt-20 flex flex-col items-center justify-between rounded-[32px] border border-[#FFFFFF] bg-[#1A1919CC] px-5 pt-25 pb-8 ">
       {/* IMAGE + GLOW */}
-      <div className="relative mb-6 flex h-40 w-40 items-center justify-center">
+      <div className="absolute -top-20 mb-6 flex h-55 w-55 items-center justify-center">
         <div
           className="absolute inset-0 rounded-full"
           style={{
@@ -31,7 +31,7 @@ export default function ItemDisplayCard({ item, onBuy }: ItemCardProps) {
           }}
         />
         <div
-          className="absolute z-10 h-full w-full rounded-full bg-contain bg-center bg-no-repeat"
+          className="absolute -top-2 z-10 h-50 w-50 rounded-full bg-contain bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${item.imageUrl})` }}
         />
       </div>
@@ -41,7 +41,7 @@ export default function ItemDisplayCard({ item, onBuy }: ItemCardProps) {
 
       {/* RARITY + STATUS */}
       <div className="mb-6 flex flex-col items-center gap-2">
-        <span className="inline-flex items-center justify-center rounded-full bg-[#f6d98a] px-5 py-1 text-xs font-semibold text-black shadow-[0_4px_0_rgba(0,0,0,0.35)]">
+        <span className="inline-flex items-center justify-center rounded-full bg-[#F1C40F] px-5 py-1 text-xs font-semibold text-black shadow-[0_4px_0_rgba(0,0,0,0.35)]">
           {item.rarity}
         </span>
         <span
@@ -54,7 +54,7 @@ export default function ItemDisplayCard({ item, onBuy }: ItemCardProps) {
       </div>
 
       {/* PRICE + BUY BUTTON */}
-      <div className="mt-auto flex w-full items-center justify-between gap-4">
+      <div className="mt-auto flex w-full items-center justify-around gap-15">
         <div className="rounded-full bg-[#e6e6e6] px-6 py-2">
           <span className="text-sm font-semibold text-[#d35a24]">
             {item.price.toLocaleString()} {item.currency}
@@ -64,11 +64,20 @@ export default function ItemDisplayCard({ item, onBuy }: ItemCardProps) {
         <button
           disabled={!isAvailable}
           onClick={() => isAvailable && onBuy?.(item)}
-          className={`rounded-2xl px-10 py-2 text-sm font-semibold shadow-[0_4px_0_rgba(0,0,0,0.35)] ${
+          className={`rounded-2xl px-10 py-2 text-sm font-semibold shadow-[0_4px_0_rgba(0,0,0,0.35)]`}
+          style={
             isAvailable
-              ? "bg-[#f6d98a] text-black hover:bg-[#eacb72]"
-              : "cursor-not-allowed bg-neutral-600 text-neutral-300"
-          }`}
+              ? {
+                  background:
+                    "#DBB968",
+                  color: "#09090B",
+                }
+              : {
+                  background:
+                    "linear-gradient(90deg, #555555 0%, #777777 100%)",
+                  color: "#CCCCCC",
+                }
+          }
         >
           Buy
         </button>
