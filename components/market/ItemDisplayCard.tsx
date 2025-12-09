@@ -19,9 +19,9 @@ export default function ItemDisplayCard({ item, onBuy }: ItemCardProps) {
   const isAvailable = item.status === "Available";
 
   return (
-    <div className="relative mt-20 flex flex-col items-center justify-between rounded-[32px] border border-[#FFFFFF] bg-[#1A1919CC] px-5 pt-25 pb-8 ">
-      {/* IMAGE + GLOW */}
-      <div className="absolute -top-20 mb-6 flex h-55 w-55 items-center justify-center">
+    <div className="relative mt-15 flex flex-col items-center justify-between rounded-[32px] border border-[#FFFFFF] bg-[#1A1919CC] px-3 pt-20 pb-5 ">
+      {/* IMAGE + GLOW */} 
+      <div className="absolute -top-20 mb-6 flex h-45 w-45 items-center justify-center">
         <div
           className="absolute inset-0 rounded-full"
           style={{
@@ -31,16 +31,16 @@ export default function ItemDisplayCard({ item, onBuy }: ItemCardProps) {
           }}
         />
         <div
-          className="absolute -top-2 z-10 h-50 w-50 rounded-full bg-contain bg-center bg-no-repeat"
+          className="absolute -top-2 z-10 h-45 w-45 rounded-full bg-contain bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${item.imageUrl})` }}
         />
       </div>
 
       {/* NAME */}
-      <h2 className="mb-3 text-2xl font-semibold text-white">{item.name}</h2>
+      <h2 className="mb-1 text-2xl font-semibold text-white">{item.name}</h2>
 
       {/* RARITY + STATUS */}
-      <div className="mb-6 flex flex-col items-center gap-2">
+      <div className="mb-6 flex flex-col items-center gap-1">
         <span className="inline-flex items-center justify-center rounded-full bg-[#F1C40F] px-5 py-1 text-xs font-semibold text-black shadow-[0_4px_0_rgba(0,0,0,0.35)]">
           {item.rarity}
         </span>
@@ -55,7 +55,7 @@ export default function ItemDisplayCard({ item, onBuy }: ItemCardProps) {
 
       {/* PRICE + BUY BUTTON */}
       <div className="mt-auto flex w-full items-center justify-around gap-15">
-        <div className="rounded-full bg-[#e6e6e6] px-6 py-2">
+        <div className="rounded-full bg-[#e6e6e6] px-4 py-1">
           <span className="text-sm font-semibold text-[#d35a24]">
             {item.price.toLocaleString()} {item.currency}
           </span>

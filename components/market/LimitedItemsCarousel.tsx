@@ -38,7 +38,7 @@ export default function LimitedItemsCarousel({ items }: Props) {
         </div>
 
         {/* khung trắng bên trong */}
-        <div className="flex min-h-[180px] flex-col items-center justify-between rounded-3xl bg-[#f3f3f3] py-7">
+        <div className="flex min-h-[20vh] flex-col items-center justify-between rounded-3xl bg-[#f3f3f3] py-3">
           {/* nội dung trung tâm: text + image (backend update) */}
           <div className="flex items-center justify-between gap-6">
             <span className="text-3xl font-semibold text-black">
