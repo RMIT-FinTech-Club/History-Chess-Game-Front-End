@@ -18,6 +18,22 @@
   --color-primary-blue-4: #F0EDFF;
   --color-secondary-yellow: #F8DA92;
   --color-secondary-blue: #97ABD6;
+  
+  /* Background Colors */
+  --color-bg-app: #151515;
+  
+  /* Gold/Yellow Palette - Consolidated from hardcoded values */
+  --color-gold-highlight: #E9B654;
+  --color-gold-hover: #DBB968;
+  --color-gold-main: #E8BB05;
+  --color-gold-dark: #B98F00;
+  --color-gold-deep: #7A651C;
+  --color-gold-light: #DDBA68;
+  
+  /* Gradient hover colors */
+  --color-gold-hover-main: #D6A900;
+  --color-gold-hover-mid: #A68E3C;
+  --color-gold-hover-deep: #8F7A2B;
 }
 
 :root {

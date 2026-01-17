@@ -44,9 +44,9 @@ export default function Footer() {
                     <a href={'https://www.rmitfintechclub.com/'} className={`w-[50vw] md:w-[20vw] aspect-square bg-no-repeat bg-contain bg-center mr-0 md:mr-[5vw] cursor-pointer ${styles.FTC_logo}`}></a>
                 </div>
                 <div className="flex flex-col justify-start items-center md:items-start w-[80vw] md:w-[20vw] mr-0 md:mr-[5vw] mb-[3dvh] md:mb-0">
-                    <p className="md:text-[1.5rem] text-[2.2rem] text-[#DBB968] mx-auto md:mx-0 font-bold mb-[1dvh] md:mb-0">ABOUT US</p>
+                    <p className="md:text-[1.5rem] text-[2.2rem] text-gold-hover mx-auto md:mx-0 font-bold mb-[1dvh] md:mb-0">ABOUT US</p>
                     <p className="md:text-[1rem] md:leading-[1.6rem] text-[2rem] leading-[3rem] my-0 md:my-[2dvh] md:text-left text-center mb-[3dvh] md:mb-[2dvh]">RMIT FinTech Club is the first ever student-led Financial Technology club in Vietnam, founded in 2020. Founded on the mission to bring Business & Technology</p>
-                    <p className="md:hidden block md:text-[1.5rem] text-[2.2rem] text-[#DBB968] mx-auto md:mx-0 font-bold mb-[1dvh] md:mb-0">CONTACT US</p>
+                    <p className="md:hidden block md:text-[1.5rem] text-[2.2rem] text-gold-hover mx-auto md:mx-0 font-bold mb-[1dvh] md:mb-0">CONTACT US</p>
                     <div className="flex md:justify-start justify-center md:items-center items-start mb-[2dvh]">
                         <div className={`w-[5vw] md:w-[2vw] aspect-square mr-[1dvh] bg-no-repeat bg-center bg-contain ${styles.lc_ic}`}></div>
                         <p className="md:text-[1rem] md:leading-[1.6rem] text-[2rem] leading-[2.6rem] w-full md:w-[calc(18vw-1dvh)] md:text-left text-center">702 Đ. Nguyễn Văn Linh, Tân Hưng, Quận 7, Hồ Chí Minh</p>
@@ -57,7 +57,7 @@ export default function Footer() {
                     </div>
                 </div>
                 <div className="flex flex-col justify-start items-center md:items-start w-[80vw] md:w-[20vw] mr-0 md:mr-[5vw]">
-                    <p className="md:text-[1.5rem] text-[2.2rem] text-[#DBB968] font-bold mb-[2dvh]">IMPORTANT LINKS</p>
+                    <p className="md:text-[1.5rem] text-[2.2rem] text-gold-hover font-bold mb-[2dvh]">IMPORTANT LINKS</p>
                     <Link href='' className={`md:text-[1rem] text-[2rem] mb-[2dvh] ${styles.link}`}>Home</Link>
                     <Link href='' className={`md:text-[1rem] text-[2rem] mb-[2dvh] ${styles.link}`}>About Us</Link>
                     <Link href='' className={`md:text-[1rem] text-[2rem] mb-[2dvh] ${styles.link}`}>Events</Link>
