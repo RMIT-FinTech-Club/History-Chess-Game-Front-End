@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Square } from "chess.js";
 import YellowLight from "@/components/decor/YellowLight";
 
@@ -19,12 +19,23 @@ import { ConnectionStatus } from "./components/ConnectionStatus";
 import { GameLayout } from "./components/GameLayout";
 import { GameOverDialog } from "./components/GameOverDialog";
 import { OpponentDisconnectionWarning } from "./components/OpponentDisconnectionWarning";
+import { GameHeader } from "./components/GameHeader";
 
 const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   const [mounted, setMounted] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState<Square | null>(null);
+  const [savedTheme, setSavedTheme] = useState<{light?: string; dark?: string} | null>(null);
+  const [autoRotate, setAutoRotate] = useState(false);
 
   // Get userId from GlobalStorage
+  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    try {
+      const s = localStorage.getItem("chessTheme");
+      if (s) setSavedTheme(JSON.parse(s));
+    } catch {}
+  }, []);
+
 
   // Unwrap the params Promise
   const resolvedParams = React.use(params);
@@ -110,19 +121,23 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
     leaveGame();
   };
 
+  useEffect(() => {
+    if (!autoRotate) return;
+    if (!gameState?.turn) return;
+    setBoardOrientation(gameState.turn === "w" ? "white" : "black");
+  }, [autoRotate, gameState?.turn, setBoardOrientation]);
+
   // Use online move history hook
   const moveHistoryPairs = useOnlineMoveHistory(moveHistory);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && !localStorage.getItem("selectedBoardTheme")) {
-      localStorage.setItem("selectedBoardTheme", "historyChessBoard");
-    }
-  }, []);
-
+  const boardVars = useMemo(
+    () => ({
+      ["--board-light" as any]: savedTheme?.light ?? "#F0D9B5",
+      ["--board-dark" as any]: savedTheme?.dark ?? "#B58863",
+      ["--board-frame" as any]: "#E9B654",
+      ["--board-frame-2" as any]: "#363624",
+    }) as React.CSSProperties,
+    [savedTheme]
+  );
   // Convert time from milliseconds to seconds
   const formatTimeInSeconds = (ms?: number) => {
     if (typeof ms !== "number") return 0;
@@ -130,11 +145,20 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   };
 
   if (!mounted) return <p>Loading Chessboard...</p>;
-
+  
   const isCurrentPlayerTurn = gameState?.turn === "w"
     ? gameState?.playerColor === "white"
     : gameState?.playerColor === "black";
 
+  const handleToggleAutoRotate = () => {
+    setAutoRotate(prev => {
+      const next = !prev;
+      if (next && gameState?.turn) {
+        setBoardOrientation(gameState.turn === "w" ? "white" : "black");
+      }
+      return next;
+    });
+  };
   // Check if game is over (either from server or timeout)
   const isGameOver = gameState?.gameOver || timeoutGameOver;
   const gameOverTitle = timeoutGameOver ? "Time's Up!" : (gameState?.result || "Game Over");
@@ -162,16 +186,25 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   })();
 
   return (
-    <div className="min-h-screen flex flex-col items-center w-full py-5 px-2 md:px-4">
+    <div className="min-h-screen flex flex-col items-center w-full py-5 px-2 md:px-4" style={boardVars}>
       <YellowLight top={'30vh'} left={'55vw'} />
-
-      {/* Connection Status */}
-      <ConnectionStatus isConnected={isConnected} />
 
       {/* Opponent Disconnection Warning */}
       <OpponentDisconnectionWarning
         isDisconnected={opponentDisconnected && !isGameOver}
         message={disconnectionMessage}
+      />
+      <GameHeader
+        isSinglePlayer={false}
+        playerColor={(gameState?.playerColor === "white" ? "w" : "b") as "w" | "b"}
+        isThinking={false}
+        autoRotateBoard={autoRotate}
+        onToggleAutoRotate={handleToggleAutoRotate}
+        onChangeGameMode={() => {
+          leaveGame();
+        }}
+        isConnected={isConnected}
+        elo={gameState?.playerColor === "white" ? (whiteProfile.elo || 0) : (blackProfile.elo || 0)}
       />
 
       {/* Main Game Layout */}
@@ -200,6 +233,8 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
         isCurrentPlayerTurn={isCurrentPlayerTurn}
         moveHistoryPairs={moveHistoryPairs}
         handleNewGame={handleNewGame}
+        currentTurn={(gameState?.turn as "w" | "b") ?? "w"}
+        totalMove={moveHistory.length}
       />
 
       {/* Game Over Dialog */}

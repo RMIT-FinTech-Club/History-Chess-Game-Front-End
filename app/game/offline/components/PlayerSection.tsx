@@ -1,122 +1,86 @@
-import { defaultPieces } from "../../../../components/Pieces";
-import { useState, useLayoutEffect } from "react";
-import Image from "next/image";
-import { PlayerSectionProps } from "../types";
-import { useBoardSize } from "@/hooks/useBoardSize";
+  // PlayerSection.tsx (compact 350px)
+  import Image from "next/image";
+  import { useBoardSize } from "@/hooks/useBoardSize";
 
-export const PlayerSection = ({
-  color,
-  pieces,
-  isCurrentTurn,
-  gameActive,
-  profileName,
-  profileImage
-}: PlayerSectionProps) => {
-  const [isHovered, setIsHovered] = useState(false);
+  type BaseProps = {
+    color: "White" | "Black";
+    pieces: string[];
+    isCurrentTurn: boolean;
+    gameActive: boolean;
+    profileName?: string;
+    profileImage?: string | null;
+  };
+  type Props = BaseProps & { elo?: number; side?: "w" | "b" };
 
-  // Use profileName if provided, otherwise default to color
-  const displayName = profileName || color;
+  export const PlayerSection = ({
+    color,
+    pieces,
+    isCurrentTurn,
+    gameActive,
+    profileName,
+    profileImage,
+    elo = 1298,
+    side = color === "White" ? "w" : "b",
+  }: Props) => {
+    const name = profileName || color;
 
-  // Use profileImage if provided, otherwise default to current image
-  const displayImage = profileImage || "/footer/footer_bear.svg";
+    // Compact sizes
+    const WIDTH = 350;   
+    const AVATAR = 48;  
+    const DOT = 24;    
 
-  // Calculate if we need to truncate
-  const displayLimit = 4;
-  const truncatedCount = pieces.length > displayLimit && !isHovered ? pieces.length - displayLimit : 0;
+    const initials =
+      name.split(/[\s_]+/).filter(Boolean).slice(0, 2).map(w => w[0]!.toUpperCase()).join("") || "??";
 
-  // When hovered, show all pieces; otherwise show truncated list
-  const displayPieces = isHovered ? pieces :
-    truncatedCount > 0 ? pieces.slice(-displayLimit) : pieces;
-
-  // Get the board width from the custom hook
-  const boardWidth = useBoardSize();
-
-  // Calculate the height for avatar
-  const [avtHeight, setAvtHeight] = useState(60);
-  useLayoutEffect(() => {
-    const calculateAvtHeight = () => {
-      if (typeof window === "undefined") return 60;
-      return window.innerHeight / 100 * 8 // 8vh
-    };
-
-    const handleResize = () => setAvtHeight(calculateAvtHeight);
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [])
-
-  return (
-    <div
-      className="flex items-center h-[10vh] overflow-y-hidden my-[1vh]"
-      style={{ width: `${boardWidth}px` }}
-    >
-      {/* Avatar */}
-      <div className="flex-shrink-0">
-        <Image
-          src={displayImage}
-          alt={`${displayName} player avatar`}
-          width={avtHeight}
-          height={avtHeight}
-          className="rounded-full aspect-square border-2 border-gray-300 mr-[1vh]"
-        />
-      </div>
-
-      {/* Player Info Section */}
-      <div className="flex-1 flex justify-between gap-2">
-        {/* Player Name and Time */}
-        <div className="flex flex-col">
-          <h2 className={`text-[2vh] font-bold text-white ${isCurrentTurn && gameActive ? "text-[#F7D27F]" : ""}`}>
-            {displayName}
-            {isCurrentTurn && gameActive && (
-              <span className="animate-pulse text-[#F7D27F] ml-2">●</span>
-            )}
-          </h2>
-          {/* Captured Pieces Section */}
-          <div className="flex items-center gap-2">
+    return (
+      <div
+        className="
+          relative overflow-hidden rounded-xl
+          border border-white/10 bg-white/5 backdrop-blur-[2px]
+          shadow-[0_6px_18px_rgba(0,0,0,.35)]
+          px-4 py-3 text-[#EBEBEB]
+          after:content-[''] after:absolute after:inset-1.5
+          after:rounded-lg after:border after:border-white/10 after:pointer-events-none
+        "
+        style={{ width: `${WIDTH}px`, height: "180px" }}  
+      >
+        <div className="h-full flex items-center gap-3">
+          {profileImage ? (
+            <Image
+              src={profileImage}
+              alt={`${name} avatar`}
+              width={AVATAR}
+              height={AVATAR}
+              className="rounded-full object-cover bg-[#4A4A4A] shrink-0"
+            />
+          ) : (
             <div
-              className="flex relative transition-all duration-300 ease-in-out flex-1"
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
+              className="grid place-items-center rounded-full bg-[#4A4A4A] text-white shrink-0"
+              style={{ width: AVATAR, height: AVATAR }}
             >
-              {pieces.length === 0 ? (
-                <span className="text-[1.5vh] text-gray-400">None</span>
-              ) : (
-                <div className={`flex flex-row items-center transition-all duration-300 ${isHovered ? 'flex-wrap' : ''}`}>
-                  {displayPieces.map((piece, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-center"
-                      style={{
-                        transform: !isHovered && index > 0 ? `translateX(${-80 * index}%)` : 'translateX(0)',
-                        zIndex: !isHovered ? index : 0,
-                        position: 'relative',
-                        transition: 'transform 0.3s ease-in-out',
-                      }}
-                    >
-                      {defaultPieces[piece] || <span>?</span>}
-                    </div>
-                  ))}
-
-                  {/* Display truncation indicator after the last piece */}
-                  {truncatedCount > 0 && !isHovered && (
-                    <div
-                      className="w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center bg-gray-200 rounded-full text-xs sm:text-sm text-black font-bold ml-1"
-                      style={{
-                        transform: displayPieces.length > 0 ? `translateX(${-80 * (displayPieces.length + 3)}%)` : 'translateX(0)',
-                        position: 'relative',
-                        zIndex: displayPieces.length,
-                      }}
-                    >
-                      +{truncatedCount}
-                    </div>
-                  )}
-                </div>
-              )}
+              <span className="font-semibold text-[18px] leading-none">{initials}</span>
             </div>
+          )}
+
+          <div className="min-w-0 flex-1 flex flex-col justify-center">
+            <span className="truncate font-medium text-[18px] leading-tight">{name}</span>
+            <span className="text-[13px] leading-tight opacity-85 tabular-nums">
+              ELO: {elo.toLocaleString("en-US")}
+            </span>
+          </div>
+
+          <div className="shrink-0">
+            <div
+              className={[
+                "rounded-full border border-[3px] border-[#EBEBEB]",
+                side === "w" ? "bg-white" : "bg-black",
+                isCurrentTurn && gameActive ? "ring-2 ring-[#F7D27F]" : "",
+              ].join(" ")}
+              style={{ width: DOT, height: DOT }}
+              aria-label={side === "w" ? "White" : "Black"}
+            />
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
