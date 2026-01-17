@@ -28,7 +28,7 @@ const Hamburger = ({ onClick }: HamburgerProps) => {
     <div
       ref={menuRef}
       onClick={handleMenuClick}
-      className="h-[5vh] aspect-square bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] rounded-[1vh] z-50 relative transition-colors cursor-pointer duration-300"
+      className="h-[5vh] aspect-square bg-gradient-to-b from-gold-main via-gold-dark to-gold-deep hover:from-gold-hover-main hover:via-gold-hover-mid hover:to-gold-hover-deep rounded-[1vh] z-50 relative transition-colors cursor-pointer duration-300"
     >
       <div className={`${styles.hamburger_item} ${styles.item1}`}></div>
       <div className={`${styles.hamburger_item} ${styles.item2}`}></div>

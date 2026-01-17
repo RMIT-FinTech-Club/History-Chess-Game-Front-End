@@ -13,6 +13,10 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
   const pathname = usePathname();
+
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const mobileDrawerRef = useRef<HTMLDivElement | null>(null);
+
   const router = useRouter();
   const userAreaRef = useRef<HTMLDivElement | null>(null);
 
@@ -30,7 +34,21 @@ export default function Navbar() {
   const avatarUrl = avatar || '/img/DefaultUser.png';
 
   useEffect(() => {
-    setUserMenuOpen(false);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+      if (mobileDrawerRef.current && !mobileDrawerRef.current.contains(event.target as Node)) {
+        setMobileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    setShowDropdown(false);
     setMobileOpen(false);
   }, [pathname]);
 
@@ -63,8 +81,8 @@ export default function Navbar() {
   };
 
   return (
-    <>
-      <Toast type="success" message="" onClose={() => {}} />
+    <nav ref={navRef} className="w-full bg-black text-white px-6 py-4">
+      <Toast type="success" message="Logged In" onClose={() => setToast(null)} />
 
       <ConfirmModal
         isOpen={showConfirmLogout}
@@ -94,9 +112,8 @@ export default function Navbar() {
               <li
                 key={it.href}
                 onClick={() => router.push(it.href)}
-                className={`cursor-pointer text-[20px] font-bold tracking-wide transition-colors ${
-                  isActive(it.href) ? 'text-[#E9B654]' : 'text-white hover:text-[#E9B654]'
-                }`}
+                className={`cursor-pointer text-[20px] font-bold tracking-wide transition-colors ${isActive(it.href) ? 'text-[#E9B654]' : 'text-white hover:text-[#E9B654]'
+                  }`}
               >
                 {it.label}
               </li>
@@ -179,9 +196,8 @@ export default function Navbar() {
       </button>
 
       <div
-        className={`md:hidden fixed right-0 top-0 h-screen w-[78%] max-w-[300px] bg-black text-white border-l border-neutral-700 px-6 py-6 z-40 transform transition-transform duration-300 ${
-          mobileOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`md:hidden fixed right-0 top-0 h-screen w-[78%] max-w-[300px] bg-black text-white border-l border-neutral-700 px-6 py-6 z-40 transform transition-transform duration-300 ${mobileOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
       >
         <div className="flex items-center gap-3">
           <img src="/img/FintechLogo.png" alt="logo" className="w-9 h-9" />

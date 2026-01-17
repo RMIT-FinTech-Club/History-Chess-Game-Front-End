@@ -15,7 +15,7 @@ export default function Step2() {
                             <p className="md:text-[1.8rem] sm:text-[2.5rem] text-[1.5rem] font-bold whitespace-nowrap overflow-hidden text-ellipsis w-[40vw] sm:w-[50vw]">{index == 4 ? 'Negic LegendLegendLegendLegendLegendLegend' : 'Negic Legend'}</p>
                         </div>
                         <div className="w-[30%] flex justify-center items-center">
-                            <p className="md:text-[1.8rem] sm:text-[2.5rem] text-[1.5rem] font-bold cursor-pointer hover:text-[#DBB968] transition-colors duration-200 p-[0.2vw]">Challenge</p>
+                            <p className="md:text-[1.8rem] sm:text-[2.5rem] text-[1.5rem] font-bold cursor-pointer hover:text-gold-hover transition-colors duration-200 p-[0.2vw]">Challenge</p>
                         </div>
                     </div>
                 ))}
