@@ -87,8 +87,8 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-6 text-[18px] font-semibold">
-          <span onClick={() => router.push('/game/offline')} className="cursor-pointer hover:text-gold-highlight">AI Practice</span>
-          <span onClick={() => router.push('/market')} className="cursor-pointer hover:text-gold-highlight">Our Market</span>
+          <span onClick={() => router.push('/game/offline')} className="cursor-pointer hover:text-[#E9B654]">AI Practice</span>
+          <span onClick={() => router.push('/market')} className="cursor-pointer hover:text-[#E9B654]">Our Market</span>
 
           {isLoggedIn ? (
             <div className="flex items-center gap-[2vw]">
@@ -121,13 +121,13 @@ export default function Navbar() {
 
               <Button
                 onClick={() => router.push('/game/online')}
-                className="px-4 py-2 w-[124px] h-[35px] text-black rounded-[6px] font-semibold bg-gradient-to-b from-gold-main via-gold-dark to-gold-deep hover:from-gold-hover-main hover:via-gold-hover-mid hover:to-gold-hover-deep hover:text-white transition-colors cursor-pointer duration-300 flex justify-center items-center" >
+                className="px-4 py-2 w-[124px] h-[35px] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] hover:text-white transition-colors cursor-pointer duration-300 flex justify-center items-center" >
                 Play Game
               </Button>
             </div>
           ) : (
             <div className="flex items-center gap-4">
-              <Button onClick={() => router.push('/sign_in')} className="px-4 py-2 w-[100px] h-[35px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-gold-main via-gold-dark to-gold-deep hover:from-gold-hover-main hover:via-gold-hover-mid hover:to-gold-hover-deep hover:text-black transition-colors duration-300 flex justify-center items-center hover:cursor-pointer">
+              <Button onClick={() => router.push('/sign_in')} className="px-4 py-2 w-[100px] h-[35px] text-white rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] hover:text-black transition-colors duration-300 flex justify-center items-center hover:cursor-pointer">
                 Sign In
               </Button>
 
@@ -162,10 +162,10 @@ export default function Navbar() {
 
           {isLoggedIn && (
             <>
-              <span onClick={() => { router.push('/game/online'); setMobileOpen(false); }} className="text-[2rem] font-semibold cursor-pointer text-center w-full hover:text-gold-highlight">
+              <span onClick={() => { router.push('/game/online'); setMobileOpen(false); }} className="text-[2rem] font-semibold cursor-pointer text-center w-full hover:text-[#E9B654]">
                 Play Game
               </span>
-              <span onClick={() => { router.push('/game/offline'); setMobileOpen(false); }} className="text-[2rem] font-semibold cursor-pointer text-center w-full hover:text-gold-highlight">
+              <span onClick={() => { router.push('/game/offline'); setMobileOpen(false); }} className="text-[2rem] font-semibold cursor-pointer text-center w-full hover:text-[#E9B654]">
                 AI Practice
               </span>
             </>
@@ -173,12 +173,12 @@ export default function Navbar() {
 
           <div className="w-full flex flex-col gap-[1.5vh] mt-[2vh] items-center">
             {isLoggedIn ? (
-              <Button onClick={() => setShowConfirmLogout(true)} className="w-[352px] h-[40px] text-[3.5vh] text-black rounded-[6px] font-semibold bg-gradient-to-b from-gold-main via-gold-dark to-gold-deep flex justify-center items-center">
+              <Button onClick={() => setShowConfirmLogout(true)} className="w-[352px] h-[40px] text-[3.5vh] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#9E7C00] to-[#605715] flex justify-center items-center">
                 Log Out
               </Button>
             ) : (
               <>
-                <Button onClick={() => router.push('/sign_in')} className="w-[200px] h-[40px] text-[3.5vh] text-black rounded-[6px] font-semibold bg-gradient-to-b from-primary-yellow-3 via-gold-hover-main to-gold-hover-mid flex justify-center items-center">
+                <Button onClick={() => router.push('/sign_in')} className="w-[200px] h-[40px] text-[3.5vh] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#F7D447] via-[#D6A900] to-[#A68E3C] flex justify-center items-center">
                   Sign In
                 </Button>
                 <Button onClick={() => router.push('/sign_up')} className="w-[200px] h-[40px] text-[3.5vh] text-black bg-white hover:bg-black hover:text-white rounded-[6px] font-semibold border border-white transition-colors duration-300 flex justify-center items-center">
