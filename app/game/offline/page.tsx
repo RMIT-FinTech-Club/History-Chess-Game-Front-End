@@ -15,16 +15,39 @@ import { GameOverDialog } from "./components/GameOverDialog";
 import { GameModeDialog } from "./components/GameModeDialog";
 import { MoveHistoryTable } from "./components/MoveHistoryTable";
 import { MatchDetail } from "./components/MatchDetailProps";
-import { CapturedPieces } from "./components/CapturedPieces"; 
+import { CapturedPieces } from "./components/CapturedPieces";
 import { GameControls } from "./components/GameControls";
 import type { StockfishLevel } from "@/app/game/offline/hooks/useStockfish";
 import YellowLight from "@/components/decor/YellowLight";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
+const VALID_STOCKFISH_LEVELS: StockfishLevel[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20];
+
+const parseStockfishLevel = (value: string | null): StockfishLevel | null => {
+  if (!value) return null;
+  const level = Number(value);
+  return (VALID_STOCKFISH_LEVELS as number[]).includes(level) ? (level as StockfishLevel) : null;
+};
+
+const parseColorParam = (value: string | null): "w" | "b" =>
+  value === "black" || value === "b" ? "b" : "w";
+
+const isTruthyParam = (value: string | null): boolean =>
+  value === "1" || value === "true";
+
 const OfflinePage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const autoStartLevel = parseStockfishLevel(searchParams?.get("level"));
+  const autoStartMode = searchParams?.get("mode");
+  const autoStartFlag = isTruthyParam(searchParams?.get("autostart"));
+  const shouldAutoStart = autoStartMode === "singleplayer" && autoStartFlag && autoStartLevel !== null;
+  const autoStartColor = parseColorParam(searchParams?.get("color"));
+
   const [mounted, setMounted] = useState(false);
-  const [showGameModeDialog, setShowGameModeDialog] = useState(false);
-  const [aiDifficulty, setAiDifficulty] = useState<StockfishLevel>(5);
+  const [showGameModeDialog, setShowGameModeDialog] = useState(!shouldAutoStart);
+  const [aiDifficulty, setAiDifficulty] = useState<StockfishLevel>(autoStartLevel ?? 5);
   const [currentTurn, setCurrentTurn] = useState<"w" | "b">("w");
   const [gameActive, setGameActive] = useState(false);
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
@@ -32,7 +55,20 @@ const OfflinePage = () => {
   const [savedTheme, setSavedTheme] = useState<{ light?: string; dark?: string } | null>(null);
   const boardWidth = useBoardSize();
   const { isAuthenticated } = useGlobalStorage();
-  const router = useRouter();
+
+  useEffect(() => {
+    setShowGameModeDialog(!shouldAutoStart);
+  }, [shouldAutoStart]);
+
+  useEffect(() => {
+    if (autoStartLevel && aiDifficulty !== autoStartLevel) {
+      setAiDifficulty(autoStartLevel);
+    }
+  }, [autoStartLevel, aiDifficulty]);
+
+  useEffect(() => {
+    setAutoStartTriggered(false);
+  }, [autoStartLevel, shouldAutoStart]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -75,6 +111,32 @@ const OfflinePage = () => {
     makeMove,
   });
 
+  useEffect(() => {
+    if (!mounted || !shouldAutoStart || autoStartTriggered || !autoStartLevel) {
+      return;
+    }
+
+    if (!isAiReady) {
+      return;
+    }
+
+    setAiDifficulty(autoStartLevel);
+    startSinglePlayerGame(autoStartColor, autoStartLevel);
+    setShowGameModeDialog(false);
+    setBoardOrientation(autoStartColor === "w" ? "white" : "black");
+    setAutoRotateBoard(false);
+    setMoveTimeHistory([]);
+    setAutoStartTriggered(true);
+  }, [
+    autoStartColor,
+    autoStartLevel,
+    autoStartTriggered,
+    isAiReady,
+    mounted,
+    shouldAutoStart,
+    startSinglePlayerGame,
+  ]);
+
   // Update current turn and orientation
   useEffect(() => {
     setCurrentTurn(gameTurn);
@@ -85,7 +147,6 @@ const OfflinePage = () => {
 
   useEffect(() => {
     setMounted(true);
-    setShowGameModeDialog(true);
   }, []);
 
   useEffect(() => {
@@ -98,9 +159,6 @@ const OfflinePage = () => {
       setAutoRotateBoard(false);
     }
   }, [isSinglePlayer, playerColor]);
-
-  // Add a new state to track time for each move
-  const [moveTimeHistory, setMoveTimeHistory] = useState<{ white: number, black: number }[]>([]);
 
   // Reset times when starting new game
   const handleNewGame = useCallback(() => {
@@ -162,7 +220,7 @@ const OfflinePage = () => {
     try {
       const s = localStorage.getItem("chessTheme");
       if (s) setSavedTheme(JSON.parse(s));
-    } catch {}
+    } catch { }
   }, []);
 
   const boardVars = useMemo(
@@ -180,7 +238,7 @@ const OfflinePage = () => {
   if (!mounted) return <p>Loading Chessboard...</p>;
 
   return (
-  <div className="relative min-h-[100dvh] w-full overflow-hidden flex flex-col items-center">
+    <div className="relative min-h-[100dvh] w-full overflow-hidden flex flex-col items-center">
 
       <div
         aria-hidden
@@ -217,7 +275,7 @@ const OfflinePage = () => {
           backgroundSize: "cover"
         }}
       />
-      
+
       <div
         className="absolute inset-0 -z-30 pointer-events-none
           [background:
@@ -225,91 +283,91 @@ const OfflinePage = () => {
           ]"
       />
 
-    <YellowLight top={'30vh'} left={'55vw'} />
+      <YellowLight top={'30vh'} left={'55vw'} />
 
-    <GameHeader
-      isSinglePlayer={isSinglePlayer}
-      playerColor={playerColor}
-      aiLevel={aiLevel}
-      autoRotateBoard={autoRotateBoard}
-      onToggleAutoRotate={toggleAutoRotate}
-      onChangeGameMode={() => setShowGameModeDialog(true)}
-    />
+      <GameHeader
+        isSinglePlayer={isSinglePlayer}
+        playerColor={playerColor}
+        aiLevel={aiLevel}
+        autoRotateBoard={autoRotateBoard}
+        onToggleAutoRotate={toggleAutoRotate}
+        onChangeGameMode={() => setShowGameModeDialog(true)}
+      />
 
-    <div className="grid w-[95vw] flex-1 grid-cols-1 lg:grid-cols-[350px_minmax(560px,1fr)_380px] gap-6">
-      <aside className="min-h-0 space-y-4">
-        <PlayerSection
-          color="Black"
-          pieces={capturedBlack}
-          isCurrentTurn={currentTurn === "b"}
-          gameActive={gameActive}
-        />
-
-        <PlayerSection
-          color="White"
-          pieces={capturedWhite}
-          isCurrentTurn={currentTurn === "w"}
-          gameActive={gameActive}
-        />
-        <div className="rounded-xl px-4 py-3 text-white/90">
-          <CapturedPieces whiteCaptured={capturedWhite} blackCaptured={capturedBlack} />
-        </div>
-      </aside>
-
-      <section className="flex flex-col items-center">
-        <div className="rounded-2xl border border-white/20 bg-gradient-to-b from-[#E9B654]/30 to-transparent p-3 shadow-[0_20px_60px_rgba(0,0,0,0.45)]" style={boardVars}>
-          <Chessboard
-            id="historyChessBoard"
-            position={fen}
-            onPieceDrop={chessHandlers.handleDrop}
-            onPieceClick={chessHandlers.onPieceClick}
-            onSquareClick={chessHandlers.onSquareClick}
-            onPieceDragBegin={chessHandlers.onPieceDragBegin}
-            boardWidth={630}
-            animationDuration={300}
-            customSquareStyles={customSquareStyles}
-            boardOrientation={boardOrientation}
+      <div className="grid w-[95vw] flex-1 grid-cols-1 lg:grid-cols-[350px_minmax(560px,1fr)_380px] gap-6">
+        <aside className="min-h-0 space-y-4">
+          <PlayerSection
+            color="Black"
+            pieces={capturedBlack}
+            isCurrentTurn={currentTurn === "b"}
+            gameActive={gameActive}
           />
-        </div>
 
-        <div className="mt-2 w-full max-w-[650px]">
-          <GameControls onUndo={handleUndo} onNewGame={handleNewGame} onSurrender={handleSurrender} canUndo={history.length > 0} />
-        </div>
-      </section>
-
-      <aside className="min-h-0 flex flex-col gap-4">
-        <div className="rounded-xl p-4 text-white/90">
-          <h1 className="text-xl font-semibold mb-2">Move History</h1>
-          <div className="rounded-xl p-2">
-            <MoveHistoryTable moveHistoryPairs={moveHistoryPairs} />
+          <PlayerSection
+            color="White"
+            pieces={capturedWhite}
+            isCurrentTurn={currentTurn === "w"}
+            gameActive={gameActive}
+          />
+          <div className="rounded-xl px-4 py-3 text-white/90">
+            <CapturedPieces whiteCaptured={capturedWhite} blackCaptured={capturedBlack} />
           </div>
-        </div>
+        </aside>
 
-        <div className="rounded-xl p-4 text-white/90">
-          <h1 className="text-xl font-semibold mb-3">Match Details</h1>
-          <MatchDetail currentTurn={currentTurn} totalMove={totalMove} />
-        </div>
-      </aside>
+        <section className="flex flex-col items-center">
+          <div className="rounded-2xl border border-white/20 bg-gradient-to-b from-[#E9B654]/30 to-transparent p-3 shadow-[0_20px_60px_rgba(0,0,0,0.45)]" style={boardVars}>
+            <Chessboard
+              id="historyChessBoard"
+              position={fen}
+              onPieceDrop={chessHandlers.handleDrop}
+              onPieceClick={chessHandlers.onPieceClick}
+              onSquareClick={chessHandlers.onSquareClick}
+              onPieceDragBegin={chessHandlers.onPieceDragBegin}
+              boardWidth={630}
+              animationDuration={300}
+              customSquareStyles={customSquareStyles}
+              boardOrientation={boardOrientation}
+            />
+          </div>
+
+          <div className="mt-2 w-full max-w-[650px]">
+            <GameControls onUndo={handleUndo} onNewGame={handleNewGame} onSurrender={handleSurrender} canUndo={history.length > 0} />
+          </div>
+        </section>
+
+        <aside className="min-h-0 flex flex-col gap-4">
+          <div className="rounded-xl p-4 text-white/90">
+            <h1 className="text-xl font-semibold mb-2">Move History</h1>
+            <div className="rounded-xl p-2">
+              <MoveHistoryTable moveHistoryPairs={moveHistoryPairs} />
+            </div>
+          </div>
+
+          <div className="rounded-xl p-4 text-white/90">
+            <h1 className="text-xl font-semibold mb-3">Match Details</h1>
+            <MatchDetail currentTurn={currentTurn} totalMove={totalMove} />
+          </div>
+        </aside>
+      </div>
+
+      <GameOverDialog
+        open={gameState.isGameOver}
+        title={gameState.title}
+        message={gameState.message}
+        onNewGame={() => setShowGameModeDialog(true)}
+      />
+
+      <GameModeDialog
+        open={showGameModeDialog}
+        aiDifficulty={aiDifficulty}
+        setAiDifficulty={setAiDifficulty}
+        difficultyLevels={difficultyLevels}
+        handleStartSinglePlayer={handleStartSinglePlayer}
+        handleStartTwoPlayer={handleStartTwoPlayer}
+        isAiReady={isAiReady}
+        onClose={() => setShowGameModeDialog(false)}
+      />
     </div>
-
-    <GameOverDialog
-      open={gameState.isGameOver}
-      title={gameState.title}
-      message={gameState.message}
-      onNewGame={() => setShowGameModeDialog(true)}
-    />
-
-    <GameModeDialog
-      open={showGameModeDialog}
-      aiDifficulty={aiDifficulty}
-      setAiDifficulty={setAiDifficulty}
-      difficultyLevels={difficultyLevels}
-      handleStartSinglePlayer={handleStartSinglePlayer}
-      handleStartTwoPlayer={handleStartTwoPlayer}
-      isAiReady={isAiReady}
-      onClose={() => setShowGameModeDialog(false)}
-    />
-  </div>
   );
 };
 
