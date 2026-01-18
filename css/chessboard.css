@@ -4,22 +4,18 @@
 
 /* General styles for body */
 body {
-    background-color: #151515;
+    background-color: var(--color-bg-app);
     background-image:
-        repeating-linear-gradient(
-            0deg,
+        repeating-linear-gradient(0deg,
             rgba(255, 255, 255, 0.1),
             rgba(255, 255, 255, 0.1) 1px,
             transparent 1px,
-            transparent 10vw
-        ),
-        repeating-linear-gradient(
-            90deg,
+            transparent 10vw),
+        repeating-linear-gradient(90deg,
             rgba(255, 255, 255, 0.1),
             rgba(255, 255, 255, 0.1) 1px,
             transparent 1px,
-            transparent 10vw
-        );
+            transparent 10vw);
     background-size: 10vw 10vw;
     background-position: -5vw -5vw;
 }
@@ -28,7 +24,7 @@ body {
 [data-boardid="historyChessBoard"] {
     border-radius: 5px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-    background-image: linear-gradient(#E9B654, #363624);
+    background-image: linear-gradient(var(--color-gold-highlight), #363624);
 }
 
 [data-boardid="historyChessBoard"] .board-square {
@@ -51,11 +47,13 @@ body {
 }
 
 [data-boardid="brownChessBoard"] [data-square-color="white"] {
-    background: #e4d3b8 !important; /* soft warm light beige */
+    background: #e4d3b8 !important;
+    /* soft warm light beige */
 }
 
 [data-boardid="brownChessBoard"] [data-square-color="black"] {
-    background-color: #6b4f34 !important; /* rich, soft dark brown */
+    background-color: #6b4f34 !important;
+    /* rich, soft dark brown */
 }
 
 /* Chessboard 3: blue Chessboard - updated for subtle, natural blue shades */
@@ -66,37 +64,58 @@ body {
 }
 
 [data-boardid="blueChessBoard"] [data-square-color="white"] {
-    background: #d6dde0 !important; /* soft light gray-blue */
+    background: #d6dde0 !important;
+    /* soft light gray-blue */
 }
 
 [data-boardid="blueChessBoard"] [data-square-color="black"] {
-    background-color: #2b4151 !important; /* muted navy blue */
+    background-color: #2b4151 !important;
+    /* muted navy blue */
 }
 
 /* Promotion piece styles */
-[title="Choose promotion piece"] [data-piece*="Q"], 
+[title="Choose promotion piece"] [data-piece*="Q"],
 [title="Choose promotion piece"] [data-piece*="B"] {
-    background-image: linear-gradient(#E9B654, #83662F)  !important;
+    background-image: linear-gradient(var(--color-gold-highlight), #83662F) !important;
 }
 
-[title="Choose promotion piece"] [data-piece*="R"], 
+[title="Choose promotion piece"] [data-piece*="R"],
 [title="Choose promotion piece"] [data-piece*="N"] {
     background-color: var(--black) !important;
 }
 
 /* Custom pieces fixed size */
-[data-boardid="historyChessBoard"] img,
-[data-boardid="brownChessBoard"] img,
-[data-boardid="blueChessBoard"] img {
+[data-boardid="historyChessBoard"] img {
     max-width: 100% !important;
     max-height: 100% !important;
 }
 
+[data-boardid="historyChessBoard"] {
+    background-image: linear-gradient(var(--board-frame, #E9B654),
+            var(--board-frame-2, #d2cac2ff));
+}
+
+[data-boardid="historyChessBoard"] [data-square-color="white"] {
+    background-color: var(--board-light, #E9B654) !important;
+}
+
+[data-boardid="historyChessBoard"] [data-square-color="black"] {
+    background-color: var(--board-dark, #d2cac2ff) !important;
+}
+
 /* AI thinking animation */
 @keyframes pulseBorder {
-    0% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(255, 204, 0, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 204, 0, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 204, 0, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 204, 0, 0);
+    }
 }
 
 [data-boardid="historyChessBoard"].ai-thinking,
@@ -111,9 +130,12 @@ body {
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0.5;
     }

@@ -30,7 +30,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
       <Button
         onClick={onNewGame}
         size="sm"
-        className="!py-6 !bg-[#F7D27F] !text-lg !text-black hover:!bg-[#C7A95D]"
+        className="rounded-full !py-3 !bg-[#F7D27F] !text-base !text-black hover:!bg-[#C7A95D] px-4 flex-1"
       >
         New Game
       </Button>

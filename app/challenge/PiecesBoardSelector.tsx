@@ -37,13 +37,13 @@ export default function BoardChoose({ selected, onSelect, }: { selected: string;
 
   return (
     <div className="relative inline-flex items-center space-x-2">
-      <h3 className="text-white text-sm font-semibold">Dynasty choose</h3>
+      <h3 className="font-serif text-white text-sm font-semibold">Dynasty choose</h3>
       <div className="relative">
         <button
           onClick={() => setOpen((prev) => !prev)}
           className="bg-gray-800 text-white text-sm px-4 py-2 rounded-md shadow-md hover:bg-gray-700"
         >
-          {dynastyThemes.find((d) => d.id === selected)?.label ?? "Select Board"}
+          <span className="font-serif">{dynastyThemes.find((d) => d.id === selected)?.label ?? "Select Board"}</span>
           <span className="ml-2">▾</span>
         </button>
 
@@ -56,7 +56,7 @@ export default function BoardChoose({ selected, onSelect, }: { selected: string;
                 className={`px-4 py-2 cursor-pointer hover:bg-gray-200 ${selected === theme.id ? "bg-yellow-100 font-semibold" : ""
                   }`}
               >
-                {theme.label}
+                <span className="font-serif">{theme.label}</span>
               </div>
             ))}
           </div>

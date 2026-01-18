@@ -3,14 +3,11 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
-import { MdEmail } from "react-icons/md";
-import { FaUser } from "react-icons/fa";
+import { Settings, User, Mail, Upload, Edit3, Save, X, Key, Check, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Label } from "@radix-ui/react-label";
-import { MdOutlineFileUpload } from "react-icons/md";
 import Image from "next/image";
-import styles from "@/css/profile.module.css";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import axios from "axios";
 import { toast } from "sonner";
@@ -27,7 +24,6 @@ import { OldPassword } from "@/components/profile/accountSetting/OldPassword";
 import { NewPassword } from "@/components/profile/accountSetting/NewPassword";
 import { NewPasswordConfirm } from "@/components/profile/accountSetting/NewPasswordConfirm";
 import axiosInstance from "@/config/apiConfig";
-import { Button } from "../ui/button";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit
 
@@ -69,6 +65,14 @@ const passwordFormSchema = z
 
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
+// Password Requirement Item Component
+const PasswordRequirement = ({ met, label }: { met: boolean; label: string }) => (
+  <div className={`flex items-center gap-2 text-sm ${met ? 'text-green-400' : 'text-gray-500'}`}>
+    {met ? <Check className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border border-gray-600" />}
+    <span>{label}</span>
+  </div>
+);
+
 const AccountSettings = () => {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -104,12 +108,7 @@ const AccountSettings = () => {
   });
 
   const validateToken = async () => {
-    if (
-      !accessToken ||
-      typeof accessToken !== "string" ||
-      accessToken.trim() === ""
-    ) {
-      console.error("Invalid or missing access token", { accessToken });
+    if (!accessToken || typeof accessToken !== "string" || accessToken.trim() === "") {
       return false;
     }
     try {
@@ -121,7 +120,6 @@ const AccountSettings = () => {
       });
       return true;
     } catch (error) {
-      console.error("Token validation failed:", error);
       return false;
     }
   };
@@ -129,10 +127,6 @@ const AccountSettings = () => {
   const refreshToken = async (identifier: string) => {
     try {
       if (isGoogleAuth) {
-        console.log(
-          "Refreshing token for Google account with existing token:",
-          accessToken
-        );
         const response = await axiosInstance.get("/users/profile", {
           headers: {
             "Content-Type": "application/json",
@@ -144,26 +138,14 @@ const AccountSettings = () => {
         }
         return response.data;
       } else {
-        const loginResponse = await axiosInstance.post("/users/login", {
-          identifier,
-        });
-        console.log("Token refresh raw response:", loginResponse);
+        const loginResponse = await axiosInstance.post("/users/login", { identifier });
         if (!loginResponse.data || !loginResponse.data.token) {
           throw new Error("Invalid login response structure");
         }
         return loginResponse.data;
       }
     } catch (error) {
-      console.error("Token refresh failed:", error);
-      if (
-        axios.isAxiosError(error) &&
-        error.response?.data?.message?.includes(
-          "This account uses Google login"
-        )
-      ) {
-        console.warn(
-          "Google auth login attempt blocked, falling back to profile fetch"
-        );
+      if (axios.isAxiosError(error) && error.response?.data?.message?.includes("This account uses Google login")) {
         const response = await axiosInstance.get("/users/profile", {
           headers: {
             "Content-Type": "application/json",
@@ -177,12 +159,7 @@ const AccountSettings = () => {
   };
 
   const fetchProfile = useCallback(async () => {
-    if (
-      !accessToken ||
-      typeof accessToken !== "string" ||
-      accessToken.trim() === ""
-    ) {
-      console.error("No access token found", { accessToken });
+    if (!accessToken || typeof accessToken !== "string" || accessToken.trim() === "") {
       toast.error("Authentication required. Please sign in.");
       router.push("/sign_in");
       setInitialLoading(false);
@@ -191,7 +168,6 @@ const AccountSettings = () => {
 
     setInitialLoading(true);
     try {
-      console.log("Fetching profile with token:", accessToken);
       const response = await axiosInstance.get("/users/profile", {
         headers: {
           "Content-Type": "application/json",
@@ -203,8 +179,7 @@ const AccountSettings = () => {
         throw new Error("Invalid response data");
       }
 
-      const { id, username, email, avatarUrl, googleAuth, refreshToken } =
-        response.data;
+      const { id, username, email, avatarUrl, googleAuth, refreshToken } = response.data;
       setIsGoogleAuth(googleAuth || false);
       setUserId(id || "");
       setAuthData({
@@ -222,22 +197,13 @@ const AccountSettings = () => {
       setInitialAvatar(avatarUrl || null);
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        console.error("Fetch profile error:", {
-          status: error.response?.status,
-          data: error.response?.data,
-          token: accessToken,
-        });
         if (error.response?.status === 401) {
-          console.warn("Session expired, redirecting to sign-in");
           toast.error("Session expired. Please sign in again.");
           router.push("/sign_in");
         } else {
-          toast.error(
-            error.response?.data?.message || "Failed to fetch profile data"
-          );
+          toast.error(error.response?.data?.message || "Failed to fetch profile data");
         }
       } else {
-        console.error("Unexpected error fetching profile:", error);
         toast.error("An unexpected error occurred while fetching profile");
       }
     } finally {
@@ -248,11 +214,7 @@ const AccountSettings = () => {
   useEffect(() => {
     setIsMounted(true);
     const controller = new AbortController();
-
-    fetchProfile().catch((error) =>
-      console.error("Fetch profile failed:", error)
-    );
-
+    fetchProfile().catch((error) => console.error("Fetch profile failed:", error));
     return () => {
       setIsMounted(false);
       controller.abort();
@@ -263,16 +225,9 @@ const AccountSettings = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const validTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/svg+xml",
-    ];
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"];
     if (!validTypes.includes(file.type)) {
-      toast.error(
-        "Invalid file type. Please upload a JPEG, PNG, WEBP, or SVG image."
-      );
+      toast.error("Invalid file type. Please upload a JPEG, PNG, WEBP, or SVG image.");
       return;
     }
 
@@ -283,49 +238,25 @@ const AccountSettings = () => {
 
     setImagePreview(URL.createObjectURL(file));
 
-    if (
-      !accessToken ||
-      !userId ||
-      !email ||
-      typeof accessToken !== "string" ||
-      accessToken.trim() === ""
-    ) {
-      console.error("Invalid or missing access token, user ID, or email", {
-        accessToken,
-        userId,
-        email,
-      });
+    if (!accessToken || !userId || !email) {
       toast.error("Authentication required. Please sign in.");
       router.push("/sign_in");
       setImagePreview(null);
-      setInitialAvatar(null);
       return;
     }
 
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(userId)) {
-      console.error("Invalid user ID:", userId);
       toast.error("Invalid user ID. Please sign in again.");
       router.push("/sign_in");
       setImagePreview(null);
-      setInitialAvatar(null);
       return;
     }
 
     setLoading(true);
     try {
-      console.log(
-        "Validating token before avatar upload:",
-        accessToken,
-        "isGoogleAuth:",
-        isGoogleAuth
-      );
       const isTokenValid = await validateToken();
       if (!isTokenValid && !isGoogleAuth) {
-        console.warn(
-          "Invalid token, attempting refresh for non-Google account"
-        );
         const loginData = await refreshToken(email);
         setAuthData({
           accessToken: loginData.token,
@@ -336,31 +267,18 @@ const AccountSettings = () => {
         });
       }
 
-      console.log(
-        "Uploading avatar with token:",
-        accessToken,
-        "userId:",
-        userId
-      );
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await axiosInstance.post(
-        `/users/${userId}/avatar`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      await axiosInstance.post(`/users/${userId}/avatar`, formData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-      console.log("Avatar upload response:", response.data);
       setImagePreview(null);
-
       const profileData = await refreshToken(email);
-      console.log("Profile refresh response:", profileData);
 
       setAuthData({
         userId,
@@ -374,32 +292,18 @@ const AccountSettings = () => {
       toast.success("Avatar uploaded successfully");
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
-        console.error("Avatar upload or profile refresh error:", {
-          status: error.response?.status,
-          data: error.response?.data,
-          message: error.message,
-          headers: error.response?.headers,
-          token: accessToken,
-        });
         if (error.response?.status === 401) {
           toast.error("Session expired. Please sign in again.");
           router.push("/sign_in");
         } else if (error.response?.status === 500) {
-          const s3Error = error.response?.data?.message?.includes("S3")
-            ? error.response.data.message
-            : "Failed to upload avatar due to server issue.";
-          toast.error(s3Error);
+          toast.error("Failed to upload avatar due to server issue.");
         } else {
-          toast.error(
-            error.response?.data?.message || "Failed to upload avatar"
-          );
+          toast.error(error.response?.data?.message || "Failed to upload avatar");
         }
       } else {
-        console.error("Unexpected error uploading avatar:", error);
         toast.error("An unexpected error occurred while uploading avatar");
       }
       setImagePreview(null);
-      setInitialAvatar(null);
     } finally {
       setLoading(false);
     }
@@ -407,38 +311,15 @@ const AccountSettings = () => {
 
   const onSubmit = async (data: FormValues) => {
     if (!accessToken || !email || !userId) {
-      console.error("No access token, email, or user ID for username update", {
-        accessToken,
-        email,
-        userId,
-      });
       toast.error("Authentication required. Please sign in.");
-      router.push("/sign_in");
-      return;
-    }
-
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(userId)) {
-      console.error("Invalid user ID:", userId);
-      toast.error("Invalid user ID. Please sign in again.");
       router.push("/sign_in");
       return;
     }
 
     setLoading(true);
     try {
-      console.log(
-        "Validating token before username update:",
-        accessToken,
-        "isGoogleAuth:",
-        isGoogleAuth
-      );
       const isTokenValid = await validateToken();
       if (!isTokenValid && !isGoogleAuth) {
-        console.warn(
-          "Invalid token, attempting refresh for non-Google account"
-        );
         const loginData = await refreshToken(email);
         setAuthData({
           accessToken: loginData.token,
@@ -449,22 +330,14 @@ const AccountSettings = () => {
         });
       }
 
-      console.log("Updating username with token:", accessToken);
-      const updateResponse = await axiosInstance.put(
-        `/users/${userId}`,
-        { username: data.username },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("Username update response:", updateResponse.data);
+      await axiosInstance.put(`/users/${userId}`, { username: data.username }, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       const profileData = await refreshToken(email);
-      console.log("Profile refresh response:", profileData);
 
       setAuthData({
         userId,
@@ -482,27 +355,15 @@ const AccountSettings = () => {
       toast.success("Profile updated successfully");
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error("Username update or profile refresh error:", {
-          status: error.response?.status,
-          data: error.response?.data,
-          token: accessToken,
-        });
-        if (
-          error.response?.data?.message?.includes("Username already exists")
-        ) {
-          toast.error(
-            "This username already exists, please choose another username."
-          );
+        if (error.response?.data?.message?.includes("Username already exists")) {
+          toast.error("This username already exists, please choose another username.");
         } else if (error.response?.status === 401) {
           toast.error("Session expired. Please sign in again.");
           router.push("/sign_in");
         } else {
-          toast.error(
-            error.response?.data?.message || "Failed to update profile"
-          );
+          toast.error(error.response?.data?.message || "Failed to update profile");
         }
       } else {
-        console.error("Unexpected error updating profile:", error);
         toast.error("An unexpected error occurred while updating profile");
       }
     } finally {
@@ -519,52 +380,34 @@ const AccountSettings = () => {
     setLoading(true);
     try {
       if (!accessToken) {
-        console.error("No access token for password update", { accessToken });
         toast.error("Please sign in to update your password.");
         router.push("/sign_in");
         return;
       }
 
       if (isGoogleAuth) {
-        toast.error(
-          "This account uses Google login. Password changes are managed through your Google account at myaccount.google.com/security."
-        );
+        toast.error("This account uses Google login. Password changes are managed through your Google account.");
         return;
       }
 
-      console.log("Updating password with token:", accessToken);
-      const response = await axiosInstance.put(
-        "/users/update-password",
-        {
-          oldPassword: data.oldPassword,
-          newPassword: data.password,
+      await axiosInstance.put("/users/update-password", {
+        oldPassword: data.oldPassword,
+        newPassword: data.password,
+      }, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      });
 
-      console.log("Password update response:", response.data);
       toast.success("Password updated successfully");
       passwordForm.reset();
       setPassword("");
       setIsPasswordPopupOpen(false);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error("Password update error:", {
-          status: error.response?.status,
-          data: error.response?.data,
-          token: accessToken,
-        });
-        toast.error(
-          error.response?.data?.message ||
-          "Failed to update password. Please try again."
-        );
+        toast.error(error.response?.data?.message || "Failed to update password. Please try again.");
       } else {
-        console.error("Unexpected error updating password:", error);
         toast.error("An unexpected error occurred while updating password");
       }
     } finally {
@@ -581,19 +424,6 @@ const AccountSettings = () => {
   const handleEditClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setIsEditing(true);
-
-    const userNameInput = document.querySelector(
-      "#username"
-    ) as HTMLInputElement;
-    if (userNameInput) {
-      userNameInput.disabled = false;
-      userNameInput.classList.remove(
-        "disabled:opacity-100",
-        "disabled:cursor-not-allowed"
-      );
-      userNameInput.classList.add("text-black");
-      userNameInput.focus();
-    }
   };
 
   const handleCancelClick = () => {
@@ -602,18 +432,6 @@ const AccountSettings = () => {
     setImagePreview(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
-    }
-
-    const usernameInput = document.querySelector(
-      "#username"
-    ) as HTMLInputElement;
-    if (usernameInput) {
-      usernameInput.disabled = true;
-      usernameInput.classList.add(
-        "disabled:opacity-100",
-        "disabled:cursor-not-allowed"
-      );
-      usernameInput.classList.remove("text-black");
     }
   };
 
@@ -630,7 +448,6 @@ const AccountSettings = () => {
   useEffect(() => {
     const interceptor = axiosInstance.interceptors.request.use((config) => {
       if (accessToken) {
-        console.log("Axios interceptor using token:", accessToken);
         config.headers.Authorization = `Bearer ${accessToken}`;
       }
       return config;
@@ -642,255 +459,236 @@ const AccountSettings = () => {
 
   if (initialLoading) {
     return (
-      <div>
-        <p className="text-[3vh] font-bold">Loading Profile...</p>
-      </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="glass-card rounded-xl p-8 border border-white/5 flex items-center justify-center"
+      >
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-gold-royal/30 border-t-gold-royal rounded-full animate-spin" />
+          <p className="text-gray-500 font-serif">Loading Profile...</p>
+        </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="h-full">
-      <div className="flex items-center">
-        <Image
-          width={100}
-          height={100}
-          src="/Settings.svg"
-          alt="Settings icon"
-          className="w-[2.5vw] md:w-[2vw] mb-[1vh]"
-        />
-        <p className="text-[3vw] md:text-[2vw] leading-[2vw] ml-[1vw] font-bold">
-          Basic Information
-        </p>
-      </div>
-
-      <hr className="border-t border-[#FFFFFF]" />
-
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className={`flex flex-col w-full max-h-[80vh] mt-[2vh] ${styles.list_container}`}
-        >
-          <div className="w-full flex flex-row items-center">
-            <div
-              className={`w-[9vw] aspect-square border-[0.3vh] border-dashed border-[#8E8E8E] flex items-center justify-center rounded-md relative ${isEditing ? "cursor-pointer" : "cursor-not-allowed"
-                }`}
-              onClick={handleAvatarClick}
-              role="button"
-              aria-label={isEditing ? "Upload new avatar" : "Avatar display"}
-            >
-              {isEditing && imagePreview ? (
-                <Image
-                  src={imagePreview}
-                  alt="Uploaded avatar"
-                  width={128}
-                  height={128}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "contain",
-                    imageRendering: "crisp-edges",
-                  }}
-                  className="rounded-md"
-                  placeholder="empty"
-                  unoptimized={true}
-                />
-              ) : imagePreview ? (
-                <Image
-                  src={imagePreview}
-                  alt="Current avatar"
-                  width={128}
-                  height={128}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "contain",
-                    imageRendering: "crisp-edges",
-                  }}
-                  className="rounded-md"
-                  placeholder="empty"
-                  unoptimized={true}
-                />
-              ) : (
-                <div className="flex items-center justify-center bg-[#DCB968] rounded-full w-[2.5vw] h-[2.5vw] min-w-[3vh] min-h-[3vh] p-[1vh]">
-                  <MdOutlineFileUpload className="text-white text-[3vw] min-text-[3vh]" />
-                </div>
-              )}
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/svg+xml"
-                ref={fileInputRef}
-                onChange={handleImageChange}
-                className="hidden"
-                disabled={!isEditing}
-                aria-hidden={!isEditing}
-              />
-            </div>
-
-            <div className="!mx-[3vw]">
-              <div>
-                <Label className="text-[2.25vw] md:text-[1.25vw]">
-                  User Information
-                </Label>
-              </div>
-
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="relative w-[27vw]">
-                      <FaUser className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[2.5vh] pointer-events-none" />
-                      {isEditing ? (
-                        <Input
-                          id="username"
-                          disabled={!isEditing}
-                          className="w-[25vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] !text-[2.5vh] font-normal"
-                          autoComplete="off"
-                          aria-disabled={!isEditing}
-                          {...field}
-                        />
-                      ) : (
-                        <Input
-                          id="username"
-                          disabled={!isEditing}
-                          className="w-[25vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] !text-[#8C8C8C] !text-[2.5vh] font-normal disabled:opacity-100 disabled:cursor-not-allowed"
-                          autoComplete="off"
-                          aria-disabled={!isEditing}
-                          {...field}
-                        />
-                      )}
-                    </div>
-                    <FormMessage className="text-[2.5vh] text-red-500" />
-                  </FormItem>
-                )}
-              />
-
-              <div className="relative w-[25vw] mt-[2vh]">
-                <MdEmail className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[3vh] pointer-events-none" />
-                <Input
-                  disabled
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-[25vw] !pl-[3vw] py-[3vh] rounded-[1.5vh] bg-[#F9F9F9] !text-[#8C8C8C] !text-[2.5vh] font-normal disabled:!opacity-100 disabled:!cursor-not-allowed"
-                  aria-disabled="true"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col self-start gap-[1vh]">
-              {isEditing ? (
-                <>
-                  {loading ? (
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="cursor-pointer rounded-[1vh] !py-[1vh] !px-[1vw] !font-semibold !text-[#000000] !bg-[#F7D27F] hover:!bg-[#E9B654] !transition-colors !text-[1.25vw]"
-                      aria-busy={loading}
-                    >
-                      Saving...
-                    </button>
-                  ) : (
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="cursor-pointer rounded-[1vh] !py-[1vh] !px-[1vw] !font-semibold !text-[#000000] !bg-[#F7D27F] hover:!bg-[#E9B654] !transition-colors !text-[1.25vw]"
-                      aria-busy={loading}
-                    >
-                      Save
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={handleCancelClick}
-                    className="cursor-pointer rounded-[1vh] !py-[1vh] !px-[1vw] !font-semibold !text-[#000000] !bg-[#EA4335] hover:!bg-[#A12318] !transition-colors !text-[1.25vw]"
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleEditClick}
-                  className="flex items-center gap-2 cursor-pointer border border-[#E9B654] !text-[#FFFFFF] hover:!bg-[#DBB968] rounded-[1vh] py-[1vh] px-[1vw] transition-colors"
-                >
-                  <span className="text-[2.25vw] md:text-[1.25vw]">Edit</span>
-                  <Image
-                    src="/edit_icon.svg"
-                    alt="Edit icon"
-                    width={20}
-                    height={20}
-                  />
-                </button>
-              )}
-            </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="w-full space-y-6"
+    >
+      {/* Basic Information Section */}
+      <div className="glass-card rounded-2xl p-6 border border-white/5">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-lg bg-gold-royal/20 flex items-center justify-center">
+            <Settings className="w-5 h-5 text-gold-royal" />
           </div>
-        </form>
-      </Form>
-
-      <div className="flex items-center mt-[4vh]">
-        <Image
-          width={100}
-          height={100}
-          src="/key.svg"
-          alt="Settings icon"
-          className="w-[2.5vw] md:w-[2vw] mb-[1vh]"
-        />
-        <h3 className="text-[3vw] md:text-[2vw] leading-[2vw] ml-[1vw] font-bold">
-          Password
-        </h3>
-      </div>
-
-      <hr className="border-t border-[#FFFFFF]" />
-
-      <div className="text-[#979797] text-[1.85vw] md:text-[1.1vw] py-[2.5vh]">
-        Please be careful when changing your password. You need both the old and
-        the new ones to successfully change your password.
-      </div>
-
-      <button
-        id="change-password-button"
-        onClick={handleChangePassword}
-        className="max-w-[15vw] cursor-pointer border border-[#DCB968] rounded-[1vh] py-[1vh] px-[1vw] hover:bg-[#DCB968] transition-colors"
-        aria-label="Change password"
-      >
-        <div className="text-[2rem] md:text-[1.25vw] text-center">
-          Change password
+          <div>
+            <h2 className="font-display text-xl text-gold-light">Basic Information</h2>
+            <p className="text-gray-500 text-sm">Manage your account details</p>
+          </div>
         </div>
-      </button>
 
+        <div className="h-px bg-gradient-to-r from-transparent via-gold-royal/30 to-transparent mb-6" />
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="flex flex-col md:flex-row gap-6">
+              {/* Avatar Upload */}
+              <div
+                className={`
+                  relative w-28 h-28 rounded-xl border-2 border-dashed flex items-center justify-center
+                  transition-all duration-300 flex-shrink-0
+                  ${isEditing
+                    ? 'border-gold-royal/50 cursor-pointer hover:border-gold-royal hover:bg-gold-royal/5'
+                    : 'border-gray-700 cursor-not-allowed'
+                  }
+                `}
+                onClick={handleAvatarClick}
+              >
+                {imagePreview || initialAvatar ? (
+                  <Image
+                    src={imagePreview || initialAvatar || ''}
+                    alt="Avatar"
+                    width={112}
+                    height={112}
+                    className="w-full h-full object-cover rounded-xl"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-gray-500">
+                    <Upload className="w-6 h-6" />
+                    <span className="text-xs">Upload</span>
+                  </div>
+                )}
+                {isEditing && (
+                  <div className="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <Upload className="w-6 h-6 text-white" />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/svg+xml"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                  className="hidden"
+                  disabled={!isEditing}
+                />
+              </div>
+
+              {/* Form Fields */}
+              <div className="flex-1 space-y-4">
+                {/* Username Field */}
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-400 text-sm flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Username
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            id="username"
+                            disabled={!isEditing}
+                            className={`
+                              w-full px-4 py-3 rounded-xl transition-all duration-300
+                              ${isEditing
+                                ? 'bg-white/10 border-gold-royal/30 text-white focus:border-gold-royal focus:ring-1 focus:ring-gold-royal/50'
+                                : 'bg-white/5 border-white/10 text-gray-400 cursor-not-allowed'
+                              }
+                            `}
+                            autoComplete="off"
+                            {...field}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage className="text-red-400 text-sm" />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Email Field (Read-only) */}
+                <div>
+                  <label className="text-gray-400 text-sm flex items-center gap-2 mb-2">
+                    <Mail className="w-4 h-4" />
+                    Email
+                  </label>
+                  <Input
+                    disabled
+                    value={email}
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border-white/10 text-gray-400 cursor-not-allowed"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2 justify-start">
+                {isEditing ? (
+                  <>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="submit"
+                      disabled={loading}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gold-royal hover:bg-gold-shimmer text-bg-dark font-semibold transition-colors disabled:opacity-50"
+                    >
+                      <Save className="w-4 h-4" />
+                      {loading ? "Saving..." : "Save"}
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="button"
+                      onClick={handleCancelClick}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                      Cancel
+                    </motion.button>
+                  </>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={handleEditClick}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gold-royal/20 hover:bg-gold-royal/30 text-gold-light border border-gold-royal/30 transition-colors"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    Edit Profile
+                  </motion.button>
+                )}
+              </div>
+            </div>
+          </form>
+        </Form>
+      </div>
+
+      {/* Password Section */}
+      <div className="glass-card rounded-2xl p-6 border border-white/5">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-lg bg-gold-royal/20 flex items-center justify-center">
+            <Key className="w-5 h-5 text-gold-royal" />
+          </div>
+          <div>
+            <h2 className="font-display text-xl text-gold-light">Password</h2>
+            <p className="text-gray-500 text-sm">Update your password securely</p>
+          </div>
+        </div>
+
+        <div className="h-px bg-gradient-to-r from-transparent via-gold-royal/30 to-transparent mb-4" />
+
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-gold-royal/5 border border-gold-royal/10 mb-4">
+          <AlertCircle className="w-5 h-5 text-gold-muted flex-shrink-0" />
+          <p className="text-gray-400 text-sm">
+            Please be careful when changing your password. You need both the old and the new ones to successfully change your password.
+          </p>
+        </div>
+
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleChangePassword}
+          className="flex items-center gap-2 px-5 py-3 rounded-xl bg-gold-royal/20 hover:bg-gold-royal/30 text-gold-light border border-gold-royal/30 transition-colors"
+        >
+          <Key className="w-4 h-4" />
+          Change Password
+        </motion.button>
+      </div>
+
+      {/* Password Change Popup */}
       <Popup
         isOpen={isPasswordPopupOpen}
         onClose={handleClosePasswordPopup}
         title="Change Password"
       >
-        <div className="text-[#71717A] text-[2vw] md:text-[1.3vw]">
-          Make changes to your password here. Click save when you’re done.
-        </div>
+        <p className="text-gray-400 text-sm mb-6">
+          Make changes to your password here. Click save when you're done.
+        </p>
 
         <Form {...passwordForm}>
-          <form
-            onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}
-            className="flex flex-col gap-4"
-          >
+          <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-5">
             <FormField
               control={passwordForm.control}
               name="oldPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[#FFFFFF] text-[2vw] md:text-[1.1vw] mt-[2vh]">
-                    Old Password
-                  </FormLabel>
+                  <FormLabel className="text-white text-sm">Old Password</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <OldPassword
-                        placeholder="Enter your current password"
-                        {...field}
-                        className="!w-full !pl-[3.5vw] py-[3vh] md:py-[3.5vh] rounded-[1.5vh] !text-[2.5vh] md:!text-[3vh] font-normal"
-                      />
-                    </div>
+                    <OldPassword
+                      placeholder="Enter your current password"
+                      {...field}
+                      className="w-full px-4 py-3 rounded-xl bg-white/10 border-white/20 text-white"
+                    />
                   </FormControl>
-                  <FormMessage className="text-[2.5vh] text-red-500" />
+                  <FormMessage className="text-red-400 text-sm" />
                 </FormItem>
               )}
             />
@@ -900,51 +698,25 @@ const AccountSettings = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[#FFFFFF] text-[2vw] md:text-[1.1vw]">
-                    New Password
-                  </FormLabel>
+                  <FormLabel className="text-white text-sm">New Password</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <NewPassword
-                        placeholder="Enter your new password"
-                        {...field}
-                        className="!w-full py-[3vh] !pl-[3.5vw] md:py-[3.5vh] rounded-[1.5vh] !text-[2.5vh] md:!text-[3vh] font-normal"
-                        onChange={(e) => {
-                          field.onChange(e);
-                          setPassword(e.target.value);
-                        }}
-                      />
-                    </div>
+                    <NewPassword
+                      placeholder="Enter your new password"
+                      {...field}
+                      className="w-full px-4 py-3 rounded-xl bg-white/10 border-white/20 text-white"
+                      onChange={(e) => {
+                        field.onChange(e);
+                        setPassword(e.target.value);
+                      }}
+                    />
                   </FormControl>
-                  <ul className="font-normal text-[2.5vh] rounded-md">
-                    <li
-                      className={
-                        isMinLength ? "text-green-500" : "text-gray-500"
-                      }
-                    >
-                      ✔ 9 characters minimum
-                    </li>
-                    <li
-                      className={
-                        hasUppercase ? "text-green-500" : "text-gray-500"
-                      }
-                    >
-                      ✔ At least 1 capital letter
-                    </li>
-                    <li
-                      className={hasNumber ? "text-green-500" : "text-gray-500"}
-                    >
-                      ✔ At least 1 digit
-                    </li>
-                    <li
-                      className={
-                        hasSpecialChar ? "text-green-500" : "text-gray-500"
-                      }
-                    >
-                      ✔ At least 1 special character (!@#$%^&*)
-                    </li>
-                  </ul>
-                  <FormMessage className="text-[2.5vh] text-red-500" />
+                  <div className="grid grid-cols-2 gap-2 mt-3">
+                    <PasswordRequirement met={isMinLength} label="9+ characters" />
+                    <PasswordRequirement met={hasUppercase} label="1 uppercase" />
+                    <PasswordRequirement met={hasNumber} label="1 number" />
+                    <PasswordRequirement met={hasSpecialChar} label="1 special (!@#$%^&*)" />
+                  </div>
+                  <FormMessage className="text-red-400 text-sm" />
                 </FormItem>
               )}
             />
@@ -954,44 +726,45 @@ const AccountSettings = () => {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[#FFFFFF] text-[2vw] md:text-[1.1vw]">
-                    Confirm New Password
-                  </FormLabel>
+                  <FormLabel className="text-white text-sm">Confirm New Password</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <NewPasswordConfirm
-                        placeholder="Confirm your new password"
-                        {...field}
-                        className="!w-full py-[3vh] !pl-[3.5vw] md:py-[3.5vh] rounded-[1.5vh] !text-[2.5vh] md:!text-[3vh] font-normal"
-                      />
-                    </div>
+                    <NewPasswordConfirm
+                      placeholder="Confirm your new password"
+                      {...field}
+                      className="w-full px-4 py-3 rounded-xl bg-white/10 border-white/20 text-white"
+                    />
                   </FormControl>
-                  <FormMessage className="text-[2.5vh] text-red-500" />
+                  <FormMessage className="text-red-400 text-sm" />
                 </FormItem>
               )}
             />
 
-            <div className="flex justify-end gap-4 mt-4">
-              <button
+            <div className="flex justify-end gap-3 pt-4">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={loading}
-                className="cursor-pointer rounded-[1vh] !py-[1vh] !px-[1vw] !font-semibold !text-[#000000] !bg-[#F7D27F] hover:!bg-[#E9B654] !transition-colors !text-[1.25vw]"
-                aria-busy={loading}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gold-royal hover:bg-gold-shimmer text-bg-dark font-semibold transition-colors disabled:opacity-50"
               >
+                <Save className="w-4 h-4" />
                 {loading ? "Saving..." : "Save"}
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 type="button"
                 onClick={handleClosePasswordPopup}
-                className="cursor-pointer rounded-[1vh] !py-[1vh] !px-[1vw] !font-semibold !text-[#000000] !bg-[#EA4335] hover:!bg-[#A12318] !transition-colors !text-[1.25vw]"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 transition-colors"
               >
+                <X className="w-4 h-4" />
                 Cancel
-              </button>
+              </motion.button>
             </div>
           </form>
         </Form>
       </Popup>
-    </div>
+    </motion.div>
   );
 };
 

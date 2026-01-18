@@ -27,7 +27,7 @@ export default function SideSelector({ selectedSide, onSideChangeAction, chessBo
                             outline={colorScheme.outline}
                         />
 
-                        <p className="text-[1.1rem] font-extrabold uppercase w-full text-nowrap">
+                        <p className="font-serif text-[1.1rem] font-extrabold uppercase w-full text-nowrap">
                             {opt.label}
                         </p>
                     </div>

@@ -4,34 +4,46 @@ import SideBar from "./SideBar";
 import { Button } from "@/components/ui/button";
 import { GameHeaderProps } from "../types";
 
-export const GameHeader: React.FC<GameHeaderProps> = ({
+export const GameHeader: React.FC<GameHeaderProps & { elo?: number }> = ({
   isSinglePlayer,
   playerColor,
   aiLevel,
   autoRotateBoard,
   onToggleAutoRotate,
+  elo,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="w-[90vw] h-[4vh] mt-[1vh]">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-2 w-[90vw] relative">
-        <span className="text-[2vh] leading-[4vh] font-medium text-[#F7D27F]">
-          {isSinglePlayer
-            ? `Single Player (You: ${
-                playerColor === "w" ? "White" : "Black"
-              }, AI Level: ${aiLevel})`
-            : "Two Players"}
-        </span>
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+    <header className="w-[95vw] mt-2 mb-3">
+      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
+        <Hamburger onClick={() => setSidebarOpen((prev) => !prev)} />
+        <div className="justify-self-center text-center min-w-0">
+          <span className="truncate text-[14px] sm:text-[16px] leading-6 font-medium text-[#F7D27F]">
+            {isSinglePlayer
+              ? `Single Player (You: ${playerColor === "w" ? "White" : "Black"}, AI Level: ${aiLevel})`
+              : "Two Players"}
+          </span>
+        </div>
+
+        <div className="justify-self-end flex items-center gap-2 sm:gap-3">
+          {typeof elo === "number" && (
+            <span className="px-3 py-1 rounded-full bg-[#F0C76B] text-black text-[12px] sm:text-[13px] font-semibold shadow">
+              ELO: {elo.toLocaleString("en-US")}
+            </span>
+          )}
+          <span className="px-3 py-1 rounded-full bg-[#F0C76B] text-black text-[12px] sm:text-[13px] font-semibold shadow">
+            Level {aiLevel}
+          </span>
+
           {!isSinglePlayer && (
             <Button
               variant={autoRotateBoard ? "default" : "outline"}
               size="sm"
               onClick={onToggleAutoRotate}
-              className={`text-[2vh] leading-[4vh] !font-medium !py-[1.25rem] ${
+              className={`text-[12px] sm:text-[13px] !font-medium !py-2 ${
                 autoRotateBoard
-                  ? "!bg-black !text-white hover:!bg-gray-800"
+                  ? "!bg-black !text-white hover:!bg-neutral-800"
                   : "text-white border-white hover:text-[#F7D27F]"
               }`}
             >
@@ -39,11 +51,9 @@ export const GameHeader: React.FC<GameHeaderProps> = ({
             </Button>
           )}
         </div>
-        <div className="z-50">
-          <Hamburger onClick={() => setSidebarOpen((prev) => !prev)} />
-        </div>
-        <SideBar isOpen={sidebarOpen} />
       </div>
-    </div>
+
+      <SideBar isOpen={sidebarOpen} />
+    </header>
   );
 };
