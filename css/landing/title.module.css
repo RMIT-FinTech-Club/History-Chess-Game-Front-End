@@ -1,10 +1,11 @@
 .SVG path {
     fill: transparent;
-    stroke: #fff;
+    stroke: #D4AF37;
     stroke-width: 2;
     stroke-dasharray: 800;
     stroke-dashoffset: 800;
     animation: fill-text 3s ease-in-out forwards;
+    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
 }
 
 @keyframes fill-text {
@@ -18,7 +19,9 @@
 
     100% {
         stroke-dashoffset: 0;
-        fill: #fff;
+        fill: linear-gradient(135deg, #F4D03F 0%, #D4AF37 50%, #C5A355 100%);
+        fill: #F4D03F;
+        filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.6));
     }
 }
 
