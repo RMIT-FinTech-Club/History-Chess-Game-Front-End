@@ -14,7 +14,7 @@ export default function Navbar() {
 	const [showConfirmLogout, setShowConfirmLogout] = useState(false);
 	const pathname = usePathname();
 
-	// const dropdownRef = useRef<HTMLDivElement | null>(null);
+	const dropdownRef = useRef<HTMLDivElement | null>(null);
 	const mobileDrawerRef = useRef<HTMLDivElement | null>(null);
 
 	const router = useRouter();
@@ -52,6 +52,7 @@ export default function Navbar() {
 	}, []);
 
 	useEffect(() => {
+		setShowDropdown(false);
 		setMobileOpen(false);
 	}, [pathname]);
 
@@ -76,11 +77,7 @@ export default function Navbar() {
 
 	return (
 		<nav ref={navRef} className="w-full bg-black text-white px-6 py-4">
-			<Toast
-				type="success"
-				message="Logged In"
-				onClose={() => setToast(null)}
-			/>
+			<Toast type="success" message="Logged In" onClose={() => setToast(null)} />
 
 			<ConfirmModal
 				isOpen={showConfirmLogout}
