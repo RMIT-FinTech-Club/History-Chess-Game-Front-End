@@ -1,9 +1,10 @@
-import axios from "axios"
-import axiosInstance from "@/config/apiConfig"
+"use client"
+
 import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
+import { Gamepad2, Clock, User, Swords, Trophy, XCircle, Minus } from "lucide-react"
+import axiosInstance from "@/config/apiConfig"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
-import styles from "@/css/profile.module.css"
-import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
 
 interface Match {
     opponent: string;
@@ -13,23 +14,149 @@ interface Match {
     result: string;
 }
 
+// Result Badge Component
+const ResultBadge = ({ result }: { result: string }) => {
+    const config = {
+        Victory: {
+            icon: Trophy,
+            color: 'text-green-400',
+            bg: 'bg-green-500/20',
+            border: 'border-green-500/40',
+            glow: 'shadow-[0_0_20px_rgba(34,197,94,0.3)]'
+        },
+        Defeat: {
+            icon: XCircle,
+            color: 'text-red-400',
+            bg: 'bg-red-500/20',
+            border: 'border-red-500/40',
+            glow: 'shadow-[0_0_20px_rgba(239,68,68,0.3)]'
+        },
+        Draw: {
+            icon: Minus,
+            color: 'text-yellow-400',
+            bg: 'bg-yellow-500/20',
+            border: 'border-yellow-500/40',
+            glow: 'shadow-[0_0_20px_rgba(234,179,8,0.3)]'
+        }
+    }[result] || {
+        icon: Minus,
+        color: 'text-gray-400',
+        bg: 'bg-gray-500/20',
+        border: 'border-gray-500/40',
+        glow: ''
+    };
+
+    const Icon = config.icon;
+
+    return (
+        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${config.bg} ${config.border} border ${config.glow}`}>
+            <Icon className={`w-4 h-4 ${config.color}`} />
+            <span className={`font-serif text-sm font-semibold ${config.color}`}>{result}</span>
+        </div>
+    );
+};
+
+// Match Card Component
+const MatchCard = ({ match, index }: { match: Match; index: number }) => {
+    const resultBorderColor = {
+        Victory: 'border-green-500/30 hover:border-green-500/50',
+        Defeat: 'border-red-500/30 hover:border-red-500/50',
+        Draw: 'border-yellow-500/30 hover:border-yellow-500/50'
+    }[match.result] || 'border-white/10';
+
+    const resultGlow = {
+        Victory: 'hover:shadow-[0_0_30px_rgba(34,197,94,0.15)]',
+        Defeat: 'hover:shadow-[0_0_30px_rgba(239,68,68,0.15)]',
+        Draw: 'hover:shadow-[0_0_30px_rgba(234,179,8,0.15)]'
+    }[match.result] || '';
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1, duration: 0.4 }}
+            className={`
+                glass-card rounded-xl p-4 border ${resultBorderColor} ${resultGlow}
+                transition-all duration-300 group relative overflow-hidden
+            `}
+        >
+            {/* Background glow effect based on result */}
+            <div className={`
+                absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500
+                ${match.result === 'Victory' ? 'bg-gradient-to-r from-green-500/5 to-transparent' : ''}
+                ${match.result === 'Defeat' ? 'bg-gradient-to-r from-red-500/5 to-transparent' : ''}
+                ${match.result === 'Draw' ? 'bg-gradient-to-r from-yellow-500/5 to-transparent' : ''}
+            `} />
+
+            <div className="relative flex flex-col md:flex-row items-center gap-4">
+                {/* Opponent Avatar */}
+                <div className="relative flex-shrink-0">
+                    <div
+                        style={{ backgroundImage: `url(${match.avt})` }}
+                        className="w-14 h-14 rounded-full bg-center bg-cover bg-no-repeat border-2 border-gold-royal/30"
+                    />
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-bg-dark rounded-full flex items-center justify-center border border-gold-royal/30">
+                        <User className="w-3 h-3 text-gold-royal" />
+                    </div>
+                </div>
+
+                {/* Match Info */}
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3 text-center md:text-left">
+                    {/* Opponent */}
+                    <div>
+                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-0.5">Opponent</p>
+                        <p className="text-white font-serif font-medium truncate max-w-[150px]">{match.opponent}</p>
+                    </div>
+
+                    {/* Game Mode */}
+                    <div>
+                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-0.5">Game Mode</p>
+                        <div className="flex items-center justify-center md:justify-start gap-1.5">
+                            <Swords className="w-3.5 h-3.5 text-gold-muted" />
+                            <p className="text-white font-serif">{match.playMode}</p>
+                        </div>
+                    </div>
+
+                    {/* Time */}
+                    <div>
+                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-0.5">Duration</p>
+                        <div className="flex items-center justify-center md:justify-start gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-gold-muted" />
+                            <p className="text-white font-serif">{formatTime(match.totalTime)}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Result Badge */}
+                <ResultBadge result={match.result} />
+            </div>
+        </motion.div>
+    );
+};
+
 export default function ProfileMatches() {
     const { userId, accessToken } = useGlobalStorage()
     const [matches, setMatches] = useState<Match[]>([])
     const [error, setError] = useState<string | null>(null)
-    const [userAvatars, setUserAvatars] = useState<{ [key: string]: string }>({})
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const fetchMatchHistory = async () => {
             try {
-                // Replace with actual userId - e.g., from auth context, localStorage, or route params
+                setLoading(true);
                 const response = await axiosInstance.get(`/game/history/${userId}`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     }
                 })
 
-                // Fetch all users to get avatars (assuming small user base; adjust limit as needed)
+                // Fetch all users to get avatars
                 const usersResponse = await axiosInstance.get(`/users?limit=1000&offset=0`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
@@ -40,17 +167,14 @@ export default function ProfileMatches() {
                 usersResponse.data.users.forEach((user: any) => {
                     avatarsMap[user.username.toLowerCase()] = user.avatarUrl || '';
                 });
-                setUserAvatars(avatarsMap);
 
                 const formattedMatches = response.data.map((match: any) => {
                     const opponentLower = (match.opponentName || 'Unknown').toLowerCase();
                     return {
                         opponent: match.opponentName || 'Unknown',
-                        avt: avatarsMap[opponentLower],
+                        avt: avatarsMap[opponentLower] || '',
                         playMode: match.gameMode,
-                        // Use the computed duration as your 'time' field
                         totalTime: match.totalTime,
-                        // Use the derived gameResult
                         result: match.result,
                     };
                 });
@@ -61,62 +185,64 @@ export default function ProfileMatches() {
                 console.error('Error fetching match history:', err)
                 setError('Failed to load match history')
                 setMatches([])
+            } finally {
+                setLoading(false);
             }
         }
 
-        fetchMatchHistory()
-    }, [])
+        if (userId && accessToken) {
+            fetchMatchHistory();
+        }
+    }, [userId, accessToken])
 
     return (
-        <div className="w-full md:w-[60%] flex flex-col">
-            <div className="flex items-center">
-                <GamePadIcon width="3vw" />
-                <p className="text-[3vw] leading-[3vw] ml-[1vw]">Matches</p>
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full"
+        >
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-lg bg-gold-royal/20 flex items-center justify-center">
+                    <Gamepad2 className="w-5 h-5 text-gold-royal" />
+                </div>
+                <div>
+                    <h2 className="font-display text-2xl text-gold-light">Match History</h2>
+                    <p className="text-gray-500 text-sm">{matches.length} games played</p>
+                </div>
             </div>
-            <div className={`flex flex-col w-full h-[calc(100ddvh-3dvh-15vw-3dvh-6vw-3dvh-3vw-2dvh+4px-6dvh)] md:h-[100%] overflow-y-auto mt-[2dvh] ${styles.list_container}`}>
-                {error ? (
-                    <div className="w-full flex justify-center items-center py-5 text-[#EA4335]">
-                        <p>{error}</p>
+
+            {/* Matches List */}
+            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gold-royal/30 scrollbar-track-transparent">
+                {loading ? (
+                    <div className="glass-card rounded-xl p-8 border border-white/5 flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="w-8 h-8 border-2 border-gold-royal/30 border-t-gold-royal rounded-full animate-spin" />
+                            <p className="text-gray-500 font-serif">Loading matches...</p>
+                        </div>
+                    </div>
+                ) : error ? (
+                    <div className="glass-card rounded-xl p-8 border border-red-500/20 flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-3 text-center">
+                            <XCircle className="w-10 h-10 text-red-400" />
+                            <p className="text-red-400 font-serif">{error}</p>
+                        </div>
                     </div>
                 ) : matches.length === 0 ? (
-                    <div className="w-full flex justify-center items-center py-5">
-                        <p>No match history found</p>
+                    <div className="glass-card rounded-xl p-12 border border-white/5 flex items-center justify-center">
+                        <div className="flex flex-col items-center gap-3 text-center">
+                            <Gamepad2 className="w-12 h-12 text-gray-600" />
+                            <p className="text-gray-500 font-serif italic">No match history found</p>
+                            <p className="text-gray-600 text-sm">Start playing to see your matches here!</p>
+                        </div>
                     </div>
                 ) : (
                     matches.map((match, index) => (
-                        <div
-                            key={index}
-                            className={`${index !== matches.length - 1 ? 'mb-[3dvh]' : 'mb-0'} ${styles.match} w-full rounded-[1vw] bg-[rgba(0,0,0,0.5)] border border-solid ${match.result == 'Victory' && `border-[#1CFF07] ${styles.victory}`} ${match.result == 'Draw' && `border-[#FFF700] ${styles.draw}`} ${match.result == 'Defeat' && 'border-[#EA4335]'}`}
-                        >
-                            <div className="w-full flex items-center justify-start px-[2vw] md:px-[1vw] rounded-[1vw] overflow-y-hidden">
-                                <div
-                                    style={{ backgroundImage: `url(${match.avt})` }}
-                                    className="w-[calc(8vw-2px)] md:w-[calc(4vw-2px)] my-[2vw] md:my-[1vw] aspect-square rounded-[50%] bg-center bg-cover bg-no-repeat border border-white border-solid mr-[2vw] md:mr-[1vw]"
-                                ></div>
-                                <div className="w-[100%] flex justify-between items-center mr-[3vw]">
-                                    <div className="flex flex-col justify-center items-start mr-[2vw]">
-                                        <p className="text-[1.8vw] md:text-[1vw] text-[#C4C4C4]">Opponent</p>
-                                        <p className="text-[1.8vw] md:text-[1vw] font-bold w-[30vw] md:w-[15vw] whitespace-nowrap overflow-hidden text-ellipsis">{match.opponent}</p>
-                                    </div>
-                                    <div className="flex justify-between items-center w-[100%]">
-                                        <div className="flex flex-col justify-center items-start">
-                                            <p className="text-[1.8vw] md:text-[1vw] text-[#C4C4C4]">Game Mode</p>
-                                            <p className="text-[1.8vw] md:text-[1vw] font-bold">{match.playMode}</p>
-                                        </div>
-                                        <div className="flex flex-col justify-center items-start">
-                                            <p className="text-[1.8vw] md:text-[1vw] text-[#C4C4C4]">Time</p>
-                                            <p className="text-[1.8vw] md:text-[1vw] font-bold">{`${Math.floor(match.totalTime / 60)}:${match.totalTime % 60 > 9 ? match.totalTime % 60 : '0' + match.totalTime % 60}`}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="w-[22vw] md:w-[16vw] flex justify-center items-center">
-                                    <p className={`text-[1.5vw] px-[2vw] mr-[1vw] relative ${match.result == 'Victory' && 'text-[#1CFF07]'} ${match.result == 'Defeat' && 'text-[#EA4335]'} ${match.result == 'Draw' && 'text-[#FFF700]'} font-bold ${styles.result}`}>{match.result}</p>
-                                </div>
-                            </div>
-                        </div>
+                        <MatchCard key={index} match={match} index={index} />
                     ))
                 )}
             </div>
-        </div>
+        </motion.div>
     )
 }

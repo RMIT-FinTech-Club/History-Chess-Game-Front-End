@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState, useCallback, useMemo, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Chessboard } from "react-chessboard";
 import "@/css/chessboard.css";
@@ -21,33 +21,10 @@ import type { StockfishLevel } from "@/app/game/offline/hooks/useStockfish";
 import YellowLight from "@/components/decor/YellowLight";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
-const VALID_STOCKFISH_LEVELS: StockfishLevel[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20];
-
-const parseStockfishLevel = (value: string | null): StockfishLevel | null => {
-  if (!value) return null;
-  const level = Number(value);
-  return (VALID_STOCKFISH_LEVELS as number[]).includes(level) ? (level as StockfishLevel) : null;
-};
-
-const parseColorParam = (value: string | null): "w" | "b" =>
-  value === "black" || value === "b" ? "b" : "w";
-
-const isTruthyParam = (value: string | null): boolean =>
-  value === "1" || value === "true";
-
 const OfflinePage = () => {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const autoStartLevel = parseStockfishLevel(searchParams?.get("level"));
-  const autoStartMode = searchParams?.get("mode");
-  const autoStartFlag = isTruthyParam(searchParams?.get("autostart"));
-  const shouldAutoStart = autoStartMode === "singleplayer" && autoStartFlag && autoStartLevel !== null;
-  const autoStartColor = parseColorParam(searchParams?.get("color"));
-
   const [mounted, setMounted] = useState(false);
-  const [showGameModeDialog, setShowGameModeDialog] = useState(!shouldAutoStart);
-  const [aiDifficulty, setAiDifficulty] = useState<StockfishLevel>(autoStartLevel ?? 5);
+  const [showGameModeDialog, setShowGameModeDialog] = useState(false);
+  const [aiDifficulty, setAiDifficulty] = useState<StockfishLevel>(5);
   const [currentTurn, setCurrentTurn] = useState<"w" | "b">("w");
   const [gameActive, setGameActive] = useState(false);
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
@@ -55,20 +32,9 @@ const OfflinePage = () => {
   const [savedTheme, setSavedTheme] = useState<{ light?: string; dark?: string } | null>(null);
   const boardWidth = useBoardSize();
   const { isAuthenticated } = useGlobalStorage();
-
-  useEffect(() => {
-    setShowGameModeDialog(!shouldAutoStart);
-  }, [shouldAutoStart]);
-
-  useEffect(() => {
-    if (autoStartLevel && aiDifficulty !== autoStartLevel) {
-      setAiDifficulty(autoStartLevel);
-    }
-  }, [autoStartLevel, aiDifficulty]);
-
-  useEffect(() => {
-    setAutoStartTriggered(false);
-  }, [autoStartLevel, shouldAutoStart]);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const autoStartProcessed = useRef(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -111,32 +77,6 @@ const OfflinePage = () => {
     makeMove,
   });
 
-  useEffect(() => {
-    if (!mounted || !shouldAutoStart || autoStartTriggered || !autoStartLevel) {
-      return;
-    }
-
-    if (!isAiReady) {
-      return;
-    }
-
-    setAiDifficulty(autoStartLevel);
-    startSinglePlayerGame(autoStartColor, autoStartLevel);
-    setShowGameModeDialog(false);
-    setBoardOrientation(autoStartColor === "w" ? "white" : "black");
-    setAutoRotateBoard(false);
-    setMoveTimeHistory([]);
-    setAutoStartTriggered(true);
-  }, [
-    autoStartColor,
-    autoStartLevel,
-    autoStartTriggered,
-    isAiReady,
-    mounted,
-    shouldAutoStart,
-    startSinglePlayerGame,
-  ]);
-
   // Update current turn and orientation
   useEffect(() => {
     setCurrentTurn(gameTurn);
@@ -147,7 +87,50 @@ const OfflinePage = () => {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+
+    // Check for URL parameters from Dynasty Journey
+    const levelParam = searchParams.get('level');
+    const autostartParam = searchParams.get('autostart');
+
+    if (levelParam && autostartParam === '1' && !autoStartProcessed.current) {
+      // Parse the level from URL and set as AI difficulty
+      const parsedLevel = parseInt(levelParam, 10) as StockfishLevel;
+      const validLevels: StockfishLevel[] = [1, 2, 3, 5, 8, 10, 15, 20];
+
+      // Find the closest valid level
+      const closestLevel = validLevels.reduce((prev, curr) =>
+        Math.abs(curr - parsedLevel) < Math.abs(prev - parsedLevel) ? curr : prev
+      );
+
+      setAiDifficulty(closestLevel);
+      autoStartProcessed.current = true;
+
+      // Don't show dialog - we'll auto-start once AI is ready
+    } else if (!autoStartProcessed.current) {
+      setShowGameModeDialog(true);
+    }
+  }, []); // Empty deps - only run once on mount
+
+  // Use a separate ref to track if game has been auto-started
+  const gameAutoStarted = useRef(false);
+
+  // Auto-start game when AI is ready (for Dynasty Journey redirect)
+  useEffect(() => {
+    // Only proceed if we haven't already started the game
+    if (gameAutoStarted.current) return;
+
+    const levelParam = searchParams.get('level');
+    const autostartParam = searchParams.get('autostart');
+    const colorParam = searchParams.get('color');
+
+    if (levelParam && autostartParam === '1' && isAiReady && autoStartProcessed.current) {
+      gameAutoStarted.current = true; // Mark as started BEFORE calling startSinglePlayerGame
+      const playerColorChoice = colorParam === 'black' ? 'b' : 'w';
+      startSinglePlayerGame(playerColorChoice, aiDifficulty);
+      setBoardOrientation(playerColorChoice === 'w' ? 'white' : 'black');
+      setAutoRotateBoard(false);
+    }
+  }, [isAiReady, aiDifficulty, startSinglePlayerGame, searchParams]);
 
   useEffect(() => {
     setGameActive(!gameState.isGameOver && history.length > 0);
@@ -159,6 +142,9 @@ const OfflinePage = () => {
       setAutoRotateBoard(false);
     }
   }, [isSinglePlayer, playerColor]);
+
+  // Add a new state to track time for each move
+  const [moveTimeHistory, setMoveTimeHistory] = useState<{ white: number, black: number }[]>([]);
 
   // Reset times when starting new game
   const handleNewGame = useCallback(() => {
@@ -371,4 +357,13 @@ const OfflinePage = () => {
   );
 };
 
-export default OfflinePage;
+// Wrapper component with Suspense for useSearchParams
+const OfflinePageWrapper = () => {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-[#0A0A0A] text-white">Loading game...</div>}>
+      <OfflinePage />
+    </Suspense>
+  );
+};
+
+export default OfflinePageWrapper;
