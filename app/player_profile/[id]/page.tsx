@@ -1,250 +1,471 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faArrowUp } from "@fortawesome/free-solid-svg-icons"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { useState, useEffect, useCallback } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Trophy, Gamepad2, Crown, Target, ChevronUp, ChevronDown, Star, ArrowLeft } from "lucide-react"
 import CountUp from "react-countup"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import axiosInstance from "@/config/apiConfig"
 import { toast } from "sonner"
 
-import styles from "@/css/playerprofile.module.css"
-import GamePadIcon from "@/public/player_profile/SVG/gamePadIcon"
-import CupIcon from "@/public/player_profile/SVG/cupIcon"
-import ItemIcon from "@/public/player_profile/SVG/itemIcon"
-import PlayerProfileMatches from "@/components/player_profile/playerProfileMatches"
-import ItemsEquippedProfile from "@/components/player_profile/itemsEquippedProfile"
+import BackgroundEffects from "@/components/decor/BackgroundEffects"
+import ProfileMatches from "@/components/profile/profileMatches"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
-import { ArrowLeft } from "lucide-react"
+
+// Types for API responses
+interface UserProfile {
+    id: string;
+    username: string;
+    email: string;
+    avatarUrl: string | null;
+    elo: number;
+    walletAddress: string | null;
+    language: string;
+    createdAt: string;
+}
+
+interface ProfileStats {
+    level: number;
+    totalGames: number;
+    wonMatches: number;
+    lostMatches: number;
+    draws: number;
+    globalRank: number;
+    winRate: number;
+    elo: number;
+}
+
+// Calculate level from ELO
+const calculateLevel = (elo: number): number => {
+    if (elo < 800) return 1;
+    if (elo < 1000) return 2;
+    if (elo < 1200) return 3;
+    if (elo < 1400) return 4;
+    if (elo < 1600) return 5;
+    if (elo < 1800) return 6;
+    if (elo < 2000) return 7;
+    if (elo < 2200) return 8;
+    if (elo < 2400) return 9;
+    return 10;
+};
+
+// Stats Card Component
+const StatCard = ({ icon: Icon, label, value, prefix = "", suffix = "", delay = 0 }: {
+    icon: React.ElementType;
+    label: string;
+    value: number | string;
+    prefix?: string;
+    suffix?: string;
+    delay?: number;
+}) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay, duration: 0.5 }}
+        className="glass-card rounded-xl p-4 text-center border border-white/5 hover:border-gold-royal/30 transition-all duration-300 group card-hover"
+    >
+        <div className="w-10 h-10 mx-auto mb-2 rounded-lg bg-gold-royal/20 flex items-center justify-center group-hover:bg-gold-royal/30 transition-colors">
+            <Icon className="w-5 h-5 text-gold-royal" />
+        </div>
+        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{label}</p>
+        <p className="font-display text-xl text-gold-light">
+            {prefix}
+            {typeof value === 'number' ? (
+                <CountUp start={0} end={value} useEasing={true} duration={2} />
+            ) : (
+                value
+            )}
+            {suffix}
+        </p>
+    </motion.div>
+);
+
+// Navigation Tab Component
+const NavTab = ({ icon: Icon, label, isActive, onClick, delay = 0 }: {
+    icon: React.ElementType;
+    label: string;
+    isActive: boolean;
+    onClick: () => void;
+    delay?: number;
+}) => (
+    <motion.button
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay, duration: 0.4 }}
+        onClick={onClick}
+        className={`
+            flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-300
+            ${isActive
+                ? 'bg-gold-royal/20 border border-gold-royal/40 text-gold-light gold-shadow'
+                : 'hover:bg-white/5 border border-transparent text-gray-400 hover:text-gold-light'
+            }
+        `}
+    >
+        <div className={`
+            w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300
+            ${isActive ? 'bg-gold-royal/30' : 'bg-white/5 group-hover:bg-white/10'}
+        `}>
+            <Icon className={`w-5 h-5 ${isActive ? 'text-gold-shimmer' : 'text-gray-400'}`} />
+        </div>
+        <span className={`font-serif text-sm ${isActive ? 'text-gold-light' : ''}`}>{label}</span>
+        {isActive && (
+            <motion.div
+                layoutId="activeIndicator"
+                className="ml-auto w-1.5 h-1.5 rounded-full bg-gold-shimmer"
+            />
+        )}
+    </motion.button>
+);
+
+// Profile Statistics Section (for Statistic tab)
+const ProfileStatistics = ({ stats, loading }: { stats: ProfileStats; loading: boolean }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full"
+    >
+        <div className="flex items-center gap-3 mb-6">
+            <Trophy className="w-6 h-6 text-gold-royal" />
+            <h2 className="font-display text-2xl text-gold-light">Statistics</h2>
+        </div>
+
+        {loading ? (
+            <div className="glass-card rounded-xl p-8 border border-white/5 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="w-8 h-8 border-2 border-gold-royal/30 border-t-gold-royal rounded-full animate-spin" />
+                    <p className="text-gray-500 font-serif">Loading statistics...</p>
+                </div>
+            </div>
+        ) : (
+            <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <StatCard icon={Crown} label="Global Rank" value={stats.globalRank} prefix="#" delay={0.1} />
+                    <StatCard icon={Trophy} label="Victories" value={stats.wonMatches} delay={0.2} />
+                    <StatCard icon={Target} label="Win Rate" value={stats.winRate} suffix="%" delay={0.3} />
+                    <StatCard icon={Gamepad2} label="Total Games" value={stats.totalGames} delay={0.4} />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* ELO & Level Card */}
+                    <div className="glass-card rounded-2xl p-6 border border-white/5">
+                        <h3 className="font-serif text-lg text-gold-200/70 mb-4 flex items-center gap-2">
+                            <Star className="w-5 h-5 text-gold-royal" />
+                            Rating & Level
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="text-center p-4 bg-gold-royal/10 rounded-xl">
+                                <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">ELO Rating</p>
+                                <p className="font-display text-3xl text-gold-shimmer">
+                                    <CountUp start={0} end={stats.elo} duration={2} />
+                                </p>
+                            </div>
+                            <div className="text-center p-4 bg-gold-royal/10 rounded-xl">
+                                <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Level</p>
+                                <p className="font-display text-3xl text-gold-shimmer">
+                                    <CountUp start={0} end={stats.level} duration={2} />
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Game Results Card */}
+                    <div className="glass-card rounded-2xl p-6 border border-white/5">
+                        <h3 className="font-serif text-lg text-gold-200/70 mb-4 flex items-center gap-2">
+                            <Gamepad2 className="w-5 h-5 text-gold-royal" />
+                            Game Results
+                        </h3>
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="text-center p-3 bg-green-500/10 rounded-xl border border-green-500/20">
+                                <p className="text-green-400 text-xs uppercase tracking-wider mb-1">Wins</p>
+                                <p className="font-display text-2xl text-green-400">
+                                    <CountUp start={0} end={stats.wonMatches} duration={2} />
+                                </p>
+                            </div>
+                            <div className="text-center p-3 bg-red-500/10 rounded-xl border border-red-500/20">
+                                <p className="text-red-400 text-xs uppercase tracking-wider mb-1">Losses</p>
+                                <p className="font-display text-2xl text-red-400">
+                                    <CountUp start={0} end={stats.lostMatches} duration={2} />
+                                </p>
+                            </div>
+                            <div className="text-center p-3 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
+                                <p className="text-yellow-400 text-xs uppercase tracking-wider mb-1">Draws</p>
+                                <p className="font-display text-2xl text-yellow-400">
+                                    <CountUp start={0} end={stats.draws} duration={2} />
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </>
+        )}
+    </motion.div>
+);
 
 export default function PlayerProfilePage() {
-    const params = useParams() // dynamic player ID from URL
-    const id = params?.id as string // Ensure valid ID
-
-    const { userId, userName, avatar, accessToken } = useGlobalStorage()
+    const params = useParams()
+    const targetUserId = params?.id as string;
+    const { accessToken } = useGlobalStorage()
     const router = useRouter()
 
-    const profileRef = useRef<HTMLDivElement | null>(null)
-    const [isProfileOpened, setIsProfileOpened] = useState<boolean>(true)
-    const [profileMenu, setProfileMenu] = useState(1)
-    const [streak, setStreak] = useState(0)
-    const [wonMatches, setWonMatches] = useState<number>(0)
-    const [globalRank, setGlobalRank] = useState<number>(100)
-    const [elo, setElo] = useState<number>(1000)
-    const [profileName, setProfileName] = useState<string>("")
-    const [profileAvatar, setProfileAvatar] = useState<string>("")
+    // State
+    const [isProfileExpanded, setIsProfileExpanded] = useState<boolean>(true)
+    const [activeTab, setActiveTab] = useState(0)
     const [loading, setLoading] = useState(true)
 
-    // Fetch player info (if it's not your own)
+    // Player Data State (separate from GlobalStorage)
+    const [playerProfile, setPlayerProfile] = useState<UserProfile | null>(null);
+    const [stats, setStats] = useState<ProfileStats>({
+        level: 1,
+        totalGames: 0,
+        wonMatches: 0,
+        lostMatches: 0,
+        draws: 0,
+        globalRank: 0,
+        winRate: 0,
+        elo: 1200
+    })
+
+    // Fetch player data
+    const fetchProfileData = useCallback(async () => {
+        if (!targetUserId || !accessToken) return;
+
+        setLoading(true);
+        try {
+            // Fetch public user details
+            // NOTE: Using /users/:id to get public info
+            const profileResponse = await axiosInstance.get(`/users/${targetUserId}`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            const profileData = profileResponse.data;
+
+            // Map response to UserProfile interface
+            // Dealing with potential differences in API response structure between /users/profile and /users/:id
+            const profile: UserProfile = {
+                id: profileData.id || targetUserId,
+                username: profileData.username || "Unknown Player",
+                email: "", // Likely hidden for public profiles
+                avatarUrl: profileData.avatarUrl || null,
+                elo: profileData.elo || 1200,
+                walletAddress: null, // Hidden
+                language: "en",
+                createdAt: profileData.createdAt || ""
+            };
+
+            setPlayerProfile(profile);
+
+            // Fetch match history
+            const historyResponse = await axiosInstance.get(`/game/history/${targetUserId}`, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            const matches = historyResponse.data || [];
+
+            // Calculate match statistics
+            const victories = matches.filter((m: any) => m.result === 'Victory').length;
+            const defeats = matches.filter((m: any) => m.result === 'Defeat').length;
+            const draws = matches.filter((m: any) => m.result === 'Draw').length;
+            const totalGames = matches.length;
+            const winRate = totalGames > 0 ? Math.round((victories / totalGames) * 100) : 0;
+
+            // Fetch global ranking
+            const usersResponse = await axiosInstance.get('/users?limit=1000&offset=0', {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            const users = usersResponse.data.users.sort((a: any, b: any) => b.elo - a.elo);
+            const rank = users.findIndex((u: any) => u.id === targetUserId) + 1;
+
+            // Calculate level from ELO
+            const level = calculateLevel(profile.elo);
+
+            setStats({
+                level,
+                totalGames,
+                wonMatches: victories,
+                lostMatches: defeats,
+                draws,
+                globalRank: rank > 0 ? rank : 999,
+                winRate,
+                elo: profile.elo
+            });
+
+        } catch (err) {
+            console.error('Error fetching profile data:', err);
+            toast.error('Failed to load player profile');
+            // router.push('/home'); // Optional: redirect on error
+        } finally {
+            setLoading(false);
+        }
+    }, [targetUserId, accessToken, router]);
+
     useEffect(() => {
-        if (!accessToken || !id) return;
+        fetchProfileData();
+    }, [fetchProfileData]);
 
-        const fetchProfile = async () => {
-            setLoading(true)
-            try {
-                if (id === userId) {
-                // Current user (use cached data)
-                setProfileName(userName || "");
-                setProfileAvatar(avatar || "");
-                setLoading(false);
-                return;
-                }
-
-                // Player's profile (fetch from backend)
-                const res = await axiosInstance.get(`/users/${id}`, {
-                headers: { Authorization: `Bearer ${accessToken}` },
-                });
-
-                setProfileName(res.data.username || "Unknown Player");
-                setProfileAvatar(res.data.avatarUrl || "https://i.imgur.com/RoRONDn.jpeg");
-                setElo(res.data.elo || 2000);
-                // setLoading(false)
-            } catch (err) {
-                console.error("Error fetching player:", err);
-                toast.error("Failed to load player profile");
-                router.push("/players");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProfile();
-    }, [id, accessToken, userId, userName, avatar, router]);
-    
-    // Fetch won matches
-    useEffect(() => {
-        if (!accessToken || !id) return
-
-        const fetchWonMatches = async () => {
-            try {
-                const response = await axiosInstance.get(`/game/history/${id}`, {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    }
-                });
-                const victories = response.data.filter((match: any) => match.result === 'Victory').length;
-                setWonMatches(victories);
-            } catch (err) {
-                console.error('Error fetching match history:', err);
-                toast.error('Failed to load won matches');
-            }
-        };
-
-        fetchWonMatches();
-    }, [id, accessToken]);
-
-    //Fetch global ranking based on Elo
-    useEffect(() => {
-        if (!accessToken || !id) return
-
-        const fetchGlobalRank = async () => {
-            try {
-                const response = await axiosInstance.get(`/users?limit=1000&offset=0`, {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    }
-                });
-                const users = response.data.users.sort((a: any, b: any) => b.elo - a.elo);
-                const rank = users.findIndex((user: any) => user.id === id) + 1;
-                setGlobalRank(rank > 0 ? rank : 100); //Fallback to 100 if not found
-            } catch (err) {
-                console.error('Error fetching users for ranking:', err);
-                toast.error('Failed to load global ranking');
-            }
-        };
-
-        fetchGlobalRank();
-    }, [id, accessToken]);
-
-    const handleToggleProfile = () => setIsProfileOpened(!isProfileOpened)
-
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center min-h-screen text-white text-2xl">
-                Loading player profile...
-            </div>
-        );
-    }
+    const tabs = [
+        { icon: Trophy, label: 'Statistics' },
+        { icon: Gamepad2, label: 'Matches' },
+    ];
 
     return (
-        <div className="w-[90vw] md:w-[80vw] overflow-hidden flex flex-col py-[3dvh] mx-[5vw] md:mx-[10vw] text-white relative h-[calc(100dvh-var(--navbar-height))]">
-            {/* === PROFILE HEADER === */}
-            <div className={`w-full relative md:absolute ${isProfileOpened ? 'md:top-[3dvh]' : 'md:top-[calc(-12vw-2px)]'} top-0 left-0 flex items-center rounded-[2vw] h-[15vw] md:h-[12vw] bg-[#1D1D1D] border border-solid border-[#77878B] mb-[3dvh] transition-all duration-300`}>
-                {/* Toggle Button */}
-                <Tooltip disableHoverableContent>
-                    <TooltipTrigger asChild>
-                        <div
-                            ref={profileRef}
-                            onClick={handleToggleProfile}
-                            className={`absolute w-[calc(2vw-2px)] aspect-square left-[76vw] top-[13vw] cursor-pointer bg-[#1D1D1D] border border-solid border-white rounded-[50%] hidden md:flex justify-center items-center`}
-                        >
-                            <FontAwesomeIcon
-                                icon={faArrowUp}
-                                className={`${isProfileOpened ? 'rotate-none' : 'rotate-[180deg]'} text-[1vw]`}
-                            />
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent
-                        side="bottom"
-                        className="text-white bg-black rounded-lg px-2 py-1 shadow-lg"
-                    >
-                        {isProfileOpened ? "Close Profile" : "Open Profile"}
-                    </TooltipContent>
-                </Tooltip>
+        <main className="relative min-h-[calc(100vh-var(--navbar-height))] flex flex-col p-4 md:p-8 overflow-hidden">
+            <BackgroundEffects />
 
-                {/* Avatar + Info */}
-                <div className="w-[35vw] md:w-[32vw] flex justify-between items-center">
-                    <div
-                        style={{ backgroundImage: `url(${profileAvatar})` }}
-                        className="w-[10vw] md:w-[8vw] m-[2vw] aspect-square rounded-[50%] bg-center bg-cover bg-no-repeat border border-white border-solid"
-                    ></div>
-                    <div className="w-[23vw] md:w-[24vw] flex flex-col justify-between items-start">
-                        <p className="text-[2vw] font-bold w-full whitespace-nowrap overflow-hidden text-ellipsis">{profileName || "UnknownPlayer"}</p>
-                        <p className="text-[1.2vw] font-thin my-[0.5vw] md:my-0">Global Ranking: #{globalRank}</p>
-                        {/* <p className="text-[1.2vw] font-thin">Player ID: {id}</p> */}
-                    </div>
-                </div>
-                <div className="w-[65vw] md:w-[48vw] flex justify-around items-center py-[2vw]">
-                    {[
-                        {
-                            icon: styles.profile_icon_1,
-                            content: 'Elo',
-                            number: elo,
-                        },
-                        {
-                            icon: styles.profile_icon_2,
-                            content: 'Game Mode',
-                            number: '1vs1'
-                        },
-                        {
-                            icon: styles.profile_icon_3,
-                            content: 'Current Streak',
-                            number: streak
-                        },
-                        {
-                            icon: styles.profile_icon_4,
-                            content: 'Won Matches',
-                            number: wonMatches
-                        },
-                    ].map((card, index) => (
-                        <div key={index} className="w-[10vw] md:w-[8vw] h-[11vw] md:h-[10vw] flex flex-col justify-center items-center bg-black rounded-[1vw] border border-solid border-[#77878B]">
-                            <div className={`w-[2.5vw] aspect-square bg-center bg-contain bg-no-repeat ${card.icon}`}></div>
-                            <p className="text-[1.2vw] md:text-[1vw] text-[#77878B] my-[0.5dvh] md:my-[1dvh]">{card.content}</p>
-                            <p className="text-[1.5vw] leading-[1vw]">
-                                {typeof (card.number) === 'number' ? <CountUp start={0} end={card.number} useEasing={false} duration={2} /> : `${card.number}`}
-                            </p>
-                        </div>
-                    ))}
-                </div>
+            {/* Back Button */}
+            <div className="relative z-20 w-full max-w-7xl mx-auto mb-4">
+                <button
+                    onClick={() => router.back()}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-gray-300 hover:text-gold-light transition-all"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span className="text-sm font-serif">Back</span>
+                </button>
             </div>
-            <div className={`w-full ${isProfileOpened ? 'md:mt-[calc(12vw+2px+3dvh)]' : 'md:mt-0'} mt-0 ${isProfileOpened ? 'h-[calc(100dvh-var(--navbar-height)-3dvh-12vw-2px-6dvh)]' : 'h-[calc(100dvh-var(--navbar-height)-6dvh)]'} transition-all duration-300 flex flex-col md:flex-row justify-start md:justify-between`}>
-                <div className="md:w-[30%] w-full flex flex-col">
-                    <div className="px-0 md:px-[2vw] py-[1vw] md:py-[2vw] w-full flex flex-row md:flex-col bg-[#1D1D1D] rounded-[2vw] mb-[3dvh] relative items-center justify-around">
-                        <div className={`absolute ${profileMenu === 0 ? 'md:top-[2vw] md:left-0 top-0 left-0' : `${profileMenu === 1 ? 'md:top-[6vw] md:left-0 top-0 left-[30vw]' : 'md:top-[10vw] md:left-0 top-0 left-[60vw]'}`} left-0 md:h-[2vw] md:w-[calc(2vw/3)] w-1/3 h-[1vw] rounded-[0.5vw] md:rounded-[1vw] bg-[#DBB968] transition-all duration-200`}></div>
-                        {[
-                            {
-                                icon: CupIcon,
-                                content: 'Statistic'
-                            },
-                            {
-                                icon: GamePadIcon,
-                                content: 'Matches'
-                            },
-                            {
-                                icon: ItemIcon,
-                                content: 'Equipped Items'
-                            },
-                        ].map((menu, index) => (
-                            <div
-                                key={index}
-                                className={`flex justify-center mr-0 md:mr-auto w-1/3 md:w-[max-content] max-w-[100%] cursor-pointer group ${index % 2 === 1 ? 'my-[2vw]' : ''}`}
-                                onClick={() => { if (index !== profileMenu) setProfileMenu(index) }}
-                            >
-                                <div className={`${index === profileMenu ? `${styles.profile_menu_icon} border-[#DBB968]` : 'border-white'} h-[calc(4vw-2px)] md:h-[calc(2vw-2px)] aspect-square flex justify-center items-center border border-solid rounded-[50%]`}>
-                                    {<menu.icon width="60%" fill={`${index === profileMenu ? '#DBB968' : 'white'}`} />}
-                                </div>
-                                <p className={`${index === profileMenu ? `text-[#DBB968]` : 'text-white group-hover:md:left-[0.3vw]'} text-[2.5vw] leading-[4vw] md:text-[2vw] md:leading-[2vw] ml-[1vw] max-w-[100%] whitespace-nowrap overflow-hidden text-ellipsis relative left-0 group-hover:text-[#DBB968] transition-all duration-200`}>{menu.content}</p>
-                            </div>
-                        ))}
-                    </div>
-                    {/* Return Button */}
-                    <div className="relative mt-6">
-                        <button
-                            onClick={() => router.back()}
-                            className="absolute top-[-4vw] md:top-[-2vw] left-0 flex items-center gap-2 px-[2vw] py-[1vw]
-                                    bg-[#1D1D1D] text-[#DBB968] border border-solid border-[#DBB968] rounded-full
-                                    hover:bg-[#DBB968] hover:text-[#1D1D1D]
-                                    transition-all duration-200 shadow-sm"
+
+            <div className="relative z-10 w-full max-w-7xl mx-auto">
+                {/* Profile Header Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="glass-gold rounded-2xl p-6 mb-6 border border-gold-royal/20 relative overflow-hidden"
+                >
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-gold-royal/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-gold-royal/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+
+                    <div className="relative flex flex-col md:flex-row items-center gap-6">
+                        {/* Avatar */}
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 0.2, duration: 0.5 }}
+                            className="relative"
                         >
-                            <ArrowLeft size={18} color="#DBB968" className="transition-colors duration-200 group-hover:fill-[#1D1D1D]" />
-                            <span className="text-[2.5vw] md:text-[1vw] font-medium">Back</span>
-                        </button>
+                            <div
+                                style={{ backgroundImage: `url(${playerProfile?.avatarUrl || "https://i.imgur.com/RoRONDn.jpeg"})` }}
+                                className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-center bg-cover bg-no-repeat border-2 border-gold-royal/50 gold-shadow"
+                            />
+                            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-gold-royal rounded-full flex items-center justify-center border-2 border-bg-dark">
+                                <Crown className="w-4 h-4 text-bg-dark" />
+                            </div>
+                        </motion.div>
+
+                        {/* User Info */}
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3, duration: 0.5 }}
+                            className="flex-1 text-center md:text-left"
+                        >
+                            <h1 className="font-display text-2xl md:text-3xl gold-gradient-text mb-1">
+                                {playerProfile?.username || "Loading..."}
+                            </h1>
+                            <p className="text-gray-400 font-serif text-sm mb-2">
+                                Global Ranking: <span className="text-gold-light">#{stats.globalRank}</span>
+                                {' • '}
+                                ELO: <span className="text-gold-light">{stats.elo}</span>
+                            </p>
+                            <div className="flex items-center justify-center md:justify-start gap-2">
+                                <span className="px-3 py-1 bg-gold-royal/20 rounded-full text-gold-light text-xs font-sans uppercase tracking-wider">
+                                    Level {stats.level}
+                                </span>
+                                <span className="px-3 py-1 bg-green-500/20 rounded-full text-green-400 text-xs font-sans uppercase tracking-wider">
+                                    {stats.winRate}% Win Rate
+                                </span>
+                            </div>
+                        </motion.div>
+
+                        {/* Quick Stats */}
+                        <AnimatePresence>
+                            {isProfileExpanded && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="grid grid-cols-2 md:grid-cols-3 gap-3"
+                                >
+                                    {[
+                                        { icon: Crown, label: 'Level', value: stats.level },
+                                        { icon: Gamepad2, label: 'Games', value: stats.totalGames },
+                                        { icon: Trophy, label: 'Wins', value: stats.wonMatches },
+                                    ].map((stat, index) => (
+                                        <motion.div
+                                            key={stat.label}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.4 + index * 0.1 }}
+                                            className="glass-card rounded-xl p-3 text-center border border-white/5 hover:border-gold-royal/20 transition-colors min-w-[80px]"
+                                        >
+                                            <stat.icon className="w-5 h-5 text-gold-royal mx-auto mb-1" />
+                                            <p className="text-gray-500 text-[10px] uppercase tracking-wider">{stat.label}</p>
+                                            <p className="font-display text-lg text-gold-light">
+                                                {typeof stat.value === 'number' ? (
+                                                    <CountUp start={0} end={stat.value} useEasing={true} duration={2} />
+                                                ) : stat.value}
+                                            </p>
+                                        </motion.div>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Toggle Button */}
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setIsProfileExpanded(!isProfileExpanded)}
+                        className="absolute bottom-2 left-1/2 -translate-x-1/2 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-auto md:right-4 w-8 h-8 rounded-full bg-bg-dark/80 border border-gold-royal/30 flex items-center justify-center text-gold-royal hover:bg-gold-royal/20 transition-colors"
+                    >
+                        {isProfileExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </motion.button>
+                </motion.div>
+
+                {/* Main Content Area */}
+                <div className="flex flex-col md:flex-row gap-6">
+                    {/* Navigation Sidebar */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4, duration: 0.5 }}
+                        className="md:w-64 flex-shrink-0"
+                    >
+                        <div className="glass-card rounded-2xl p-4 border border-white/5 space-y-2">
+                            {tabs.map((tab, index) => (
+                                <NavTab
+                                    key={tab.label}
+                                    icon={tab.icon}
+                                    label={tab.label}
+                                    isActive={activeTab === index}
+                                    onClick={() => setActiveTab(index)}
+                                    delay={0.5 + index * 0.1}
+                                />
+                            ))}
+                        </div>
+                    </motion.div>
+
+                    {/* Content Area */}
+                    <div className="flex-1">
+                        <AnimatePresence mode="wait">
+                            {activeTab === 0 && (
+                                <ProfileStatistics key="statistics" stats={stats} loading={loading} />
+                            )}
+                            {activeTab === 1 && (
+                                <motion.div
+                                    key="matches"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <ProfileMatches playerId={targetUserId} />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
-                {profileMenu === 1 && <PlayerProfileMatches onStreakUpdate={setStreak} />}
-                {profileMenu === 2 && <ItemsEquippedProfile />}
             </div>
-        </div>
-    );
-};
+        </main>
+    )
+}

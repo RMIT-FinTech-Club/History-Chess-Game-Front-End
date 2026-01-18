@@ -6,8 +6,7 @@ interface MatchDetailProps {
 }
 
 /**
- * Component để hiển thị thông tin chi tiết của trận đấu,
- * bao gồm tổng số nước đi và lượt của người chơi hiện tại.
+ * Component to display match details including move count and current turn
  */
 export const MatchDetail: React.FC<MatchDetailProps> = ({ currentTurn, totalMove }) => {
   const turnText = currentTurn === "w" ? "White" : "Black";
@@ -15,28 +14,33 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ currentTurn, totalMove
   return (
     <div
       className="
-        relative w-full text-white
-        rounded-[10px]
-        border border-white/35
-        bg-[#3B3433]/60 backdrop-blur-sm
-        shadow-[0_8px_30px_rgba(0,0,0,0.35)]
-        w-[300px] sm:w-[300px]
-        p-4
+        w-full text-white
+        rounded-lg border border-white/20
+        bg-[#2A2625]/80 backdrop-blur-sm
+        overflow-hidden
       "
     >
-      <div className="flex justify-between items-center text-xl mb-3">
-        <span className="font-medium">Move Number:</span>
-        <span className="font-bold">{totalMove}</span>
+      {/* Move Number */}
+      <div className="flex justify-between items-center px-4 py-3 border-b border-white/10">
+        <span className="text-sm sm:text-base text-white/70 font-medium">Move Number</span>
+        <span className="text-lg sm:text-xl font-bold text-yellow-500">{totalMove}</span>
       </div>
-      <div className="flex justify-between items-center text-xl">
-        <span className="font-medium">Turn:</span>
-        <span className={`px-4 py-1 text-sm font-semibold rounded ${
-            currentTurn === 'b' ? 'bg-black text-white' : 'bg-white text-black'
-        }`}>
+
+      {/* Current Turn */}
+      <div className="flex justify-between items-center px-4 py-3">
+        <span className="text-sm sm:text-base text-white/70 font-medium">Turn</span>
+        <span
+          className={`
+            px-3 py-1 text-xs sm:text-sm font-semibold rounded-full
+            ${currentTurn === 'b'
+              ? 'bg-gray-800 text-white border border-white/20'
+              : 'bg-white text-gray-900'
+            }
+          `}
+        >
           {turnText}
         </span>
       </div>
     </div>
   );
 };
-

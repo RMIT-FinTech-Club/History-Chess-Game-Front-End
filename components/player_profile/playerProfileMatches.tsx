@@ -4,8 +4,11 @@ import { useGlobalStorage } from "@/hooks/GlobalStorage"
 import styles from "@/css/playerprofile.module.css"
 import GamePadIcon from "@/public/profile/SVG/gamePadIcon"
 import { useParams } from "next/navigation"
+import { MatchDetailsDialog } from "../profile/MatchDetailsDialog"
 
 interface Match {
+    gameId: string;
+    opponentId: string | null;
     opponent: string;
     avt: string;
     playMode: string;
@@ -14,7 +17,7 @@ interface Match {
 }
 
 interface ProfileMatchesProps {
-  onStreakUpdate?: (streak: number) => void // callback to send current streak upward
+    onStreakUpdate?: (streak: number) => void // callback to send current streak upward
 }
 
 export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesProps) {
@@ -27,8 +30,23 @@ export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesP
     const [userAvatars, setUserAvatars] = useState<{ [key: string]: string }>({})
     const [currentStreak, setCurrentStreak] = useState<number>(0)
 
+    // Dialog State
+    const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [selectedMatchData, setSelectedMatchData] = useState<{ opponent: string, result: string, opponentId: string | null } | null>(null);
+
+    const handleMatchClick = (match: Match) => {
+        setSelectedGameId(match.gameId);
+        setSelectedMatchData({
+            opponent: match.opponent,
+            result: match.result,
+            opponentId: match.opponentId
+        });
+        setIsDialogOpen(true);
+    };
+
     // Caculate consecutive victories
-    const calculateCurrentStreak = (matches : Match[]) : number => {
+    const calculateCurrentStreak = (matches: Match[]): number => {
         let streak = 0;
         for (const match of matches) {
             if (match.result === "Victory") {
@@ -76,6 +94,8 @@ export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesP
                         totalTime: match.totalTime,
                         // Use the derived gameResult
                         result: match.result,
+                        gameId: match.gameId,
+                        opponentId: match.opponentId || null
                     };
                 });
 
@@ -85,7 +105,7 @@ export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesP
                 // Compute streak & update
                 const streak = calculateCurrentStreak(formattedMatches);
                 setCurrentStreak(streak);
-                if (onStreakUpdate) onStreakUpdate(streak) 
+                if (onStreakUpdate) onStreakUpdate(streak)
             } catch (err) {
                 console.error('Error fetching match history:', err)
                 setError('Failed to load match history')
@@ -117,7 +137,8 @@ export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesP
                     matches.map((match, index) => (
                         <div
                             key={index}
-                            className={`${index !== matches.length - 1 ? 'mb-[3dvh]' : 'mb-0'} ${styles.match} w-full rounded-[1vw] bg-[rgba(0,0,0,0.5)] border border-solid ${match.result == 'Victory' && `border-[#1CFF07] ${styles.victory}`} ${match.result == 'Draw' && `border-[#FFF700] ${styles.draw}`} ${match.result == 'Defeat' && 'border-[#EA4335]'}`}
+                            onClick={() => handleMatchClick(match)}
+                            className={`${index !== matches.length - 1 ? 'mb-[3dvh]' : 'mb-0'} ${styles.match} w-full rounded-[1vw] bg-[rgba(0,0,0,0.5)] border border-solid ${match.result == 'Victory' && `border-[#1CFF07] ${styles.victory}`} ${match.result == 'Draw' && `border-[#FFF700] ${styles.draw}`} ${match.result == 'Defeat' && 'border-[#EA4335]'} cursor-pointer hover:bg-white/5 transition-colors`}
                         >
                             <div className="w-full flex items-center justify-start px-[2vw] md:px-[1vw] rounded-[1vw] overflow-y-hidden">
                                 <div
@@ -143,13 +164,21 @@ export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesP
                                 <div className="w-[22vw] md:w-[16vw] flex justify-center items-center">
                                     <p className={`text-[1.5vw] px-[2vw] mr-[1vw] relative ${match.result == 'Victory' && 'text-[#1CFF07]'} ${match.result == 'Defeat' && 'text-[#EA4335]'} ${match.result == 'Draw' && 'text-[#FFF700]'} font-bold ${styles.result}`}>
                                         {match.result}
-                                        </p>
+                                    </p>
                                 </div>
                             </div>
                         </div>
                     ))
                 )}
             </div>
+            <MatchDetailsDialog
+                gameId={selectedGameId}
+                isOpen={isDialogOpen}
+                onClose={() => setIsDialogOpen(false)}
+                opponentName={selectedMatchData?.opponent || 'Unknown'}
+                result={selectedMatchData?.result || '-'}
+                opponentId={selectedMatchData?.opponentId || null}
+            />
         </div>
     )
 }

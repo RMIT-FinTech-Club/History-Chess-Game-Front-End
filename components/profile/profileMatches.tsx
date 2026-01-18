@@ -1,12 +1,15 @@
-"use client"
 
 import { useEffect, useState } from "react"
-import { motion } from "framer-motion"
-import { Gamepad2, Clock, User, Swords, Trophy, XCircle, Minus } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Gamepad2, Clock, User, Swords, Trophy, XCircle, Minus, ChevronRight } from "lucide-react"
+import { useRouter } from "next/navigation"
 import axiosInstance from "@/config/apiConfig"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
+import { MatchDetailsDialog } from "./MatchDetailsDialog"
 
 interface Match {
+    gameId: string;
+    opponentId: string | null;
     opponent: string;
     avt: string;
     playMode: string;
@@ -57,7 +60,16 @@ const ResultBadge = ({ result }: { result: string }) => {
 };
 
 // Match Card Component
-const MatchCard = ({ match, index }: { match: Match; index: number }) => {
+const MatchCard = ({ match, index, onClick }: { match: Match; index: number; onClick: () => void }) => {
+    const router = useRouter();
+
+    const handleProfileClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (match.opponentId) {
+            router.push(`/player_profile/${match.opponentId}`);
+        }
+    };
+
     const resultBorderColor = {
         Victory: 'border-green-500/30 hover:border-green-500/50',
         Defeat: 'border-red-500/30 hover:border-red-500/50',
@@ -83,23 +95,27 @@ const MatchCard = ({ match, index }: { match: Match; index: number }) => {
             transition={{ delay: index * 0.1, duration: 0.4 }}
             className={`
                 glass-card rounded-xl p-4 border ${resultBorderColor} ${resultGlow}
-                transition-all duration-300 group relative overflow-hidden
+                transition-all duration-300 group relative overflow-hidden cursor-pointer
             `}
+            onClick={onClick}
         >
             {/* Background glow effect based on result */}
             <div className={`
                 absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500
-                ${match.result === 'Victory' ? 'bg-gradient-to-r from-green-500/5 to-transparent' : ''}
-                ${match.result === 'Defeat' ? 'bg-gradient-to-r from-red-500/5 to-transparent' : ''}
-                ${match.result === 'Draw' ? 'bg-gradient-to-r from-yellow-500/5 to-transparent' : ''}
+                ${match.result === 'Victory' ? 'bg-linear-to-r from-green-500/5 to-transparent' : ''}
+                ${match.result === 'Defeat' ? 'bg-linear-to-r from-red-500/5 to-transparent' : ''}
+                ${match.result === 'Draw' ? 'bg-linear-to-r from-yellow-500/5 to-transparent' : ''}
             `} />
 
             <div className="relative flex flex-col md:flex-row items-center gap-4">
                 {/* Opponent Avatar */}
-                <div className="relative flex-shrink-0">
+                <div
+                    className="relative shrink-0 cursor-pointer group/avatar"
+                    onClick={handleProfileClick}
+                >
                     <div
                         style={{ backgroundImage: `url(${match.avt})` }}
-                        className="w-14 h-14 rounded-full bg-center bg-cover bg-no-repeat border-2 border-gold-royal/30"
+                        className="w-14 h-14 rounded-full bg-center bg-cover bg-no-repeat border-2 border-gold-royal/30 group-hover/avatar:border-gold-royal transition-colors"
                     />
                     <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-bg-dark rounded-full flex items-center justify-center border border-gold-royal/30">
                         <User className="w-3 h-3 text-gold-royal" />
@@ -109,9 +125,12 @@ const MatchCard = ({ match, index }: { match: Match; index: number }) => {
                 {/* Match Info */}
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3 text-center md:text-left">
                     {/* Opponent */}
-                    <div>
+                    <div
+                        className="cursor-pointer group/name"
+                        onClick={handleProfileClick}
+                    >
                         <p className="text-gray-500 text-xs uppercase tracking-wider mb-0.5">Opponent</p>
-                        <p className="text-white font-serif font-medium truncate max-w-[150px]">{match.opponent}</p>
+                        <p className="text-white font-serif font-medium truncate max-w-[150px] group-hover/name:text-gold-light transition-colors">{match.opponent}</p>
                     </div>
 
                     {/* Game Mode */}
@@ -134,23 +153,44 @@ const MatchCard = ({ match, index }: { match: Match; index: number }) => {
                 </div>
 
                 {/* Result Badge */}
-                <ResultBadge result={match.result} />
+                <div className="flex items-center gap-3">
+                    <ResultBadge result={match.result} />
+                    <ChevronRight className="w-5 h-5 text-gray-500 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
+                </div>
             </div>
         </motion.div>
     );
 };
 
-export default function ProfileMatches() {
+export default function ProfileMatches({ playerId }: { playerId?: string }) {
     const { userId, accessToken } = useGlobalStorage()
+    // Use the passed playerId or fall back to the logged-in userId
+    const targetUserId = playerId || userId;
+
     const [matches, setMatches] = useState<Match[]>([])
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
+
+    // Dialog State
+    const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [selectedMatchData, setSelectedMatchData] = useState<{ opponent: string, result: string, opponentId: string | null } | null>(null);
+
+    const handleMatchClick = (match: Match) => {
+        setSelectedGameId(match.gameId);
+        setSelectedMatchData({
+            opponent: match.opponent,
+            result: match.result,
+            opponentId: match.opponentId
+        });
+        setIsDialogOpen(true);
+    };
 
     useEffect(() => {
         const fetchMatchHistory = async () => {
             try {
                 setLoading(true);
-                const response = await axiosInstance.get(`/game/history/${userId}`, {
+                const response = await axiosInstance.get(`/game/history/${targetUserId}`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     }
@@ -176,6 +216,8 @@ export default function ProfileMatches() {
                         playMode: match.gameMode,
                         totalTime: match.totalTime,
                         result: match.result,
+                        gameId: match.gameId,
+                        opponentId: match.opponentId || null
                     };
                 });
 
@@ -190,10 +232,10 @@ export default function ProfileMatches() {
             }
         }
 
-        if (userId && accessToken) {
+        if (targetUserId && accessToken) {
             fetchMatchHistory();
         }
-    }, [userId, accessToken])
+    }, [targetUserId, accessToken])
 
     return (
         <motion.div
@@ -239,10 +281,24 @@ export default function ProfileMatches() {
                     </div>
                 ) : (
                     matches.map((match, index) => (
-                        <MatchCard key={index} match={match} index={index} />
+                        <MatchCard
+                            key={index}
+                            match={match}
+                            index={index}
+                            onClick={() => handleMatchClick(match)}
+                        />
                     ))
                 )}
             </div>
+
+            <MatchDetailsDialog
+                gameId={selectedGameId}
+                isOpen={isDialogOpen}
+                onClose={() => setIsDialogOpen(false)}
+                opponentName={selectedMatchData?.opponent || 'Unknown'}
+                result={selectedMatchData?.result || '-'}
+                opponentId={selectedMatchData?.opponentId || null}
+            />
         </motion.div>
     )
 }

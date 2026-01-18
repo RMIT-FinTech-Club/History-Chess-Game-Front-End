@@ -4,7 +4,6 @@ import { FaUser, FaPuzzlePiece, FaSignOutAlt, FaWallet, FaChevronDown } from 're
 import { HiOutlineMenuAlt3, HiX } from 'react-icons/hi';
 import Image from 'next/image';
 import { useGlobalStorage } from '@/hooks/GlobalStorage';
-import Toast from '././ui/Toast';
 import ConfirmModal from './ui/ConfirmModal';
 import { Button } from './ui/button';
 
@@ -23,12 +22,7 @@ export default function Navbar() {
 		useGlobalStorage();
 
 	const isLoggedIn = !!userId && !!accessToken;
-	const displayName = userName || "User 1";
 	const avatarUrl = avatar || "/img/DefaultUser.png";
-	const [toast, setToast] = useState<{
-		type: "success" | "error";
-		message: string;
-	} | null>(null);
 	const navRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
@@ -77,8 +71,6 @@ export default function Navbar() {
 
 	return (
 		<nav ref={navRef} className="w-full bg-black text-white px-6 py-4">
-			<Toast type="success" message="Logged In" onClose={() => setToast(null)} />
-
 			<ConfirmModal
 				isOpen={showConfirmLogout}
 				message="Are you sure you want to log out?"
@@ -180,7 +172,7 @@ export default function Navbar() {
 							</div>
 
 							<Button
-								onClick={() => router.push("/game/online")}
+								onClick={() => router.push("/challenge")}
 								className="px-4 py-2 w-[124px] h-[35px] text-black rounded-[6px] font-semibold bg-gradient-to-b from-[#E8BB05] via-[#B98F00] to-[#7A651C] hover:from-[#D6A900] hover:via-[#A68E3C] hover:to-[#8F7A2B] hover:text-white transition-colors cursor-pointer duration-300 flex justify-center items-center"
 							>
 								Play Game
@@ -258,7 +250,7 @@ export default function Navbar() {
 						<>
 							<span
 								onClick={() => {
-									router.push("/game/online");
+									router.push("/challenge");
 									setMobileOpen(false);
 								}}
 								className="text-[2rem] font-semibold cursor-pointer text-center w-full hover:text-[#E9B654]"

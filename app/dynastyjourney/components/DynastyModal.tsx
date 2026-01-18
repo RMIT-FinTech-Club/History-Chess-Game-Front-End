@@ -12,7 +12,7 @@ interface DynastyModalProps {
     isUnlocked: boolean;
     currentLevel: number;
     onClose: () => void;
-    onPlay: (botLevel: number) => void;
+    onPlay: (dynasty: Dynasty) => void;
 }
 
 const DynastyModal: React.FC<DynastyModalProps> = ({
@@ -111,7 +111,7 @@ const DynastyModal: React.FC<DynastyModalProps> = ({
                 <div className={styles.modalActions}>
                     <button
                         className={styles.playButton}
-                        onClick={() => onPlay(dynasty.botLevel)}
+                        onClick={() => onPlay(dynasty)}
                         disabled={!isUnlocked}
                         type="button"
                     >

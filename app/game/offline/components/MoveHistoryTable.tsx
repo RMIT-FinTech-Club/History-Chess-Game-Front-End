@@ -3,60 +3,71 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MoveHistoryRow } from "./MoveHistoryRow";
 import { MoveHistoryTableProps } from "../types";
 
-export const MoveHistoryTable: React.FC<MoveHistoryTableProps> = ({ moveHistoryPairs }) => (
-  <div
-    className="
-      relative w-[200px] sm:w-[300px] h-[280px]
-      rounded-[12px] border border-white/35
-      bg-[#3B3433]/60 backdrop-blur-sm
-      shadow-[0_8px_30px_rgba(0,0,0,0.35)]
-      p-2 sm:p-3
-    "
-  >
-    <div className="rounded-t-[10px] overflow-hidden">
-      <table className="w-full table-fixed text-white [font-variant-numeric:tabular-nums] bg-[#3B3433]/70">
-        <colgroup>
-          <col className="w-[64px]" />
-          <col />
-          <col />
-          <col className="w-[64px]" />
-        </colgroup>
-        <thead>
-          <tr>
-            <th className="py-1 px-2 text-left text-[15px] font-semibold leading-none whitespace-nowrap">Turn</th>
-            <th className="py-1 px-2 text-left text-[15px] font-semibold leading-none whitespace-nowrap">White</th>
-            <th className="py-1 px-2 text-left text-[15px] font-semibold leading-none whitespace-nowrap">Black</th>
-            <th className="py-1 px-2 text-left text-[15px] font-semibold leading-none whitespace-nowrap">Time</th>
-          </tr>
-        </thead>
-      </table>
-    </div>
+export const MoveHistoryTable: React.FC<MoveHistoryTableProps> = ({ moveHistoryPairs }) => {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
 
-    <ScrollArea
+  React.useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [moveHistoryPairs]);
+
+  return (
+    <div
       className="
-        h-[200px] w-full
-        rounded-b-[10px] overflow-hidden
-        [&>[data-radix-scroll-area-viewport]]:rounded-b-[10px]
-        [&>[data-radix-scroll-area-viewport]]:overflow-hidden
+        relative w-full h-full flex flex-col
+        rounded-lg border border-white/20
+        bg-[#2A2625]/80 backdrop-blur-sm
+        overflow-hidden
       "
     >
-      <table className="w-full table-fixed text-white border-separate border-spacing-0 [font-variant-numeric:tabular-nums] bg-[#3B3433]/40">
-        <colgroup>
-          <col className="w-[64px]" />
-          <col />
-          <col />
-          <col className="w-[64px]" />
-        </colgroup>
-        <tbody className="divide-y divide-white/10">
-          {moveHistoryPairs.map((pair) => (
-            <MoveHistoryRow key={pair.turn} pair={pair} />
-          ))}
+      {/* Header */}
+      <div className="bg-[#3B3433]/70 border-b border-white/10 shrink-0">
+        <table className="w-full table-fixed text-white text-xs sm:text-sm [font-variant-numeric:tabular-nums]">
+          <colgroup>
+            <col className="w-[50px] sm:w-[60px]" />
+            <col className="w-auto" />
+            <col className="w-auto" />
+            <col className="w-[50px] sm:w-[60px]" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th className="py-2 px-2 text-center font-semibold text-white/70 whitespace-nowrap">Turn</th>
+              <th className="py-2 px-2 text-center font-semibold text-white/70 whitespace-nowrap">White</th>
+              <th className="py-2 px-2 text-center font-semibold text-white/70 whitespace-nowrap">Black</th>
+              <th className="py-2 px-2 text-center font-semibold text-white/70 whitespace-nowrap">Time</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
 
-          <tr>
-            <td colSpan={4} className="h-1 p-0"></td>
-          </tr>
-        </tbody>
-      </table>
-    </ScrollArea>
-  </div>
-);
+      {/* Body */}
+      <ScrollArea className="flex-1 w-full h-full">
+        <div className="w-full">
+          <table className="w-full table-fixed text-white text-xs sm:text-sm border-separate border-spacing-0 [font-variant-numeric:tabular-nums]">
+            <colgroup>
+              <col className="w-[50px] sm:w-[60px]" />
+              <col className="w-auto" />
+              <col className="w-auto" />
+              <col className="w-[50px] sm:w-[60px]" />
+            </colgroup>
+            <tbody className="divide-y divide-white/5">
+              {moveHistoryPairs.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="py-8 text-center text-white/40 italic">
+                    No moves yet
+                  </td>
+                </tr>
+              ) : (
+                moveHistoryPairs.map((pair) => (
+                  <MoveHistoryRow key={pair.turn} pair={pair} />
+                ))
+              )}
+            </tbody>
+          </table>
+          <div ref={scrollRef} className="h-1" />
+        </div>
+      </ScrollArea>
+    </div>
+  );
+};

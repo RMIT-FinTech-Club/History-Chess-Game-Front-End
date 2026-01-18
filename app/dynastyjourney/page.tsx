@@ -32,6 +32,11 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 			items: [],
 		},
 		botLevel: 1,
+		boardTheme: {
+			light: "#D4C4A8",
+			dark: "#8B6914",
+			accent: "#CD853F"
+		}
 	},
 	{
 		id: 2,
@@ -48,6 +53,11 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 			items: [],
 		},
 		botLevel: 3,
+		boardTheme: {
+			light: "#E8DCC8",
+			dark: "#722F37",
+			accent: "#B8860B"
+		}
 	},
 	{
 		id: 3,
@@ -64,6 +74,11 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 			items: [],
 		},
 		botLevel: 5,
+		boardTheme: {
+			light: "#C8D4B8",
+			dark: "#4A5D23",
+			accent: "#8B4513"
+		}
 	},
 	{
 		id: 4,
@@ -80,6 +95,11 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 			items: [],
 		},
 		botLevel: 8,
+		boardTheme: {
+			light: "#F5E6C8",
+			dark: "#2F6B4F",
+			accent: "#D4AF37"
+		}
 	},
 	{
 		id: 5,
@@ -96,6 +116,11 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 			items: [],
 		},
 		botLevel: 10,
+		boardTheme: {
+			light: "#D8D8D8",
+			dark: "#4A4A4A",
+			accent: "#8B0000"
+		}
 	},
 	{
 		id: 6,
@@ -112,6 +137,11 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 			items: [],
 		},
 		botLevel: 12,
+		boardTheme: {
+			light: "#E8D4C4",
+			dark: "#8B4513",
+			accent: "#CD853F"
+		}
 	},
 	{
 		id: 7,
@@ -128,6 +158,11 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 			items: [],
 		},
 		botLevel: 15,
+		boardTheme: {
+			light: "#D4E8F0",
+			dark: "#1E3A5F",
+			accent: "#C0C0C0"
+		}
 	},
 	{
 		id: 8,
@@ -144,6 +179,11 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 			items: [],
 		},
 		botLevel: 17,
+		boardTheme: {
+			light: "#E0D8E8",
+			dark: "#3D2B47",
+			accent: "#708090"
+		}
 	},
 	{
 		id: 9,
@@ -160,6 +200,11 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 			items: [],
 		},
 		botLevel: 19,
+		boardTheme: {
+			light: "#F5DEB3",
+			dark: "#B22222",
+			accent: "#FF4500"
+		}
 	},
 	{
 		id: 10,
@@ -176,6 +221,11 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 			items: [],
 		},
 		botLevel: 20,
+		boardTheme: {
+			light: "#FFF8DC",
+			dark: "#8B0000",
+			accent: "#FFD700"
+		}
 	},
 ];
 
@@ -294,9 +344,12 @@ export default function DynastyJourney() {
 		setSelectedDynasty(null);
 	};
 
-	const handlePlay = (botLevel: number) => {
+	const handlePlay = (dynasty: Dynasty) => {
+		const themeParams = dynasty.boardTheme
+			? `&themeLight=${encodeURIComponent(dynasty.boardTheme.light)}&themeDark=${encodeURIComponent(dynasty.boardTheme.dark)}&themeAccent=${encodeURIComponent(dynasty.boardTheme.accent)}`
+			: '';
 		router.push(
-			`/game/offline?mode=singleplayer&level=${botLevel}&autostart=1&color=white`
+			`/game/offline?mode=singleplayer&level=${dynasty.botLevel}&autostart=1&color=white${themeParams}`
 		);
 	};
 

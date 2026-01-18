@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { defaultPieces } from '../../../../components/Pieces';
 
-
-const CapturedList = ({ pieces }: { pieces: string[] }) => {
+const CapturedList: React.FC<{ pieces: string[] }> = ({ pieces }) => {
   const [isHovered, setIsHovered] = useState(false);
   const displayLimit = 7;
 
@@ -35,12 +34,12 @@ const CapturedList = ({ pieces }: { pieces: string[] }) => {
       </div>
 
       {truncatedCount > 0 && (
-         <div
-            className="absolute flex items-center justify-center w-6 h-6 bg-gray-800/80 backdrop-blur-sm rounded-full text-xs text-white font-bold border-2 border-gray-500"
-            style={{
-                transform: `translateX(${(displayPieces.length * 12) - 18}px)`,
-                zIndex: displayPieces.length,
-            }}
+        <div
+          className="absolute flex items-center justify-center w-6 h-6 bg-gray-800/80 backdrop-blur-sm rounded-full text-xs text-white font-bold border-2 border-gray-500"
+          style={{
+            transform: `translateX(${(displayPieces.length * 12) - 18}px)`,
+            zIndex: displayPieces.length,
+          }}
         >
           +{truncatedCount}
         </div>
@@ -49,33 +48,37 @@ const CapturedList = ({ pieces }: { pieces: string[] }) => {
   );
 };
 
-
 interface CapturedPiecesProps {
   whiteCaptured: string[];
-  blackCaptured:string[];
+  blackCaptured: string[];
 }
-
 
 export const CapturedPieces: React.FC<CapturedPiecesProps> = ({ whiteCaptured, blackCaptured }) => {
   return (
-    <div className="text-white w-full max-w-[350px]">
-      <h2 className="text-xl font-bold mb-2">Captured</h2>
-      <div className="bg-black/30 border border-white/20 rounded-lg p-3 space-y-2">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-300 mb-1">
-            White captured:
-          </h3>
-          <CapturedList pieces={blackCaptured} />
+    <div className="text-white w-full">
+      <h2 className="text-base sm:text-lg font-semibold mb-2 flex items-center gap-2">
+        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+        Captured Pieces
+      </h2>
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded-full bg-white border border-gray-300 shrink-0" />
+          <span className="text-xs sm:text-sm text-gray-300 shrink-0">captured:</span>
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <CapturedList pieces={blackCaptured} />
+          </div>
         </div>
 
-        <div>
-          <h3 className="text-sm font-semibold text-gray-300 mb-1">
-            Black captured:
-          </h3>
-          <CapturedList pieces={whiteCaptured} />
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded-full bg-gray-800 border border-gray-600 shrink-0" />
+          <span className="text-xs sm:text-sm text-gray-300 shrink-0">captured:</span>
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <CapturedList pieces={whiteCaptured} />
+          </div>
         </div>
       </div>
     </div>
   );
 };
-

@@ -14,6 +14,12 @@ export interface DynastyReward {
     }[];
 }
 
+export interface BoardTheme {
+    light: string;
+    dark: string;
+    accent: string;
+}
+
 export interface Dynasty {
     id: number;
     name: string;
@@ -24,6 +30,7 @@ export interface Dynasty {
     description: string;
     reward: DynastyReward;
     botLevel: number;
+    boardTheme?: BoardTheme;
 }
 
 export interface DynastyConfig {

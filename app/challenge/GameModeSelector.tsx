@@ -52,7 +52,7 @@ export default function GameModeSelector({ selectedMode, onModeChange }: GameMod
                                 fill={selectedMode === opt.value ? '#000' : '#DBB968'}
                                 classes="!w-10 !h-10 aspect-square bg-center group-hover:rotate-20 transition-transform duration-200"
                             />
-                            <p className="text-[1.1rem] font-bold uppercase text-nowrap">{opt.label}</p>
+                            <p className="font-serif text-[1.1rem] font-bold uppercase text-nowrap">{opt.label}</p>
                         </TabsTrigger>
                     ))}
                 </TabsList>
@@ -61,8 +61,8 @@ export default function GameModeSelector({ selectedMode, onModeChange }: GameMod
                         <TabsContent key={opt.value} value={opt.value}>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>{opt.details}</CardTitle>
-                                    <CardDescription>{opt.description}</CardDescription>
+                                    <CardTitle className="font-display">{opt.details}</CardTitle>
+                                    <CardDescription className="font-serif">{opt.description}</CardDescription>
                                 </CardHeader>
                             </Card>
                         </TabsContent>

@@ -21,6 +21,11 @@ import type { StockfishLevel } from "@/app/game/offline/hooks/useStockfish";
 import YellowLight from "@/components/decor/YellowLight";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 
+const getBotElo = (level: number) => {
+  // Approximate mapping: Level 1 ~ 400, Level 20 ~ 3200
+  return 400 + (level * 140);
+};
+
 const OfflinePage = () => {
   const [mounted, setMounted] = useState(false);
   const [showGameModeDialog, setShowGameModeDialog] = useState(false);
@@ -29,9 +34,9 @@ const OfflinePage = () => {
   const [gameActive, setGameActive] = useState(false);
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
   const [autoRotateBoard, setAutoRotateBoard] = useState(false);
-  const [savedTheme, setSavedTheme] = useState<{ light?: string; dark?: string } | null>(null);
+  const [savedTheme, setSavedTheme] = useState<{ light?: string; dark?: string; accent?: string } | null>(null);
   const boardWidth = useBoardSize();
-  const { isAuthenticated } = useGlobalStorage();
+  const { isAuthenticated, userName, avatar } = useGlobalStorage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const autoStartProcessed = useRef(false);
@@ -203,18 +208,33 @@ const OfflinePage = () => {
   }, [isSinglePlayer, autoRotateBoard, currentTurn]);
 
   useEffect(() => {
-    try {
-      const s = localStorage.getItem("chessTheme");
-      if (s) setSavedTheme(JSON.parse(s));
-    } catch { }
-  }, []);
+    // Check for theme from URL params (Dynasty Journey)
+    const themeLightParam = searchParams.get('themeLight');
+    const themeDarkParam = searchParams.get('themeDark');
+    const themeAccentParam = searchParams.get('themeAccent');
+
+    if (themeLightParam && themeDarkParam) {
+      // Dynasty theme from URL takes priority
+      setSavedTheme({
+        light: decodeURIComponent(themeLightParam),
+        dark: decodeURIComponent(themeDarkParam),
+        accent: themeAccentParam ? decodeURIComponent(themeAccentParam) : undefined
+      });
+    } else {
+      // Fallback to localStorage
+      try {
+        const s = localStorage.getItem("chessTheme");
+        if (s) setSavedTheme(JSON.parse(s));
+      } catch { }
+    }
+  }, [searchParams]);
 
   const boardVars = useMemo(
     () =>
       ({
         ["--board-light" as any]: savedTheme?.light ?? "#F0D9B5",
         ["--board-dark" as any]: savedTheme?.dark ?? "#B58863",
-        ["--board-frame" as any]: "#E9B654",
+        ["--board-frame" as any]: savedTheme?.accent ?? "#E9B654",
         ["--board-frame-2" as any]: "#363624",
       }) as React.CSSProperties,
     [savedTheme]
@@ -224,7 +244,7 @@ const OfflinePage = () => {
   if (!mounted) return <p>Loading Chessboard...</p>;
 
   return (
-    <div className="relative min-h-[100dvh] w-full overflow-hidden flex flex-col items-center">
+    <div className="fixed inset-0 h-screen w-full overflow-hidden flex flex-col items-center">
 
       <div
         aria-hidden
@@ -280,28 +300,60 @@ const OfflinePage = () => {
         onChangeGameMode={() => setShowGameModeDialog(true)}
       />
 
-      <div className="grid w-[95vw] flex-1 grid-cols-1 lg:grid-cols-[350px_minmax(560px,1fr)_380px] gap-6">
-        <aside className="min-h-0 space-y-4">
-          <PlayerSection
-            color="Black"
-            pieces={capturedBlack}
-            isCurrentTurn={currentTurn === "b"}
-            gameActive={gameActive}
-          />
+      {/* Main Game Layout - Responsive */}
+      <div className="flex flex-col lg:flex-row w-full max-w-[1920px] mx-auto flex-1 gap-6 px-4 lg:px-8 pb-8 justify-center items-stretch pt-8 min-h-0 overflow-y-auto lg:overflow-hidden">
 
-          <PlayerSection
-            color="White"
-            pieces={capturedWhite}
-            isCurrentTurn={currentTurn === "w"}
-            gameActive={gameActive}
-          />
-          <div className="rounded-xl px-4 py-3 text-white/90">
+        {/* Left Sidebar - Players & Captured */}
+        <aside className="hidden lg:flex lg:flex-col lg:w-[320px] xl:w-[360px] gap-6 flex-shrink-0">
+          <div className="space-y-4">
+            <PlayerSection
+              color="Black"
+              pieces={capturedBlack}
+              isCurrentTurn={currentTurn === "b"}
+              gameActive={gameActive}
+              elo={isSinglePlayer && playerColor === "w" ? getBotElo(aiDifficulty) : 1200}
+              profileName={isSinglePlayer && playerColor === "w" ? `Bot (Level ${aiDifficulty})` : "Player 2"}
+              side="b"
+            />
+            <PlayerSection
+              color="White"
+              pieces={capturedWhite}
+              isCurrentTurn={currentTurn === "w"}
+              gameActive={gameActive}
+              elo={isSinglePlayer && playerColor === "w" ? 1200 : getBotElo(aiDifficulty)}
+              profileName={isSinglePlayer && playerColor === "w" ? (userName || "You") : `Bot (Level ${aiDifficulty})`}
+              profileImage={isSinglePlayer && playerColor === "w" ? (avatar || undefined) : undefined}
+              side="w"
+            />
+          </div>
+
+          <div className="bg-black/20 backdrop-blur-md rounded-xl border border-white/10 p-4 shadow-lg">
             <CapturedPieces whiteCaptured={capturedWhite} blackCaptured={capturedBlack} />
           </div>
         </aside>
 
-        <section className="flex flex-col items-center">
-          <div className="rounded-2xl border border-white/20 bg-gradient-to-b from-[#E9B654]/30 to-transparent p-3 shadow-[0_20px_60px_rgba(0,0,0,0.45)]" style={boardVars}>
+        {/* Center - Chessboard Section */}
+        <section className="flex flex-col items-center flex-1 min-w-0 max-w-[800px]">
+          {/* Mobile Turn Indicator */}
+          <div className="lg:hidden flex justify-between items-center w-full mb-4 px-2">
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 transition-colors ${currentTurn === 'w' ? 'bg-white/20 ring-1 ring-yellow-500/50' : 'bg-black/40'}`}>
+              <div className="w-3 h-3 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+              <span className="text-white/90 text-sm font-medium">White</span>
+            </div>
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 transition-colors ${currentTurn === 'b' ? 'bg-white/20 ring-1 ring-yellow-500/50' : 'bg-black/40'}`}>
+              <div className="w-3 h-3 rounded-full bg-black border border-white/30" />
+              <span className="text-white/90 text-sm font-medium">Black</span>
+            </div>
+          </div>
+
+          {/* Chessboard Container - Bigger & Centered */}
+          <div
+            className="rounded-xl border-[6px] border-[#3d2e1f] bg-[#1a1614] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)] overflow-hidden"
+            style={{
+              boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.1), 0 20px 60px -10px rgba(0, 0, 0, 0.6)",
+              ...boardVars
+            }}
+          >
             <Chessboard
               id="historyChessBoard"
               position={fen}
@@ -309,31 +361,55 @@ const OfflinePage = () => {
               onPieceClick={chessHandlers.onPieceClick}
               onSquareClick={chessHandlers.onSquareClick}
               onPieceDragBegin={chessHandlers.onPieceDragBegin}
-              boardWidth={630}
+              boardWidth={Math.min(boardWidth, 700)}
               animationDuration={300}
               customSquareStyles={customSquareStyles}
               boardOrientation={boardOrientation}
             />
           </div>
 
-          <div className="mt-2 w-full max-w-[650px]">
-            <GameControls onUndo={handleUndo} onNewGame={handleNewGame} onSurrender={handleSurrender} canUndo={history.length > 0} />
+          {/* Game Controls - Matches Board Width */}
+          <div className="mt-6 w-full flex justify-center" style={{ maxWidth: Math.min(boardWidth, 700) }}>
+            <GameControls
+              onUndo={handleUndo}
+              onNewGame={handleNewGame}
+              onSurrender={handleSurrender}
+              canUndo={history.length > 0}
+            />
+          </div>
+
+          {/* Mobile Captured Pieces */}
+          <div className="lg:hidden w-full max-w-[600px] mt-3 px-2">
+            <div className="bg-black/30 backdrop-blur-sm rounded-xl border border-white/10 p-3">
+              <CapturedPieces whiteCaptured={capturedWhite} blackCaptured={capturedBlack} />
+            </div>
           </div>
         </section>
 
-        <aside className="min-h-0 flex flex-col gap-4">
-          <div className="rounded-xl p-4 text-white/90">
-            <h1 className="text-xl font-semibold mb-2">Move History</h1>
-            <div className="rounded-xl p-2">
+        {/* Right Sidebar - Move History & Match Details */}
+        <aside className="w-full lg:w-[320px] xl:w-[360px] flex flex-col gap-6 flex-shrink-0 mt-8 lg:mt-0 overflow-hidden">
+          {/* Match Details */}
+          <div className="bg-black/20 backdrop-blur-sm rounded-xl border border-white/10 p-1 shadow-lg">
+            <MatchDetail currentTurn={currentTurn} totalMove={totalMove} />
+          </div>
+
+          {/* Move History */}
+          <div className="bg-black/20 backdrop-blur-sm rounded-xl border border-white/10 p-1 shadow-lg flex-1 min-h-[300px] flex flex-col">
+            <div className="p-4 border-b border-white/10 bg-white/5 rounded-t-lg shrink-0">
+              <h2 className="text-lg font-semibold text-white/90 flex items-center gap-2">
+                <svg className="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Move History
+              </h2>
+            </div>
+            <div className="p-2 flex-1 min-h-0">
               <MoveHistoryTable moveHistoryPairs={moveHistoryPairs} />
             </div>
           </div>
-
-          <div className="rounded-xl p-4 text-white/90">
-            <h1 className="text-xl font-semibold mb-3">Match Details</h1>
-            <MatchDetail currentTurn={currentTurn} totalMove={totalMove} />
-          </div>
         </aside>
+
+
       </div>
 
       <GameOverDialog
@@ -353,7 +429,7 @@ const OfflinePage = () => {
         isAiReady={isAiReady}
         onClose={() => setShowGameModeDialog(false)}
       />
-    </div>
+    </div >
   );
 };
 
