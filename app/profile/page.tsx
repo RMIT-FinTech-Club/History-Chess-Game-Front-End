@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Trophy, Gamepad2, Settings, Crown, Wallet, Target, ChevronUp, ChevronDown, Star } from "lucide-react"
+import { Trophy, Gamepad2, Settings, Crown, Wallet, Target, ChevronUp, ChevronDown, Star, Receipt, Package, Edit, Award, Book } from "lucide-react"
 import CountUp from "react-countup"
 import { useRouter } from "next/navigation"
 import axiosInstance from "@/config/apiConfig"
@@ -11,6 +11,11 @@ import { toast } from "sonner"
 import BackgroundEffects from "@/components/decor/BackgroundEffects"
 import ProfileMatches from "@/components/profile/profileMatches"
 import AccountSettings from "@/components/profile/accountSettings"
+import TransactionHistory from "@/components/profile/TransactionHistory"
+import ItemInventory from "@/components/profile/ItemInventory"
+import AvatarSelector from "@/components/profile/AvatarSelector"
+import HistoricalAchievements from "@/components/profile/HistoricalAchievements"
+import CollectorJournal from "@/components/profile/CollectorJournal"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 
 // Types for API responses
@@ -18,6 +23,7 @@ interface UserProfile {
     id: string;
     username: string;
     email: string;
+    role: string;
     avatarUrl: string | null;
     elo: number;
     walletAddress: string | null;
@@ -78,12 +84,12 @@ const StatCard = ({ icon: Icon, label, value, prefix = "", suffix = "", delay = 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay, duration: 0.5 }}
-        className="glass-card rounded-xl p-4 text-center border border-white/5 hover:border-gold-royal/30 transition-all duration-300 group card-hover"
+        className="glass-card rounded-xl p-4 text-center border border-border-glass hover:border-gold-royal/30 transition-all duration-300 group card-hover"
     >
         <div className="w-10 h-10 mx-auto mb-2 rounded-lg bg-gold-royal/20 flex items-center justify-center group-hover:bg-gold-royal/30 transition-colors">
             <Icon className="w-5 h-5 text-gold-royal" />
         </div>
-        <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">{label}</p>
+        <p className="text-text-muted text-xs uppercase tracking-wider mb-1">{label}</p>
         <p className="font-display text-xl text-gold-light">
             {prefix}
             {typeof value === 'number' ? (
@@ -113,15 +119,15 @@ const NavTab = ({ icon: Icon, label, isActive, onClick, delay = 0 }: {
             flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-300
             ${isActive
                 ? 'bg-gold-royal/20 border border-gold-royal/40 text-gold-light gold-shadow'
-                : 'hover:bg-white/5 border border-transparent text-gray-400 hover:text-gold-light'
+                : 'hover:bg-surface-glass border border-transparent text-text-secondary hover:text-gold-light'
             }
         `}
     >
         <div className={`
             w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-300
-            ${isActive ? 'bg-gold-royal/30' : 'bg-white/5 group-hover:bg-white/10'}
+            ${isActive ? 'bg-gold-royal/30' : 'bg-surface-glass group-hover:bg-white/10'}
         `}>
-            <Icon className={`w-5 h-5 ${isActive ? 'text-gold-shimmer' : 'text-gray-400'}`} />
+            <Icon className={`w-5 h-5 ${isActive ? 'text-gold-shimmer' : 'text-text-secondary'}`} />
         </div>
         <span className={`font-serif text-sm ${isActive ? 'text-gold-light' : ''}`}>{label}</span>
         {isActive && (
@@ -147,10 +153,10 @@ const ProfileStatistics = ({ stats, loading }: { stats: ProfileStats; loading: b
         </div>
 
         {loading ? (
-            <div className="glass-card rounded-xl p-8 border border-white/5 flex items-center justify-center">
+            <div className="glass-card rounded-xl p-8 border border-border-glass flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-2 border-gold-royal/30 border-t-gold-royal rounded-full animate-spin" />
-                    <p className="text-gray-500 font-serif">Loading statistics...</p>
+                    <p className="text-text-muted font-serif">Loading statistics...</p>
                 </div>
             </div>
         ) : (
@@ -164,20 +170,20 @@ const ProfileStatistics = ({ stats, loading }: { stats: ProfileStats; loading: b
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* ELO & Level Card */}
-                    <div className="glass-card rounded-2xl p-6 border border-white/5">
+                    <div className="glass-card rounded-2xl p-6 border border-border-glass">
                         <h3 className="font-serif text-lg text-gold-200/70 mb-4 flex items-center gap-2">
                             <Star className="w-5 h-5 text-gold-royal" />
                             Rating & Level
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="text-center p-4 bg-gold-royal/10 rounded-xl">
-                                <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">ELO Rating</p>
+                                <p className="text-text-muted text-xs uppercase tracking-wider mb-1">ELO Rating</p>
                                 <p className="font-display text-3xl text-gold-shimmer">
                                     <CountUp start={0} end={stats.elo} duration={2} />
                                 </p>
                             </div>
                             <div className="text-center p-4 bg-gold-royal/10 rounded-xl">
-                                <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Level</p>
+                                <p className="text-text-muted text-xs uppercase tracking-wider mb-1">Level</p>
                                 <p className="font-display text-3xl text-gold-shimmer">
                                     <CountUp start={0} end={stats.level} duration={2} />
                                 </p>
@@ -186,7 +192,7 @@ const ProfileStatistics = ({ stats, loading }: { stats: ProfileStats; loading: b
                     </div>
 
                     {/* Game Results Card */}
-                    <div className="glass-card rounded-2xl p-6 border border-white/5">
+                    <div className="glass-card rounded-2xl p-6 border border-border-glass">
                         <h3 className="font-serif text-lg text-gold-200/70 mb-4 flex items-center gap-2">
                             <Gamepad2 className="w-5 h-5 text-gold-royal" />
                             Game Results
@@ -219,11 +225,12 @@ const ProfileStatistics = ({ stats, loading }: { stats: ProfileStats; loading: b
 );
 
 export default function ProfilePage() {
-    const { userId, userName, avatar, accessToken, setAuthData } = useGlobalStorage()
+    const { userId, userName, avatar, accessToken, setAuthData, setWalletBalance } = useGlobalStorage()
     const router = useRouter()
     const [isProfileExpanded, setIsProfileExpanded] = useState<boolean>(true)
     const [activeTab, setActiveTab] = useState(0)
     const [loading, setLoading] = useState(true)
+    const [isAvatarSelectorOpen, setIsAvatarSelectorOpen] = useState(false)
     const [stats, setStats] = useState<ProfileStats>({
         level: 1,
         totalGames: 0,
@@ -255,6 +262,7 @@ export default function ProfilePage() {
                 email: profile.email,
                 accessToken,
                 avatar: profile.avatarUrl,
+                role: profile.role,
                 refreshToken: null
             });
 
@@ -286,6 +294,7 @@ export default function ProfilePage() {
                 });
                 if (walletResponse.data.success) {
                     walletBalance = walletResponse.data.data.totalGameCoins || '0';
+                    setWalletBalance(walletBalance);
                 }
             } catch (walletErr) {
                 console.warn('Wallet data not available:', walletErr);
@@ -321,8 +330,13 @@ export default function ProfilePage() {
     const tabs = [
         { icon: Trophy, label: 'Statistics' },
         { icon: Gamepad2, label: 'Matches' },
+        { icon: Package, label: 'My Assets' },
+        { icon: Award, label: 'Achievements' },
+        { icon: Book, label: 'Journal' },
+        { icon: Receipt, label: 'Transactions' },
         { icon: Settings, label: 'Account Settings' },
     ];
+
 
     return (
         <main className="relative min-h-[calc(100vh-var(--navbar-height))] flex flex-col p-4 md:p-8 overflow-hidden">
@@ -346,12 +360,19 @@ export default function ProfilePage() {
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ delay: 0.2, duration: 0.5 }}
-                            className="relative"
+                            className="relative group cursor-pointer"
+                            onClick={() => setIsAvatarSelectorOpen(true)}
                         >
                             <div
                                 style={{ backgroundImage: `url(${avatar})` }}
-                                className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-center bg-cover bg-no-repeat border-2 border-gold-royal/50 gold-shadow"
+                                className="w-24 h-24 md:w-28 md:h-28 rounded-full bg-center bg-cover bg-no-repeat border-2 border-gold-royal/50 gold-shadow group-hover:border-gold-royal transition-colors"
                             />
+
+                            {/* Hover Edit Overlay */}
+                            <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Edit className="w-6 h-6 text-white" />
+                            </div>
+
                             <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-gold-royal rounded-full flex items-center justify-center border-2 border-bg-dark">
                                 <Crown className="w-4 h-4 text-bg-dark" />
                             </div>
@@ -367,7 +388,7 @@ export default function ProfilePage() {
                             <h1 className="font-display text-2xl md:text-3xl gold-gradient-text mb-1">
                                 {userName}
                             </h1>
-                            <p className="text-gray-400 font-serif text-sm mb-2">
+                            <p className="text-text-secondary font-serif text-sm mb-2">
                                 Global Ranking: <span className="text-gold-light">#{stats.globalRank}</span>
                                 {' • '}
                                 ELO: <span className="text-gold-light">{stats.elo}</span>
@@ -403,10 +424,10 @@ export default function ProfilePage() {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.4 + index * 0.1 }}
-                                            className="glass-card rounded-xl p-3 text-center border border-white/5 hover:border-gold-royal/20 transition-colors min-w-[80px]"
+                                            className="glass-card rounded-xl p-3 text-center border border-border-glass hover:border-gold-royal/20 transition-colors min-w-[80px]"
                                         >
                                             <stat.icon className="w-5 h-5 text-gold-royal mx-auto mb-1" />
-                                            <p className="text-gray-500 text-[10px] uppercase tracking-wider">{stat.label}</p>
+                                            <p className="text-text-muted text-[10px] uppercase tracking-wider">{stat.label}</p>
                                             <p className="font-display text-lg text-gold-light">
                                                 {typeof stat.value === 'number' ? (
                                                     <CountUp start={0} end={stat.value} useEasing={true} duration={2} />
@@ -437,9 +458,9 @@ export default function ProfilePage() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.4, duration: 0.5 }}
-                        className="md:w-64 flex-shrink-0"
+                        className="md:w-64 shrink-0"
                     >
-                        <div className="glass-card rounded-2xl p-4 border border-white/5 space-y-2">
+                        <div className="glass-card rounded-2xl p-4 border border-border-glass space-y-2">
                             {tabs.map((tab, index) => (
                                 <NavTab
                                     key={tab.label}
@@ -472,6 +493,50 @@ export default function ProfilePage() {
                             )}
                             {activeTab === 2 && (
                                 <motion.div
+                                    key="assets"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <ItemInventory />
+                                </motion.div>
+                            )}
+                            {activeTab === 3 && (
+                                <motion.div
+                                    key="achievements"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <HistoricalAchievements />
+                                </motion.div>
+                            )}
+                            {activeTab === 4 && (
+                                <motion.div
+                                    key="journal"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <CollectorJournal />
+                                </motion.div>
+                            )}
+                            {activeTab === 5 && (
+                                <motion.div
+                                    key="transactions"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <TransactionHistory />
+                                </motion.div>
+                            )}
+                            {activeTab === 6 && (
+                                <motion.div
                                     key="settings"
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -485,6 +550,17 @@ export default function ProfilePage() {
                     </div>
                 </div>
             </div>
+
+            <AvatarSelector
+                isOpen={isAvatarSelectorOpen}
+                onClose={() => setIsAvatarSelectorOpen(false)}
+                currentAvatar={avatar}
+                onAvatarUpdate={(newUrl: string) => {
+                    // State update logic is handled in selector via setAuthData
+                    // But we can trigger a refetch if needed, though setAuthData should suffice
+                    console.log("Avatar Updated:", newUrl);
+                }}
+            />
         </main>
     )
 }

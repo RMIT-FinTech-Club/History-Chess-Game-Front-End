@@ -14,6 +14,7 @@ import GameModeSelector from "./GameModeSelector";
 import SideSelector from "./SideSelector";
 import { GameMode, Player, Side } from "./types";
 import BoardChoose, { getCustomPieces } from "./PiecesBoardSelector";
+import SkinSelector from "./SkinSelector";
 import { useMatchmaking } from "./hooks/useMatchmaking";
 
 import "@/css/chessboard.css";
@@ -45,6 +46,7 @@ export default function Challenge() {
     const [showPlayerSelect, setShowPlayerSelect] = useState(false);
     const [selectedPlayer, setSelectedPlayer] = useState<Player>(RANDOM_PLAYER);
     const [boardId, setBoardId] = useState("historyChessBoard");
+    const [selectedSkin, setSelectedSkin] = useState<string | null>(null);
 
     // Matchmaking hook for random matches
     const { isConnected, isSearching, findMatch, cancelMatchmaking } = useMatchmaking({
@@ -135,11 +137,11 @@ export default function Challenge() {
                 </div>
 
                 {/* Left: Chessboard Section */}
-                <div className="relative flex-shrink-0 flex items-center justify-center">
+                <div className="relative shrink-0 flex items-center justify-center">
                     {/* Board Container with subtle glow */}
                     <div className="relative">
                         {/* Gold border glow effect */}
-                        <div className="absolute -inset-1 bg-gradient-to-br from-gold-main/40 via-transparent to-gold-deep/40 rounded-lg blur-sm opacity-60" />
+                        <div className="absolute -inset-1 bg-linear-to-br from-gold-main/40 via-transparent to-gold-deep/40 rounded-lg blur-sm opacity-60" />
 
                         <div className="relative rounded-lg overflow-hidden shadow-2xl">
                             <Chessboard
@@ -148,7 +150,7 @@ export default function Challenge() {
                                 boardWidth={height}
                                 animationDuration={0}
                                 arePiecesDraggable={false}
-                                customPieces={getCustomPieces(boardId)}
+                                customPieces={getCustomPieces(boardId, selectedSkin || undefined)}
                             />
                         </div>
                     </div>
@@ -166,9 +168,9 @@ export default function Challenge() {
                     <div
                         className="
                             flex-1 flex flex-col
-                            bg-gradient-to-br from-[#1a1614]/95 via-[#252220]/90 to-[#1a1614]/95
+                            bg-linear-to-br from-[#1a1614]/95 via-[#252220]/90 to-[#1a1614]/95
                             backdrop-blur-xl
-                            border border-white/10
+                            border border-border-glass
                             rounded-2xl
                             shadow-2xl
                             overflow-hidden
@@ -177,12 +179,12 @@ export default function Challenge() {
                         {/* Header with gold accent line */}
                         <div className="relative px-5 pt-5 pb-3">
                             {/* Gold top accent */}
-                            <div className="absolute top-0 left-5 right-5 h-[2px] bg-gradient-to-r from-transparent via-gold-highlight to-transparent" />
+                            <div className="absolute top-0 left-5 right-5 h-[2px] bg-linear-to-r from-transparent via-gold-highlight to-transparent" />
 
                             <h1 className="font-display text-xl md:text-2xl tracking-widest gold-gradient-text text-center">
                                 PLAY ONLINE
                             </h1>
-                            <p className="font-serif text-xs text-white/50 mt-1 text-center">
+                            <p className="font-serif text-xs text-text-muted mt-1 text-center">
                                 {isSpecificPlayerSelected
                                     ? `Challenging ${selectedPlayer.username}`
                                     : "Select opponent or find random match"}
@@ -193,7 +195,7 @@ export default function Challenge() {
                         <div className="flex-1 overflow-y-auto px-5 py-3 space-y-4">
                             {/* Opponent Selection */}
                             <section>
-                                <label className="block font-serif text-[10px] font-semibold text-white/60 mb-1.5 uppercase tracking-widest">
+                                <label className="block font-serif text-[10px] font-semibold text-text-secondary mb-1.5 uppercase tracking-widest">
                                     Opponent
                                 </label>
                                 <PlayerSelector
@@ -215,11 +217,11 @@ export default function Challenge() {
                             </section>
 
                             {/* Divider */}
-                            <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                            <div className="h-px bg-linear-to-r from-transparent via-border-glass to-transparent" />
 
                             {/* Game Mode */}
                             <section>
-                                <label className="block font-serif text-[10px] font-semibold text-white/60 mb-1.5 uppercase tracking-widest">
+                                <label className="block font-serif text-[10px] font-semibold text-text-secondary mb-1.5 uppercase tracking-widest">
                                     Time Control
                                 </label>
                                 <GameModeSelector
@@ -229,22 +231,33 @@ export default function Challenge() {
                             </section>
 
                             {/* Divider */}
-                            <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                            <div className="h-px bg-linear-to-r from-transparent via-border-glass to-transparent" />
 
                             {/* Board Theme */}
                             <section>
-                                <label className="block font-serif text-[10px] font-semibold text-white/60 mb-1.5 uppercase tracking-widest">
+                                <label className="block font-serif text-[10px] font-semibold text-text-secondary mb-1.5 uppercase tracking-widest">
                                     Board Theme
                                 </label>
                                 <BoardChoose selected={boardId} onSelect={setBoardId} />
                             </section>
 
                             {/* Divider */}
-                            <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                            <div className="h-px bg-linear-to-r from-transparent via-border-glass to-transparent" />
+
+                            {/* Skin Selector */}
+                            <section>
+                                <label className="block font-serif text-[10px] font-semibold text-text-secondary mb-1.5 uppercase tracking-widest">
+                                    King Skin
+                                </label>
+                                <SkinSelector selectedSkin={selectedSkin} onSelect={setSelectedSkin} />
+                            </section>
+
+                            {/* Divider */}
+                            <div className="h-px bg-linear-to-r from-transparent via-border-glass to-transparent" />
 
                             {/* Side Selection */}
                             <section>
-                                <label className="block font-serif text-[10px] font-semibold text-white/60 mb-1.5 uppercase tracking-widest">
+                                <label className="block font-serif text-[10px] font-semibold text-text-secondary mb-1.5 uppercase tracking-widest">
                                     Play As
                                 </label>
                                 <SideSelector
@@ -267,8 +280,8 @@ export default function Challenge() {
                                     ${buttonState.isCancel
                                         ? "bg-red-600 hover:bg-red-700 text-white shadow-red-900/30"
                                         : buttonState.disabled
-                                            ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                                            : "bg-gradient-to-r from-gold-main via-gold-dark to-gold-deep hover:from-gold-hover-main hover:via-gold-hover-mid hover:to-gold-hover-deep text-black hover:text-white shadow-gold-main/20"
+                                            ? "bg-surface-glass border border-border-glass text-text-muted cursor-not-allowed"
+                                            : "bg-linear-to-r from-gold-main via-gold-dark to-gold-deep hover:from-gold-hover-main hover:via-gold-hover-mid hover:to-gold-hover-deep text-black hover:text-white shadow-gold-main/20"
                                     }
                                     ${isSearching ? "animate-pulse" : ""}
                                 `}

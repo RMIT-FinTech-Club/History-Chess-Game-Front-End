@@ -4,8 +4,7 @@
    PAGE LAYOUT
    ======================================== */
 .pageContainer {
-    min-height: calc(100dvh - var(--navbar-height, 64px));
-    max-height: calc(100dvh - var(--navbar-height, 64px));
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     background: linear-gradient(180deg,
@@ -14,7 +13,10 @@
             #1a1a1a 70%,
             var(--color-bg-dark) 100%);
     position: relative;
-    overflow: hidden;
+
+    /* Pull background up behind the navbar */
+    margin-top: calc(var(--navbar-height, 80px) * -1);
+    padding-top: var(--navbar-height, 80px);
 }
 
 .pageContainer::before {
@@ -596,6 +598,59 @@
     object-fit: cover;
     border: 3px solid var(--color-gold-royal);
     box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+/* NFT Status Styles */
+.nftStatusContainer {
+    margin-top: 0.75rem;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.mintingBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    border-radius: 2rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.75rem;
+    font-family: var(--font-serif);
+}
+
+.spinnerSmall {
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.verifiedBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    background: linear-gradient(90deg, 
+        rgba(0, 255, 127, 0.05) 0%, 
+        rgba(0, 255, 127, 0.15) 100%);
+    border: 1px solid rgba(0, 255, 127, 0.3);
+    border-radius: 2rem;
+    color: #4ade80; /* Green-400 */
+    font-size: 0.75rem;
+    font-family: var(--font-serif);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.verifiedBadge:hover {
+    background: rgba(0, 255, 127, 0.2);
+    border-color: rgba(0, 255, 127, 0.5);
+    transform: translateY(-1px);
 }
 
 .modalTitleGroup {

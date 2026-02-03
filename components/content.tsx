@@ -1,11 +1,13 @@
-import { ReactNode } from "react"
+import { ReactNode, HTMLAttributes } from "react"
 
-type ContentProps = { children: ReactNode }
+interface ContentProps extends HTMLAttributes<HTMLElement> {
+    children: ReactNode
+}
 
-function Content({ children }: ContentProps) {
+function Content({ children, className = "", ...props }: ContentProps) {
 
     return (
-        <main className="overflow-x-clip">
+        <main className={`overflow-x-clip ${className}`} {...props}>
             {children}
         </main>
     )

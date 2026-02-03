@@ -36,24 +36,25 @@ export default function BoardChoose({ selected, onSelect, }: { selected: string;
 
 
   return (
-    <div className="relative inline-flex items-center space-x-2">
-      <h3 className="font-serif text-white text-sm font-semibold">Dynasty choose</h3>
-      <div className="relative">
+    <div className="relative inline-flex items-center space-x-2 w-full">
+      <div className="relative w-full">
         <button
           onClick={() => setOpen((prev) => !prev)}
-          className="bg-gray-800 text-white text-sm px-4 py-2 rounded-md shadow-md hover:bg-gray-700"
+          className="w-full flex items-center justify-between bg-surface-glass text-text-muted px-4 py-3 rounded-lg border border-border-glass hover:bg-white/5 transition-colors"
         >
           <span className="font-serif">{dynastyThemes.find((d) => d.id === selected)?.label ?? "Select Board"}</span>
-          <span className="ml-2">▾</span>
+          <span className="ml-2 text-gold-highlight">▾</span>
         </button>
 
         {open && (
-          <div className="absolute z-50 mt-2 w-full bg-white rounded-md shadow-lg text-sm text-black">
+          <div className="absolute z-50 mt-2 w-full bg-[#2A2524] backdrop-blur-xl rounded-lg shadow-2xl border border-border-glass overflow-hidden">
             {dynastyThemes.map((theme) => (
               <div
                 key={theme.id}
                 onClick={() => handleSelect(theme.id)}
-                className={`px-4 py-2 cursor-pointer hover:bg-gray-200 ${selected === theme.id ? "bg-yellow-100 font-semibold" : ""
+                className={`px-4 py-2 cursor-pointer transition-colors ${selected === theme.id
+                  ? "bg-gold-highlight/20 text-gold-highlight font-semibold"
+                  : "text-text-secondary hover:bg-surface-glass"
                   }`}
               >
                 <span className="font-serif">{theme.label}</span>
@@ -67,7 +68,7 @@ export default function BoardChoose({ selected, onSelect, }: { selected: string;
 }
 
 // PNG version of the pieces
-export function getCustomPieces(boardId: string) {
+export function getCustomPieces(boardId: string, kingSkinUrl?: string) {
   const theme = boardPieceColors[boardId] || boardPieceColors["historyChessBoard"];
 
   const pieceTypes = [
@@ -75,36 +76,39 @@ export function getCustomPieces(boardId: string) {
     "bK", "bQ", "bR", "bB", "bN", "bP",
   ];
 
-  const customPieces: { [key: string]: () => JSX.Element } = {};
+  const customPieces: { [key: string]: React.FC<any> } = {};
 
   pieceTypes.forEach((type) => {
+    // If it's the White King and we have a custom skin, use that
+    const imagePath = (type === "wK" && kingSkinUrl)
+      ? kingSkinUrl
+      : `/pieces/${boardId}/${type}.png`;
 
-    const imagePath = `/pieces/${boardId}/${type}.png`;
-    customPieces[type] = () => (
+    // We assume the component will receive props including squareWidth
+    customPieces[type] = ({ squareWidth, isDragging }: { squareWidth: number; isDragging: boolean }) => (
       <div
         style={{
-          width: "100%",
-          height: "100%",
-          padding: "6%",
-          borderRadius: "24px",
+          width: squareWidth,
+          height: squareWidth,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          opacity: isDragging ? 0 : 1, // Hide original piece while dragging
         }}
       >
         <img
           src={imagePath}
           alt={type}
           style={{
-            width: "100%",
-            height: "100%",
+            width: "80%",
+            height: "80%",
             objectFit: "contain",
-            pointerEvents: "none", // prevent interaction issues during drag
+            pointerEvents: "none",
             userSelect: "none",
+            // If dragging, we can either hide the image here or rely on opacity 0 on container
+            // display: isDragging ? "none" : "block", 
           }}
-          draggable={false}
         />
-
       </div>
     );
   });

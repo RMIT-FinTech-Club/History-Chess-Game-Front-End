@@ -1,73 +1,77 @@
 "use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import Clock from "@/public/challenge/SVG/clock";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Zap, Rocket, Hourglass } from "lucide-react";
 import { GameMode, GameModeSelectorProps } from "./types";
 
-const modeOptions: { label: string; value: GameMode; description: string; details: string }[] = [
+const modeOptions: { label: string; value: GameMode; icon: React.ElementType }[] = [
     {
-        label: 'blitz',
-        value: 'blitz',
-        description: 'A fast-paced game mode where each player has a total of 3 minutes to make all their moves. Perfect for quick matches!',
-        details: 'Blitz'
-    },
-    {
-        label: 'rapid',
-        value: 'rapid',
-        description: 'A more relaxed game mode where each player has a total of 10 minutes to make all their moves. Ideal for players who enjoy a bit more time to think.',
-        details: 'Rapid'
-    },
-    {
-        label: 'bullet',
+        label: 'Bullet',
         value: 'bullet',
-        description: 'An ultra-fast game mode where each player has only 1 minute to make all their moves. A true test of speed and skill!',
-        details: 'Bullet'
+        icon: Rocket
+    },
+    {
+        label: 'Blitz',
+        value: 'blitz',
+        icon: Zap
+    },
+    {
+        label: 'Rapid',
+        value: 'rapid',
+        icon: Hourglass
     },
 ];
 
 export default function GameModeSelector({ selectedMode, onModeChange }: GameModeSelectorProps) {
     return (
-        <div className="h-full w-full">
+        <div className="w-full">
             <Tabs
                 value={selectedMode}
                 onValueChange={(value) => onModeChange(value as GameMode)}
-                className="w-full h-full flex flex-col justify-around items-center"
+                className="w-full"
             >
-                <TabsList className="grid w-full h-[max-content] grid-cols-3 gap-x-[2vh] bg-transparent p-0 my-auto">
+                <TabsList className="grid w-full grid-cols-3 gap-3 bg-transparent p-0 h-auto">
                     {modeOptions.map((opt) => (
                         <TabsTrigger
                             key={opt.value}
                             value={opt.value}
                             className={`
-                                h-auto w-full flex !py-4 col-span-1 group gap-4
-                                !bg-black !text-white
-                                data-[state=active]:!bg-[#DBB968] data-[state=active]:!text-black
-                                hover:!bg-[#DBB968] hover:!text-black
-                                focus:!outline-none focus:!ring-2 focus:!ring-[#DBB968]
-                                transition-all duration-200
+                                relative overflow-hidden
+                                flex flex-col items-center gap-2 py-4
+                                border transition-all duration-300
+                                data-[state=inactive]:bg-surface-glass 
+                                data-[state=inactive]:border-border-glass 
+                                data-[state=inactive]:text-text-muted 
+                                data-[state=inactive]:hover:bg-surface-glass 
+                                data-[state=inactive]:hover:text-gold-light
+                                data-[state=inactive]:hover:border-gold-royal/30
+
+                                data-[state=active]:bg-gold-royal/20 
+                                data-[state=active]:border-gold-royal/60 
+                                data-[state=active]:text-gold-light 
+                                data-[state=active]:shadow-[0_0_20px_rgba(219,185,104,0.15)]
                             `}
                         >
-                            <Clock
-                                fill={selectedMode === opt.value ? '#000' : '#DBB968'}
-                                classes="!w-10 !h-10 aspect-square bg-center group-hover:rotate-20 transition-transform duration-200"
-                            />
-                            <p className="font-serif text-[1.1rem] font-bold uppercase text-nowrap">{opt.label}</p>
+                            <div className={`
+                                p-2 rounded-full transition-all duration-300
+                                ${selectedMode === opt.value
+                                    ? 'bg-gold-royal text-bg-dark'
+                                    : 'bg-surface-glass group-hover:bg-gold-royal/20'}
+                            `}>
+                                <opt.icon className="w-5 h-5" />
+                            </div>
+
+                            <span className="font-display font-bold uppercase tracking-wider text-xs">
+                                {opt.label}
+                            </span>
+
+                            {/* Active Indicator Line */}
+                            {selectedMode === opt.value && (
+                                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gold-shimmer shadow-[0_-2px_6px_rgba(219,185,104,0.5)]" />
+                            )}
                         </TabsTrigger>
                     ))}
                 </TabsList>
-                <div className="w-full my-auto">
-                    {modeOptions.map((opt) => (
-                        <TabsContent key={opt.value} value={opt.value}>
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="font-display">{opt.details}</CardTitle>
-                                    <CardDescription className="font-serif">{opt.description}</CardDescription>
-                                </CardHeader>
-                            </Card>
-                        </TabsContent>
-                    ))}
-                </div>
             </Tabs>
         </div>
     );

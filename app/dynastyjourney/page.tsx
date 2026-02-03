@@ -20,28 +20,29 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 	{
 		id: 1,
 		name: "Ngô Dynasty",
-		nameChinese: "吳朝",
 		startElo: 0,
 		endElo: 199,
-		imageUrl: "https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
-		description: "The first independent dynasty after 1000 years of Chinese rule.",
+		imageUrl: "/dynasties/ngo_dynasty.png",
+		description: "After a thousand years of Northern domination, Ngô Quyền defeated the Southern Han fleet at the Battle of Bạch Đằng, reclaiming Vietnamese independence.",
 		reward: {
-			skinName: "Bronze Warrior King",
-			skinDescription: "A chess skin inspired by the legendary Ngô Quyền",
-			skinImageUrl: "https://ik.imagekit.io/historygame/ngoquyen.jpg",
-			items: [],
+			skinName: "Ngô Quyền - The Tide Caller",
+			skinDescription: "A warrior king in bronze armor, standing amidst waves. Features ancient corroded bronze with wave patterns.",
+			skinImageUrl: "/dynasties/ngo_quyen_skin_king.png",
+			items: [
+				{ name: "Ironwood Stake", description: "A sharp wooden stake used to sink enemy ships at Bạch Đằng.", imageUrl: "/items/ironwood_stake.png" }
+			],
 		},
 		botLevel: 1,
 		boardTheme: {
-			light: "#D4C4A8",
-			dark: "#8B6914",
-			accent: "#CD853F"
+			light: "#DECDBE",
+			dark: "#8B4513",
+			accent: "#4682B4"
 		}
 	},
 	{
 		id: 2,
 		name: "Đinh Dynasty",
-		nameChinese: "丁朝",
+
 		startElo: 200,
 		endElo: 399,
 		imageUrl: "https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
@@ -62,7 +63,7 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 	{
 		id: 3,
 		name: "Early Lê Dynasty",
-		nameChinese: "前黎朝",
+
 		startElo: 400,
 		endElo: 599,
 		imageUrl: "https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
@@ -83,7 +84,7 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 	{
 		id: 4,
 		name: "Lý Dynasty",
-		nameChinese: "李朝",
+
 		startElo: 600,
 		endElo: 799,
 		imageUrl: "https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
@@ -104,7 +105,7 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 	{
 		id: 5,
 		name: "Trần Dynasty",
-		nameChinese: "陳朝",
+
 		startElo: 800,
 		endElo: 999,
 		imageUrl: "https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
@@ -125,7 +126,7 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 	{
 		id: 6,
 		name: "Hồ Dynasty",
-		nameChinese: "胡朝",
+
 		startElo: 1000,
 		endElo: 1199,
 		imageUrl: "https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
@@ -146,7 +147,7 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 	{
 		id: 7,
 		name: "Later Lê Dynasty",
-		nameChinese: "後黎朝",
+
 		startElo: 1200,
 		endElo: 1399,
 		imageUrl: "https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
@@ -167,7 +168,7 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 	{
 		id: 8,
 		name: "Mạc Dynasty",
-		nameChinese: "莫朝",
+
 		startElo: 1400,
 		endElo: 1599,
 		imageUrl: "https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
@@ -188,7 +189,7 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 	{
 		id: 9,
 		name: "Tây Sơn Dynasty",
-		nameChinese: "西山朝",
+
 		startElo: 1600,
 		endElo: 1799,
 		imageUrl: "https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
@@ -209,7 +210,7 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 	{
 		id: 10,
 		name: "Nguyễn Dynasty",
-		nameChinese: "阮朝",
+
 		startElo: 1800,
 		endElo: 2000,
 		imageUrl: "https://ik.imagekit.io/historygame/ngoquyen.jpg?updatedAt=1755866819730",
@@ -229,23 +230,17 @@ const FALLBACK_DYNASTIES: Dynasty[] = [
 	},
 ];
 
-// Helper to calculate dynasty and level from Elo
-function getDynastyFromElo(elo: number, dynasties: Dynasty[]): Dynasty {
-	return dynasties.find((d) => elo >= d.startElo && elo <= d.endElo) || dynasties[0];
+// Helper to calculate dynasty and level from dynastyLevel
+function getDynastyFromLevel(level: number, dynasties: Dynasty[]): Dynasty {
+	const LEVELS_PER_DYNASTY = 5;
+	const dynastyId = Math.floor((level - 1) / LEVELS_PER_DYNASTY) + 1;
+	const clampedId = Math.min(dynastyId, dynasties.length);
+	return dynasties[clampedId - 1] || dynasties[0];
 }
 
-function getLevelFromElo(elo: number, dynasty: Dynasty): number {
-	const eloPerLevel = 40;
-	const eloWithinDynasty = elo - dynasty.startElo;
-	return Math.min(5, Math.floor(eloWithinDynasty / eloPerLevel) + 1);
-}
-
-function getLevelEloRange(elo: number, dynasty: Dynasty): { start: number; end: number } {
-	const eloPerLevel = 40;
-	const level = getLevelFromElo(elo, dynasty);
-	const start = dynasty.startElo + (level - 1) * eloPerLevel;
-	const end = start + eloPerLevel - 1;
-	return { start, end };
+function getRankWithinDynasty(level: number): number {
+	const LEVELS_PER_DYNASTY = 5;
+	return ((level - 1) % LEVELS_PER_DYNASTY) + 1;
 }
 
 export default function DynastyJourney() {
@@ -254,6 +249,7 @@ export default function DynastyJourney() {
 
 	const [dynasties, setDynasties] = useState<Dynasty[]>(FALLBACK_DYNASTIES);
 	const [progress, setProgress] = useState<DynastyProgress | null>(null);
+	const [userTransactions, setUserTransactions] = useState<any[]>([]);
 	const [selectedDynasty, setSelectedDynasty] = useState<Dynasty | null>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
@@ -291,46 +287,59 @@ export default function DynastyJourney() {
 		}
 	}, [accessToken]);
 
+	// Fetch user transactions (for NFT status)
+	const fetchTransactions = useCallback(async () => {
+		if (!accessToken) return;
+		try {
+			const response = await axiosInstance.get("/wallet/transactions", {
+				headers: { Authorization: `Bearer ${accessToken}` },
+			});
+			if (response.data.success) {
+				setUserTransactions(response.data.data);
+			}
+		} catch (error) {
+			console.warn("Failed to fetch transactions:", error);
+		}
+	}, [accessToken]);
+
 	useEffect(() => {
 		const loadData = async () => {
 			setIsLoading(true);
 			await fetchDynasties();
 			await fetchProgress();
+			await fetchTransactions();
 			setIsLoading(false);
 		};
 		loadData();
-	}, [fetchDynasties, fetchProgress]);
+	}, [fetchDynasties, fetchProgress, fetchTransactions]);
 
 	// Compute current state from progress or defaults
 	const currentState = useMemo(() => {
 		if (progress) {
 			return {
-				currentElo: progress.currentElo,
+				dynastyLevel: progress.dynastyLevel ?? 1,
+				dynastyXp: progress.dynastyXp ?? 0,
+				xpToNextLevel: progress.xpToNextLevel ?? 500,
+				xpProgressPercentage: progress.xpProgressPercentage ?? 0,
 				currentDynasty: progress.currentDynasty,
-				currentLevel: progress.currentLevel,
-				levelEloRange: progress.levelEloRange,
-				progressPercentage: progress.progressPercentage,
+				currentLevel: progress.currentLevel, // Rank within dynasty (1-5)
 				unlockedDynastyIds: new Set(progress.unlockedDynasties.map((d) => d.id)),
 			};
 		}
 
-		// Default for non-logged in users
-		const defaultElo = 400;
-		const currentDynasty = getDynastyFromElo(defaultElo, dynasties);
-		const currentLevel = getLevelFromElo(defaultElo, currentDynasty);
-		const levelEloRange = getLevelEloRange(defaultElo, currentDynasty);
-		const progressPercentage =
-			((defaultElo - levelEloRange.start) / (levelEloRange.end - levelEloRange.start + 1)) * 100;
+		// Default for non-logged in users (Level 1)
+		const defaultLevel = 1;
+		const currentDynasty = getDynastyFromLevel(defaultLevel, dynasties);
+		const currentRank = getRankWithinDynasty(defaultLevel);
 
 		return {
-			currentElo: defaultElo,
+			dynastyLevel: defaultLevel,
+			dynastyXp: 0,
+			xpToNextLevel: 500,
+			xpProgressPercentage: 0,
 			currentDynasty,
-			currentLevel,
-			levelEloRange,
-			progressPercentage,
-			unlockedDynastyIds: new Set(
-				dynasties.filter((d) => d.startElo <= defaultElo).map((d) => d.id)
-			),
+			currentLevel: currentRank,
+			unlockedDynastyIds: new Set([1]), // Only first dynasty unlocked by default
 		};
 	}, [progress, dynasties]);
 
@@ -364,6 +373,45 @@ export default function DynastyJourney() {
 		);
 	}
 
+	// Helper to find NFT status for a dynasty
+	const getNftStatusForDynasty = (dynasty: Dynasty | null) => {
+		if (!dynasty || !userTransactions.length) return undefined;
+
+		// Find a transaction related to this dynasty's skin
+		// WE assume the backend logs "Dynasty Skin (Level X)" or similar
+		// Or we match based on approximate timestamp vs unlock time?
+		// Ideally we'd have `nftId` or `metadataId` in the transaction log.
+		// For now, let's filter by type "SKIN_MINTING" and try to match.
+		// Or we just find ANY skin minting transaction that might be relevant.
+
+		// BETTER: The backend `logSkinMinting` uses `transactionType: 'SKIN_MINTING'`
+		// and puts details in description or metadata?
+		// Let's assume the transaction list contains `transactionType` and `nftId`.
+
+		// Simplest heuristic for now: Find latest "SKIN_MINTING" if recent?
+		// No, that's flaky. 
+		// Let's look for `nftId` matching the dynasty reward (if we knew it).
+		// Since we don't have the token ID config here in frontend, 
+		// we will check if ANY 'SKIN_MINTING' transaction exists.
+
+		// If we want to be precise, we need `skinTokenId` in the Dynasty object from API.
+		// Assuming userTransactions has a field `nftId` or similar from the log.
+
+		const tx = userTransactions.find(t =>
+			t.transactionType === 'SKIN_MINTING' &&
+			(t.skinName?.includes(dynasty.name) || t.description?.includes('Skin')) // Loose match
+		);
+
+		if (tx) {
+			return {
+				txHash: tx.transactionHash,
+				isMinting: tx.status === 'pending',
+				isConfirmed: tx.status === 'confirmed' || tx.status === 'success'
+			};
+		}
+		return undefined;
+	};
+
 	return (
 		<div className={styles.pageContainer}>
 			{/* Header */}
@@ -377,9 +425,9 @@ export default function DynastyJourney() {
 			{/* Progress Cards */}
 			<section className={styles.progressSection}>
 				<div className={styles.progressCard}>
-					<span className={styles.progressLabel}>Current Elo</span>
+					<span className={styles.progressLabel}>Dynasty Level</span>
 					<span className={`${styles.progressValue} ${styles.progressValueLarge}`}>
-						{currentState.currentElo}
+						{currentState.dynastyLevel}
 					</span>
 				</div>
 				<div className={styles.progressCard}>
@@ -389,7 +437,7 @@ export default function DynastyJourney() {
 					</span>
 				</div>
 				<div className={styles.progressCard}>
-					<span className={styles.progressLabel}>Level</span>
+					<span className={styles.progressLabel}>Rank</span>
 					<span className={styles.progressValue}>
 						{currentState.currentLevel} / 5
 					</span>
@@ -406,12 +454,12 @@ export default function DynastyJourney() {
 				/>
 			</section>
 
-			{/* ELO Progress Bar */}
+			{/* XP Progress Bar */}
 			<ProgressBar
-				currentElo={currentState.currentElo}
-				levelStartElo={currentState.levelEloRange.start}
-				levelEndElo={currentState.levelEloRange.end}
-				progressPercentage={currentState.progressPercentage}
+				dynastyLevel={currentState.dynastyLevel}
+				dynastyXp={currentState.dynastyXp}
+				xpToNextLevel={currentState.xpToNextLevel}
+				xpProgressPercentage={currentState.xpProgressPercentage}
 			/>
 
 			{/* Dynasty Detail Modal */}
@@ -428,6 +476,7 @@ export default function DynastyJourney() {
 						? currentState.currentLevel
 						: 1
 				}
+				nftStatus={getNftStatusForDynasty(selectedDynasty)}
 				onClose={handleCloseModal}
 				onPlay={handlePlay}
 			/>

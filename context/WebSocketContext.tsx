@@ -85,33 +85,78 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     socketInstanceRef.current = newSocketInstance; // Store in ref
     setSocket(newSocketInstance); // Update state
 
+    // --- Reconnection Logic & Toasts ---
+    let reconnectToastId: string | number | null = null;
+
+    const dismissReconnectToast = () => {
+      if (reconnectToastId) {
+        toast.dismiss(reconnectToastId);
+        reconnectToastId = null;
+      }
+    };
+
+    const showReconnectToast = (attempt: number) => {
+      dismissReconnectToast();
+      reconnectToastId = toast.loading(
+        `Reconnecting to the realm... (Attempt ${attempt})`,
+        {
+          description: "Connection lost. Attempting to restore...",
+          duration: Infinity,
+        }
+      );
+    };
+
     // --- Event Handlers ---
     const onConnect = () => {
       console.log("SocketContext: Connected to WebSocket server.");
       setIsConnected(true);
+
+      // If we had a reconnection toast, it means we recovered
+      if (reconnectToastId) {
+        dismissReconnectToast();
+        toast.success("Connection restored", {
+          description: "You have reconnected to the realm.",
+          duration: 3000
+        });
+      }
+
       newSocketInstance.emit('identify', userId);
     };
 
     const onDisconnect = (reason: Socket.DisconnectReason) => {
       console.log("SocketContext: Disconnected from WebSocket server. Reason:", reason);
       setIsConnected(false);
-      if (reason === 'io server disconnect' || reason === 'transport close' || reason === 'ping timeout') {
-        // Consider redirecting or re-authenticating if server disconnects for authentication reasons
-        console.warn("SocketContext: Server initiated disconnect or connection issue.");
-        // You might choose to re-authenticate here more aggressively if needed
+
+      if (reason === 'io server disconnect') {
+        // Explicit disconnection by server
+        toast.error("Disconnected from server", { description: "Please refresh the page." });
+      } else {
+        // Immediate feedback for accidental disconnects to avoid "silent" period
+        if (!reconnectToastId) {
+          reconnectToastId = toast.loading("Connection lost. Reconnecting...", {
+            description: "Attempting to restore connection...",
+            duration: Infinity,
+          });
+        }
       }
     };
 
     const onConnectError = (error: Error) => {
       console.error("SocketContext: Connection error:", error);
       setIsConnected(false);
-      // This might indicate an invalid token, so consider redirecting
+
+      // Only show error for critical auth failures
       if (error.message.includes('Authentication error') || error.message.includes('invalid token')) {
+        dismissReconnectToast();
         toast.error("Authentication failed. Please log in again.", { duration: 5000 });
         clearAuth();
         router.push('/sign_in');
       } else {
-        toast.error(`Socket connection failed: ${error.message}`, { duration: 5000 });
+        // For generic errors (like initial connection failure), ensure a toast is shown immediately
+        // if one isn't already active.
+        if (!reconnectToastId) {
+          showReconnectToast(1);
+        }
       }
     };
 
@@ -120,13 +165,38 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     newSocketInstance.on('disconnect', onDisconnect);
     newSocketInstance.on('connect_error', onConnectError);
 
+    // Register reconnection listeners on the manager
+    newSocketInstance.io.on("reconnect_attempt", (attempt) => {
+      console.log(`SocketContext: Reconnection attempt ${attempt}`);
+      showReconnectToast(attempt);
+    });
+
+    newSocketInstance.io.on("reconnect_failed", () => {
+      console.error("SocketContext: Reconnection failed");
+      dismissReconnectToast();
+      toast.error("Connection failed", {
+        description: "Unable to reach the server. Please check your connection.",
+        action: {
+          label: "Refresh",
+          onClick: () => window.location.reload(),
+        },
+        duration: Infinity
+      });
+    });
+
     // --- Cleanup Function ---
     return () => {
       if (socketInstanceRef.current) {
         console.log("SocketContext: Cleaning up socket instance and listeners.");
+        dismissReconnectToast();
+
         newSocketInstance.off('connect', onConnect);
         newSocketInstance.off('disconnect', onDisconnect);
         newSocketInstance.off('connect_error', onConnectError);
+
+        newSocketInstance.io.off("reconnect_attempt");
+        newSocketInstance.io.off("reconnect_failed");
+
         newSocketInstance.disconnect(); // Disconnect the socket
         socketInstanceRef.current = null; // Clear the ref
       }

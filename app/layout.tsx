@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "../components/ThemeProvider";
 import { Toaster } from "sonner";
 import ClientWrapper from "@/context/ClientWrapper";
+import { AchievementProvider } from "@/context/AchievementContext";
 
 import "@/app/globals.css"
 import '@/css/styles.css'
@@ -47,15 +48,17 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${cinzel.variable} ${poppins.variable} ${roboto_mono.variable}`}>
       <body className="font-sans">
         <UserProvider>
-          <ThemeProvider
-            defaultTheme="dark"
-            attribute="class" // This tells the ThemeProvider to toggle 'dark'/'light' classes on the html tag
-            enableSystem={true}
-            disableTransitionOnChange={true}
-          >
-            <Toaster richColors position="top-center" />
-            <ClientWrapper>{children}</ClientWrapper>
-          </ThemeProvider>
+          <AchievementProvider>
+            <ThemeProvider
+              defaultTheme="dark"
+              attribute="class" // This tells the ThemeProvider to toggle 'dark'/'light' classes on the html tag
+              enableSystem={true}
+              disableTransitionOnChange={true}
+            >
+              <Toaster richColors position="top-center" />
+              <ClientWrapper>{children}</ClientWrapper>
+            </ThemeProvider>
+          </AchievementProvider>
         </UserProvider>
       </body>
     </html>

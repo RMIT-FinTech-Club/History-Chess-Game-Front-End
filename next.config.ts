@@ -1,11 +1,12 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'fintech-club-vietnamese-historical-chess-game.s3.ap-southeast-2.amazonaws.com',
+        hostname: 'history-chess-game.s3.ap-southeast-2.amazonaws.com',
         port: '',
         pathname: '/avatars/**',
       },
@@ -14,6 +15,24 @@ const nextConfig: NextConfig = {
         hostname: 'ik.imagekit.io',
         port: '',
         pathname: '/historygame/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.imgur.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'd2uq10394z5icp.cloudfront.net',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'history-chess-game.s3.ap-southeast-2.amazonaws.com',
+        port: '',
+        pathname: '/**',
       },
     ],
   },

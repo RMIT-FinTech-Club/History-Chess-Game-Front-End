@@ -46,7 +46,8 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/sign_in',
     '/sign_up',
     '/dynastyjourney',
-    '/home'
+    '/home',
+    '/match'
   ];
 
   const noNavBarRoutes = [
@@ -64,17 +65,17 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
     '/sign_up'
   ];
 
-  const showFooter = !noFooterRoutes.includes(pathname) && !isGamePage;
+  const showFooter = !noFooterRoutes.includes(pathname) && !isGamePage && !pathname.startsWith('/match');
   const showNavBar = !noNavBarRoutes.includes(pathname) && !isGamePage;
   const applySocketProvider = !noSocketRoutes.includes(pathname); // Renamed for clarity
 
   return (
     <>
-      {(showNavBar) && <NavBar />}
       {applySocketProvider ? (
         <SocketProvider>
           <LobbyProvider>
-            <Content>{children}</Content>
+            {showNavBar && <NavBar />}
+            <Content style={{ paddingTop: showNavBar ? "var(--navbar-height)" : 0 }}>{children}</Content>
             <GlobalChallengeModalManager />
             <GlobalGameRedirector />
           </LobbyProvider>
@@ -86,7 +87,10 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
         // If LobbyProvider itself doesn't strictly depend on SocketProvider for its
         // initial render or if it handles a disconnected socket gracefully, you might
         // consider its placement. For now, I'm assuming it's tightly coupled.
-        <Content>{children}</Content>
+        <>
+          {showNavBar && <NavBar />}
+          <Content style={{ paddingTop: showNavBar ? "var(--navbar-height)" : 0 }}>{children}</Content>
+        </>
       )}
       {showFooter && <Footer />}
     </>

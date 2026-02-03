@@ -81,7 +81,7 @@ const PlayerRow = ({ player, index }: { player: typeof players[0]; index: number
                     </div>
                     {/* Status dot */}
                     <div className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-black ${player.status === 'online' ? 'bg-green-500' :
-                            player.status === 'in-game' ? 'bg-yellow-500' : 'bg-blue-500'
+                        player.status === 'in-game' ? 'bg-yellow-500' : 'bg-blue-500'
                         }`} />
                 </div>
 
@@ -155,7 +155,7 @@ const SearchingIndicator = () => (
 
 export default function Step2() {
     return (
-        <section className="w-full py-20 relative z-10">
+        <section className="w-full min-h-screen flex flex-col justify-center py-20 relative z-10">
             <div className="container mx-auto px-6">
                 {/* Section Header */}
                 <motion.div

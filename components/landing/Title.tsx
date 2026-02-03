@@ -144,7 +144,7 @@ export default function Title() {
     return (
         <div
             ref={containerRef}
-            className="grid place-items-center relative text-white mb-[20vh] md:mb-[30vh] w-full h-[100vh] overflow-hidden"
+            className="grid place-items-center relative text-white mb-0 w-full h-screen overflow-hidden"
         >
             {/* Corner Ornaments */}
             <CornerOrnament position="top-left" />
@@ -173,7 +173,7 @@ export default function Title() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.8 }}
                 >
-                    Welcome to
+                    Rewrite
                 </motion.p>
 
                 {/* SVG Heading with golden glow */}
@@ -190,15 +190,26 @@ export default function Title() {
 
                 {/* Powered by text with icon */}
                 <motion.div
-                    className="flex items-center gap-3 mt-4"
+                    className="flex flex-col items-center gap-6 mt-4"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1, duration: 0.8 }}
                 >
-                    <span className="text-2xl">🏛️</span>
-                    <p className="md:text-[2.5rem] text-[1.8rem] font-light text-center font-serif text-gold-200/80">
-                        Powered by <span className="font-bold text-gold-400">RMIT Vietnam FinTech Club</span>
-                    </p>
+                    <div className="flex items-center gap-3">
+                        <span className="text-2xl">🏛️</span>
+                        <p className="md:text-[2rem] text-[1.5rem] font-light text-center font-serif text-gold-200/80">
+                            Where Grand Strategy Meets <span className="font-bold text-gold-400">Ancient Legacy</span>
+                        </p>
+                    </div>
+
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                        className="px-8 py-3 bg-gold-500/10 border border-gold-500/50 text-gold-400 font-display tracking-widest uppercase hover:bg-gold-500 hover:text-black transition-all duration-300 rounded-sm"
+                    >
+                        Explore The Game
+                    </motion.button>
                 </motion.div>
             </div>
 

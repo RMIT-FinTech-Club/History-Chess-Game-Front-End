@@ -5,7 +5,7 @@ import { Gamepad2, Clock, User, Swords, Trophy, XCircle, Minus, ChevronRight } f
 import { useRouter } from "next/navigation"
 import axiosInstance from "@/config/apiConfig"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
-import { MatchDetailsDialog } from "./MatchDetailsDialog"
+
 
 interface Match {
     gameId: string;
@@ -23,29 +23,29 @@ const ResultBadge = ({ result }: { result: string }) => {
         Victory: {
             icon: Trophy,
             color: 'text-green-400',
-            bg: 'bg-green-500/20',
-            border: 'border-green-500/40',
-            glow: 'shadow-[0_0_20px_rgba(34,197,94,0.3)]'
+            bg: 'bg-green-500/10',
+            border: 'border-green-500/20',
+            glow: 'shadow-[0_0_15px_rgba(74,222,128,0.1)]'
         },
         Defeat: {
             icon: XCircle,
             color: 'text-red-400',
-            bg: 'bg-red-500/20',
-            border: 'border-red-500/40',
-            glow: 'shadow-[0_0_20px_rgba(239,68,68,0.3)]'
+            bg: 'bg-red-500/10',
+            border: 'border-red-500/20',
+            glow: 'shadow-[0_0_15px_rgba(248,113,113,0.1)]'
         },
         Draw: {
             icon: Minus,
             color: 'text-yellow-400',
-            bg: 'bg-yellow-500/20',
-            border: 'border-yellow-500/40',
-            glow: 'shadow-[0_0_20px_rgba(234,179,8,0.3)]'
+            bg: 'bg-yellow-500/10',
+            border: 'border-yellow-500/20',
+            glow: 'shadow-[0_0_15px_rgba(250,204,21,0.1)]'
         }
     }[result] || {
         icon: Minus,
-        color: 'text-gray-400',
-        bg: 'bg-gray-500/20',
-        border: 'border-gray-500/40',
+        color: 'text-text-muted',
+        bg: 'bg-surface-glass',
+        border: 'border-border-glass',
         glow: ''
     };
 
@@ -71,15 +71,15 @@ const MatchCard = ({ match, index, onClick }: { match: Match; index: number; onC
     };
 
     const resultBorderColor = {
-        Victory: 'border-green-500/30 hover:border-green-500/50',
-        Defeat: 'border-red-500/30 hover:border-red-500/50',
-        Draw: 'border-yellow-500/30 hover:border-yellow-500/50'
-    }[match.result] || 'border-white/10';
+        Victory: 'border-green-500/20 hover:border-green-500/40',
+        Defeat: 'border-red-500/20 hover:border-red-500/40',
+        Draw: 'border-yellow-500/20 hover:border-yellow-500/40'
+    }[match.result] || 'border-border-glass';
 
     const resultGlow = {
-        Victory: 'hover:shadow-[0_0_30px_rgba(34,197,94,0.15)]',
-        Defeat: 'hover:shadow-[0_0_30px_rgba(239,68,68,0.15)]',
-        Draw: 'hover:shadow-[0_0_30px_rgba(234,179,8,0.15)]'
+        Victory: 'hover:shadow-[0_0_30px_rgba(74,222,128,0.05)]',
+        Defeat: 'hover:shadow-[0_0_30px_rgba(248,113,113,0.05)]',
+        Draw: 'hover:shadow-[0_0_30px_rgba(250,204,21,0.05)]'
     }[match.result] || '';
 
     const formatTime = (seconds: number) => {
@@ -129,25 +129,25 @@ const MatchCard = ({ match, index, onClick }: { match: Match; index: number; onC
                         className="cursor-pointer group/name"
                         onClick={handleProfileClick}
                     >
-                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-0.5">Opponent</p>
-                        <p className="text-white font-serif font-medium truncate max-w-[150px] group-hover/name:text-gold-light transition-colors">{match.opponent}</p>
+                        <p className="text-text-muted text-xs uppercase tracking-wider mb-0.5">Opponent</p>
+                        <p className="text-text-primary font-serif font-medium truncate max-w-[150px] group-hover/name:text-gold-light transition-colors">{match.opponent}</p>
                     </div>
 
                     {/* Game Mode */}
                     <div>
-                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-0.5">Game Mode</p>
+                        <p className="text-text-muted text-xs uppercase tracking-wider mb-0.5">Game Mode</p>
                         <div className="flex items-center justify-center md:justify-start gap-1.5">
                             <Swords className="w-3.5 h-3.5 text-gold-muted" />
-                            <p className="text-white font-serif">{match.playMode}</p>
+                            <p className="text-text-primary font-serif">{match.playMode}</p>
                         </div>
                     </div>
 
                     {/* Time */}
                     <div>
-                        <p className="text-gray-500 text-xs uppercase tracking-wider mb-0.5">Duration</p>
+                        <p className="text-text-muted text-xs uppercase tracking-wider mb-0.5">Duration</p>
                         <div className="flex items-center justify-center md:justify-start gap-1.5">
                             <Clock className="w-3.5 h-3.5 text-gold-muted" />
-                            <p className="text-white font-serif">{formatTime(match.totalTime)}</p>
+                            <p className="text-text-primary font-serif">{formatTime(match.totalTime)}</p>
                         </div>
                     </div>
                 </div>
@@ -155,7 +155,7 @@ const MatchCard = ({ match, index, onClick }: { match: Match; index: number; onC
                 {/* Result Badge */}
                 <div className="flex items-center gap-3">
                     <ResultBadge result={match.result} />
-                    <ChevronRight className="w-5 h-5 text-gray-500 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
+                    <ChevronRight className="w-5 h-5 text-text-muted opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
                 </div>
             </div>
         </motion.div>
@@ -163,6 +163,7 @@ const MatchCard = ({ match, index, onClick }: { match: Match; index: number; onC
 };
 
 export default function ProfileMatches({ playerId }: { playerId?: string }) {
+    const router = useRouter();
     const { userId, accessToken } = useGlobalStorage()
     // Use the passed playerId or fall back to the logged-in userId
     const targetUserId = playerId || userId;
@@ -171,19 +172,10 @@ export default function ProfileMatches({ playerId }: { playerId?: string }) {
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(true)
 
-    // Dialog State
-    const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [selectedMatchData, setSelectedMatchData] = useState<{ opponent: string, result: string, opponentId: string | null } | null>(null);
+
 
     const handleMatchClick = (match: Match) => {
-        setSelectedGameId(match.gameId);
-        setSelectedMatchData({
-            opponent: match.opponent,
-            result: match.result,
-            opponentId: match.opponentId
-        });
-        setIsDialogOpen(true);
+        router.push(`/match/${match.gameId}?opponentName=${encodeURIComponent(match.opponent)}&result=${encodeURIComponent(match.result)}&opponentId=${match.opponentId || ''}`);
     };
 
     useEffect(() => {
@@ -251,17 +243,17 @@ export default function ProfileMatches({ playerId }: { playerId?: string }) {
                 </div>
                 <div>
                     <h2 className="font-display text-2xl text-gold-light">Match History</h2>
-                    <p className="text-gray-500 text-sm">{matches.length} games played</p>
+                    <p className="text-text-muted text-sm">{matches.length} games played</p>
                 </div>
             </div>
 
             {/* Matches List */}
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gold-royal/30 scrollbar-track-transparent">
                 {loading ? (
-                    <div className="glass-card rounded-xl p-8 border border-white/5 flex items-center justify-center">
+                    <div className="glass-card rounded-xl p-8 border border-border-glass flex items-center justify-center">
                         <div className="flex flex-col items-center gap-3">
                             <div className="w-8 h-8 border-2 border-gold-royal/30 border-t-gold-royal rounded-full animate-spin" />
-                            <p className="text-gray-500 font-serif">Loading matches...</p>
+                            <p className="text-text-muted font-serif">Loading matches...</p>
                         </div>
                     </div>
                 ) : error ? (
@@ -272,11 +264,11 @@ export default function ProfileMatches({ playerId }: { playerId?: string }) {
                         </div>
                     </div>
                 ) : matches.length === 0 ? (
-                    <div className="glass-card rounded-xl p-12 border border-white/5 flex items-center justify-center">
+                    <div className="glass-card rounded-xl p-12 border border-border-glass flex items-center justify-center">
                         <div className="flex flex-col items-center gap-3 text-center">
-                            <Gamepad2 className="w-12 h-12 text-gray-600" />
-                            <p className="text-gray-500 font-serif italic">No match history found</p>
-                            <p className="text-gray-600 text-sm">Start playing to see your matches here!</p>
+                            <Gamepad2 className="w-12 h-12 text-text-secondary" />
+                            <p className="text-text-muted font-serif italic">No match history found</p>
+                            <p className="text-text-secondary text-sm">Start playing to see your matches here!</p>
                         </div>
                     </div>
                 ) : (
@@ -291,14 +283,7 @@ export default function ProfileMatches({ playerId }: { playerId?: string }) {
                 )}
             </div>
 
-            <MatchDetailsDialog
-                gameId={selectedGameId}
-                isOpen={isDialogOpen}
-                onClose={() => setIsDialogOpen(false)}
-                opponentName={selectedMatchData?.opponent || 'Unknown'}
-                result={selectedMatchData?.result || '-'}
-                opponentId={selectedMatchData?.opponentId || null}
-            />
+
         </motion.div>
     )
 }

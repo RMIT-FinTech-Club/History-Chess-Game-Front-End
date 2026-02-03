@@ -1,6 +1,4 @@
-import React, { useState } from "react";
-import Hamburger from "@/components/ui/Hamburger";
-import SideBar from "./SideBar";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { GameHeaderProps } from "../types";
 
@@ -12,48 +10,53 @@ export const GameHeader: React.FC<GameHeaderProps & { elo?: number }> = ({
   onToggleAutoRotate,
   elo,
 }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
-    <header className="w-[95vw] mt-2 mb-3">
-      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
-        <Hamburger onClick={() => setSidebarOpen((prev) => !prev)} />
-        <div className="justify-self-center text-center min-w-0">
-          <span className="truncate text-[14px] sm:text-[16px] leading-6 font-medium text-[#F7D27F]">
-            {isSinglePlayer
-              ? `Single Player (You: ${playerColor === "w" ? "White" : "Black"}, AI Level: ${aiLevel})`
-              : "Two Players"}
+    <header className="w-full max-w-[95vw] mt-2 mb-3 bg-black/40 backdrop-blur-md border border-white/10 rounded-lg px-4 py-2">
+      <div className="flex items-center justify-between">
+        {/* Game Info */}
+        <div className="flex items-center gap-4">
+          <span className="text-gold-royal font-display font-bold text-lg">
+            FTC CHESS
+          </span>
+          <div className="h-4 w-px bg-white/10" />
+          <span className="text-sm sm:text-base font-serif text-white/80">
+            {isSinglePlayer ? "Single Player" : "Two Players"}
           </span>
         </div>
 
-        <div className="justify-self-end flex items-center gap-2 sm:gap-3">
+        {/* Right Controls */}
+        <div className="flex items-center gap-2 sm:gap-3">
           {typeof elo === "number" && (
-            <span className="px-3 py-1 rounded-full bg-[#F0C76B] text-black text-[12px] sm:text-[13px] font-semibold shadow">
+            <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-black/50 border border-gold-deep/30 text-gold-light text-xs font-semibold">
               ELO: {elo.toLocaleString("en-US")}
             </span>
           )}
-          <span className="px-3 py-1 rounded-full bg-[#F0C76B] text-black text-[12px] sm:text-[13px] font-semibold shadow">
-            Level {aiLevel}
+
+          <span className="px-3 py-1 rounded-full bg-black/50 border border-gold-deep/30 text-gold-light text-xs font-semibold">
+            You: {playerColor === "w" ? "White" : "Black"}
           </span>
+
+          {isSinglePlayer && (
+            <span className="px-3 py-1 rounded-full bg-gold-royal/20 border border-gold-royal/50 text-gold-light text-xs font-semibold">
+              AI Level {aiLevel}
+            </span>
+          )}
 
           {!isSinglePlayer && (
             <Button
               variant={autoRotateBoard ? "default" : "outline"}
               size="sm"
               onClick={onToggleAutoRotate}
-              className={`text-[12px] sm:text-[13px] !font-medium !py-2 ${
-                autoRotateBoard
-                  ? "!bg-black !text-white hover:!bg-neutral-800"
-                  : "text-white border-white hover:text-[#F7D27F]"
-              }`}
+              className={`text-xs h-7 px-3 ${autoRotateBoard
+                  ? "bg-gold-royal text-black hover:bg-gold-shimmer"
+                  : "bg-transparent text-white/70 border-white/20 hover:text-white hover:border-gold-royal"
+                }`}
             >
-              {autoRotateBoard ? "Auto-rotate: ON" : "Auto-rotate: OFF"}
+              {autoRotateBoard ? "Auto-Rotate On" : "Auto-Rotate Off"}
             </Button>
           )}
         </div>
       </div>
-
-      <SideBar isOpen={sidebarOpen} />
     </header>
   );
 };

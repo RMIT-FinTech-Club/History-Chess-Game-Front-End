@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { LockClosedIcon } from "@heroicons/react/24/solid";
 import type { Dynasty } from "../types";
@@ -19,6 +19,8 @@ const DynastyNode: React.FC<DynastyNodeProps> = ({
     isCurrent,
     onClick,
 }) => {
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+
     const nodeClasses = [
         styles.dynastyNode,
         isUnlocked && styles.dynastyNodeUnlocked,
@@ -35,11 +37,16 @@ const DynastyNode: React.FC<DynastyNodeProps> = ({
 
             <div className={styles.dynastyNodeInner}>
                 <Image
-                    src={dynasty.imageUrl}
+                    src={imageSrc || dynasty.imageUrl}
                     alt={dynasty.name}
                     fill
                     className={styles.dynastyNodeImage}
                     sizes="110px"
+                    onError={() => {
+                        // if (dynasty.id === 1) setImageSrc("/dynasties/ngo_dynasty.png");
+                        // else setImageSrc("/placeholder-item.png");
+                        console.log("Timeline image load error on S3 URL");
+                    }}
                 />
 
                 <div className={styles.dynastyNodeOverlay}>
@@ -54,7 +61,7 @@ const DynastyNode: React.FC<DynastyNodeProps> = ({
             <div className={styles.dynastyLabel}>
                 <p className={styles.dynastyName}>{dynasty.name}</p>
                 <p className={styles.dynastyElo}>
-                    {dynasty.startElo} - {dynasty.endElo} Elo
+                    Level {(dynasty.id - 1) * 5 + 1} - {dynasty.id * 5}
                 </p>
             </div>
         </div>

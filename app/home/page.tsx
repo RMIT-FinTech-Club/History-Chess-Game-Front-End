@@ -6,6 +6,9 @@ import { useSocketContext } from "@/context/WebSocketContext";
 import { useGlobalStorage } from '@/hooks/GlobalStorage';
 import BackgroundEffects from "@/components/decor/BackgroundEffects";
 import SelectionCard from "@/components/home/SelectionCard";
+import { useEffect, useState } from "react";
+import axiosInstance from "@/config/apiConfig";
+import { Trophy, Clock, XCircle, Minus, ChevronRight, User } from "lucide-react";
 
 // Chess wisdom quotes for daily tip section
 const chessQuotes = [
@@ -21,13 +24,28 @@ const getDailyQuote = () => {
     return chessQuotes[dayOfYear % chessQuotes.length];
 };
 
+interface UserStats {
+    gamesPlayed: number;
+    winRate: number;
+    elo: number;
+}
+
+interface RecentMatch {
+    id: string;
+    opponent: string;
+    result: string;
+    date: string;
+    avatarUrl?: string; // Optional avatar
+    opponentId?: string;
+}
+
 // Daily Challenge card component
 const DailyChallengeCard = () => (
     <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="glass-card rounded-2xl p-6 border border-gold-500/20 bg-gradient-to-br from-gold-500/10 to-transparent relative overflow-hidden"
+        className="glass-card rounded-2xl p-6 border border-gold-500/20 bg-linear-to-br from-gold-500/10 to-transparent relative overflow-hidden"
     >
         {/* Badge */}
         <div className="absolute top-4 right-4 px-3 py-1 bg-gold-500/20 rounded-full text-gold-400 text-xs font-sans uppercase tracking-wider">
@@ -35,7 +53,7 @@ const DailyChallengeCard = () => (
         </div>
 
         <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gold-500/20 flex items-center justify-center flex-shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-gold-500/20 flex items-center justify-center shrink-0">
                 <span className="text-3xl">🎯</span>
             </div>
             <div>
@@ -54,7 +72,7 @@ const DailyChallengeCard = () => (
 );
 
 // Stats overview component
-const StatsOverview = () => (
+const StatsOverview = ({ stats }: { stats: UserStats }) => (
     <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -62,19 +80,19 @@ const StatsOverview = () => (
         className="grid grid-cols-3 gap-4"
     >
         {[
-            { icon: '🎮', value: '24', label: 'Games Played' },
-            { icon: '🏆', value: '67%', label: 'Win Rate' },
-            { icon: '📈', value: '1450', label: 'ELO Rating' },
-        ].map((stat, index) => (
+            { icon: '🎮', value: stats.gamesPlayed.toString(), label: 'Games Played' },
+            { icon: '🏆', value: `${stats.winRate}%`, label: 'Win Rate' },
+            { icon: '📈', value: stats.elo.toString(), label: 'ELO Rating' },
+        ].map((stat) => (
             <div
                 key={stat.label}
                 className="glass-card rounded-xl p-4 text-center border border-white/5 hover:border-gold-500/20 transition-colors group"
             >
                 <span className="text-2xl mb-2 block">{stat.icon}</span>
-                <div className="font-display text-2xl text-gold-400 group-hover:text-gold-300 transition-colors">
+                <div className="font-display text-xl md:text-2xl text-gold-400 group-hover:text-gold-300 transition-colors">
                     {stat.value}
                 </div>
-                <div className="text-gray-500 text-xs uppercase tracking-wider mt-1">
+                <div className="text-gray-500 text-[10px] md:text-xs uppercase tracking-wider mt-1">
                     {stat.label}
                 </div>
             </div>
@@ -91,16 +109,16 @@ const QuickLinks = () => (
         className="flex flex-wrap gap-3"
     >
         {[
-            { icon: '📚', label: 'Learn to Play', href: '/learn' },
+            { icon: '📚', label: 'Learn', href: '/learn' },
             { icon: '📊', label: 'Leaderboard', href: '/leaderboard' },
-            { icon: '⚙️', label: 'Settings', href: '/settings' },
+            { icon: '⚙️', label: 'Settings', href: '/profile' }, // Redirect to profile tabs
         ].map((link) => (
             <motion.a
                 key={link.label}
                 href={link.href}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-2 px-4 py-2 glass-card rounded-lg border border-white/5 hover:border-gold-500/20 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 glass-card rounded-lg border border-white/5 hover:border-gold-500/20 transition-colors flex-1 justify-center min-w-[100px]"
             >
                 <span className="text-lg">{link.icon}</span>
                 <span className="text-gray-300 text-sm">{link.label}</span>
@@ -112,8 +130,82 @@ const QuickLinks = () => (
 export default function HomePage() {
     const router = useRouter();
     const { socket } = useSocketContext();
-    const { userId, accessToken } = useGlobalStorage();
+    const { userId, accessToken, userName } = useGlobalStorage();
     const dailyQuote = getDailyQuote();
+
+    const [stats, setStats] = useState<UserStats>({ gamesPlayed: 0, winRate: 0, elo: 800 });
+    const [recentMatches, setRecentMatches] = useState<RecentMatch[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [onlineCount, setOnlineCount] = useState(0);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleOnlineUsers = (users: string[]) => {
+            // Deduplicate users just in case, though backend seems to send active userIds
+            const uniqueUsers = new Set(users);
+            setOnlineCount(uniqueUsers.size);
+        };
+
+        // Listen for updates
+        socket.on('onlineUsers', handleOnlineUsers);
+
+        // Request initial state
+        socket.emit('getOnlineUsers');
+
+        return () => {
+            socket.off('onlineUsers', handleOnlineUsers);
+        };
+    }, [socket]);
+
+    useEffect(() => {
+        const fetchHomeData = async () => {
+            if (!userId || !accessToken) return;
+
+            try {
+                // Fetch Profile for ELO
+                const profileRes = await axiosInstance.get('/users/profile', {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                });
+
+                // Fetch History for Stats & Recent Games
+                const historyRes = await axiosInstance.get(`/game/history/${userId}`, {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                });
+
+                const matches = historyRes.data || [];
+                const totalGames = matches.length;
+                const victories = matches.filter((m: any) => m.result === 'Victory').length;
+                const winRate = totalGames > 0 ? Math.round((victories / totalGames) * 100) : 0;
+
+                setStats({
+                    elo: profileRes.data.elo || 800,
+                    gamesPlayed: totalGames,
+                    winRate: winRate
+                });
+
+                // Helper to fetch opponent avatar if needed. For now, we'll try to get it if available in history or skip.
+                // Assuming history endpoint might be enriched later, but current 'ProfileMatches' had to fetch all users.
+                // To keep Home page fast, we might skip avatar fetching or do a quick lookup if the API supports it.
+                // For now, let's just map the recent 3 matches.
+                const recent = matches.slice(0, 3).map((m: any) => ({
+                    id: m.gameId,
+                    opponent: m.opponentName || 'Unknown',
+                    result: m.result,
+                    date: new Date(m.createdAt).toLocaleDateString(), // Assuming createdAt exists
+                    opponentId: m.opponentId
+                }));
+                setRecentMatches(recent);
+
+            } catch (error) {
+                console.error("Failed to fetch home data", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchHomeData();
+    }, [userId, accessToken]);
 
     return (
         <main className="relative min-h-[calc(100vh-var(--navbar-height))] flex flex-col p-6 md:p-12 overflow-hidden">
@@ -130,7 +222,7 @@ export default function HomePage() {
                     <div className="flex items-center gap-3 mb-2">
                         <span className="text-3xl">⚔️</span>
                         <h1 className="font-display text-3xl md:text-4xl text-gold-100">
-                            Welcome Back, <span className="text-gold-400">Commander</span>
+                            Welcome Back, <span className="text-gold-400">{userName || 'Commander'}</span>
                         </h1>
                     </div>
                     <p className="text-gray-400 font-serif italic ml-12">
@@ -161,19 +253,86 @@ export default function HomePage() {
                                 delay={0.2}
                                 variant="online"
                                 features={['Matchmaking', 'Ranked', 'Global']}
-                                playerCount={127}
+                                playerCount={onlineCount}
                             />
 
                             <SelectionCard
-                                title="Play Offline"
-                                description="Challenge yourself with our trained bot"
+                                title="Conquest"
+                                description="Embark on a historical conquest across eras"
                                 image="/home/chessboard.svg"
-                                onClick={() => router.push("/game/offline")}
+                                onClick={() => router.push("/dynastyjourney")}
                                 delay={0.4}
-                                variant="offline"
-                                features={['AI Opponents', 'Practice', 'Learn']}
+                                variant="dynasty"
+                                features={['Campaign', 'Boss Battles', 'Rewards']}
                             />
                         </div>
+
+                        {/* Recent Activity List */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.9 }}
+                            className="mt-10 glass-card rounded-2xl p-6 border border-white/5"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-display text-lg text-gold-200/70 flex items-center gap-2">
+                                    <span className="text-xl">📜</span>
+                                    Recent Activity
+                                </h3>
+                                <button
+                                    onClick={() => router.push('/profile')}
+                                    className="text-xs text-gold-400 hover:text-gold-300 transition-colors uppercase tracking-wider"
+                                >
+                                    View All
+                                </button>
+                            </div>
+
+                            {loading ? (
+                                <div className="space-y-3">
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="h-16 bg-white/5 rounded-lg animate-pulse" />
+                                    ))}
+                                </div>
+                            ) : recentMatches.length > 0 ? (
+                                <div className="space-y-3">
+                                    {recentMatches.map((match, idx) => (
+                                        <motion.div
+                                            key={match.id}
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.9 + (idx * 0.1) }}
+                                            onClick={() => router.push(`/match/${match.id}?opponentName=${encodeURIComponent(match.opponent)}&result=${encodeURIComponent(match.result)}&opponentId=${match.opponentId || ''}`)}
+                                            className="group flex items-center justify-between p-3 rounded-lg bg-surface-glass border border-white/5 hover:border-gold-royal/30 hover:bg-white/5 transition-all cursor-pointer"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${match.result === 'Victory' ? 'bg-green-500/10 border-green-500/20' :
+                                                    match.result === 'Defeat' ? 'bg-red-500/10 border-red-500/20' :
+                                                        'bg-yellow-500/10 border-yellow-500/20'
+                                                    }`}>
+                                                    {match.result === 'Victory' ? <Trophy className="w-4 h-4 text-green-400" /> :
+                                                        match.result === 'Defeat' ? <XCircle className="w-4 h-4 text-red-400" /> :
+                                                            <Minus className="w-4 h-4 text-yellow-400" />}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-200 group-hover:text-gold-100 transition-colors">
+                                                        vs {match.opponent}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">{match.result}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                {/* <span className="text-xs text-gray-600 font-mono hidden sm:block">{match.date}</span> */}
+                                                <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gold-400 transition-colors" />
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-center py-8 text-gray-500">
+                                    <p className="font-serif italic">No recent battles found</p>
+                                </div>
+                            )}
+                        </motion.div>
                     </div>
 
                     {/* Right column: Sidebar content */}
@@ -189,7 +348,7 @@ export default function HomePage() {
                         </motion.h2>
 
                         {/* Stats Overview */}
-                        <StatsOverview />
+                        <StatsOverview stats={stats} />
 
                         {/* Daily Challenge */}
                         <DailyChallengeCard />
@@ -208,22 +367,6 @@ export default function HomePage() {
                         </div>
                     </div>
                 </div>
-
-                {/* Recent Activity Placeholder */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.9 }}
-                    className="mt-10 glass-card rounded-2xl p-6 border border-white/5"
-                >
-                    <h3 className="font-display text-lg text-gold-200/70 mb-4 flex items-center gap-2">
-                        <span className="text-xl">📜</span>
-                        Recent Activity
-                    </h3>
-                    <div className="flex items-center justify-center py-8 text-gray-500">
-                        <p className="font-serif italic">Your recent games will appear here</p>
-                    </div>
-                </motion.div>
             </div>
         </main>
     );

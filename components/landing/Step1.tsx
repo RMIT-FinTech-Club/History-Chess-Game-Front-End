@@ -30,15 +30,6 @@ const modes = [
         difficulty: 2,
         players: 156,
         color: "from-blue-500/20 to-cyan-600/10"
-    },
-    {
-        title: "Classic",
-        time: "30 min",
-        icon: "👑",
-        description: "The traditional experience. Chess as the grandmasters intended.",
-        difficulty: 1,
-        players: 43,
-        color: "from-purple-500/20 to-indigo-600/10"
     }
 ];
 
@@ -50,8 +41,8 @@ const DifficultyBar = ({ level }: { level: number }) => (
             <div
                 key={bar}
                 className={`w-2 h-4 rounded-sm transition-colors duration-300 ${bar <= level
-                        ? 'bg-gold-500'
-                        : 'bg-white/10'
+                    ? 'bg-gold-500'
+                    : 'bg-white/10'
                     }`}
             />
         ))}
@@ -173,7 +164,7 @@ const ModeCard = ({ mode, index }: { mode: typeof modes[0]; index: number }) => 
 
 export default function Step1() {
     return (
-        <section className="w-full py-20 relative z-10 overflow-hidden">
+        <section className="w-full min-h-screen flex flex-col justify-center py-20 relative z-10 overflow-hidden">
             {/* Background chess board pattern */}
             <div className="absolute inset-0 opacity-[0.02]">
                 <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
@@ -213,7 +204,7 @@ export default function Step1() {
                 </motion.div>
 
                 {/* Mode Cards Grid */}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+                <div className="flex flex-wrap justify-center gap-8 max-w-7xl mx-auto">
                     {modes.map((mode, index) => (
                         <ModeCard key={mode.title} mode={mode} index={index} />
                     ))}

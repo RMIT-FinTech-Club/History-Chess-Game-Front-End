@@ -67,7 +67,7 @@ type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 // Password Requirement Item Component
 const PasswordRequirement = ({ met, label }: { met: boolean; label: string }) => (
-  <div className={`flex items-center gap-2 text-sm ${met ? 'text-green-400' : 'text-gray-500'}`}>
+  <div className={`flex items-center gap-2 text-sm ${met ? 'text-green-400' : 'text-text-muted'}`}>
     {met ? <Check className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border border-gray-600" />}
     <span>{label}</span>
   </div>
@@ -179,7 +179,7 @@ const AccountSettings = () => {
         throw new Error("Invalid response data");
       }
 
-      const { id, username, email, avatarUrl, googleAuth, refreshToken } = response.data;
+      const { id, username, email, avatarUrl, googleAuth, refreshToken, role } = response.data;
       setIsGoogleAuth(googleAuth || false);
       setUserId(id || "");
       setAuthData({
@@ -188,6 +188,7 @@ const AccountSettings = () => {
         email: email || "",
         accessToken,
         refreshToken: refreshToken || "",
+        role: role,
         avatar: avatarUrl || null,
       });
 
@@ -264,6 +265,7 @@ const AccountSettings = () => {
           userName: "",
           email: "",
           refreshToken: null,
+          role: loginData.role,
         });
       }
 
@@ -286,6 +288,7 @@ const AccountSettings = () => {
         email: profileData.email || email,
         accessToken: profileData.token,
         avatar: profileData.avatarUrl || null,
+        role: profileData.role,
         refreshToken: null,
       });
       setInitialAvatar(profileData.avatarUrl);
@@ -327,6 +330,7 @@ const AccountSettings = () => {
           userName: "",
           email: "",
           refreshToken: null,
+          role: loginData.role,
         });
       }
 
@@ -345,6 +349,7 @@ const AccountSettings = () => {
         email: profileData.email || email,
         accessToken: profileData.token,
         avatar: profileData.avatarUrl || null,
+        role: profileData.role,
         refreshToken: null,
       });
 
@@ -462,11 +467,11 @@ const AccountSettings = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="glass-card rounded-xl p-8 border border-white/5 flex items-center justify-center"
+        className="glass-card rounded-xl p-8 border border-border-glass flex items-center justify-center"
       >
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-2 border-gold-royal/30 border-t-gold-royal rounded-full animate-spin" />
-          <p className="text-gray-500 font-serif">Loading Profile...</p>
+          <p className="text-text-muted font-serif">Loading Profile...</p>
         </div>
       </motion.div>
     );
@@ -480,7 +485,7 @@ const AccountSettings = () => {
       className="w-full space-y-6"
     >
       {/* Basic Information Section */}
-      <div className="glass-card rounded-2xl p-6 border border-white/5">
+      <div className="glass-card rounded-2xl p-6 border border-border-glass">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-lg bg-gold-royal/20 flex items-center justify-center">
@@ -488,11 +493,11 @@ const AccountSettings = () => {
           </div>
           <div>
             <h2 className="font-display text-xl text-gold-light">Basic Information</h2>
-            <p className="text-gray-500 text-sm">Manage your account details</p>
+            <p className="text-text-muted text-sm">Manage your account details</p>
           </div>
         </div>
 
-        <div className="h-px bg-gradient-to-r from-transparent via-gold-royal/30 to-transparent mb-6" />
+        <div className="h-px bg-linear-to-r from-transparent via-gold-royal/30 to-transparent mb-6" />
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -501,10 +506,10 @@ const AccountSettings = () => {
               <div
                 className={`
                   relative w-28 h-28 rounded-xl border-2 border-dashed flex items-center justify-center
-                  transition-all duration-300 flex-shrink-0
+                  transition-all duration-300 shrink-0
                   ${isEditing
                     ? 'border-gold-royal/50 cursor-pointer hover:border-gold-royal hover:bg-gold-royal/5'
-                    : 'border-gray-700 cursor-not-allowed'
+                    : 'border-border-glass cursor-not-allowed'
                   }
                 `}
                 onClick={handleAvatarClick}
@@ -519,7 +524,7 @@ const AccountSettings = () => {
                     unoptimized
                   />
                 ) : (
-                  <div className="flex flex-col items-center gap-2 text-gray-500">
+                  <div className="flex flex-col items-center gap-2 text-text-muted">
                     <Upload className="w-6 h-6" />
                     <span className="text-xs">Upload</span>
                   </div>
@@ -547,7 +552,7 @@ const AccountSettings = () => {
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-400 text-sm flex items-center gap-2">
+                      <FormLabel className="text-text-secondary text-sm flex items-center gap-2">
                         <User className="w-4 h-4" />
                         Username
                       </FormLabel>
@@ -559,8 +564,8 @@ const AccountSettings = () => {
                             className={`
                               w-full px-4 py-3 rounded-xl transition-all duration-300
                               ${isEditing
-                                ? 'bg-white/10 border-gold-royal/30 text-white focus:border-gold-royal focus:ring-1 focus:ring-gold-royal/50'
-                                : 'bg-white/5 border-white/10 text-gray-400 cursor-not-allowed'
+                                ? 'bg-surface-glass border-gold-royal/30 text-text-primary focus:border-gold-royal focus:ring-1 focus:ring-gold-royal/50'
+                                : 'bg-surface-glass border-border-glass text-text-secondary cursor-not-allowed'
                               }
                             `}
                             autoComplete="off"
@@ -575,14 +580,14 @@ const AccountSettings = () => {
 
                 {/* Email Field (Read-only) */}
                 <div>
-                  <label className="text-gray-400 text-sm flex items-center gap-2 mb-2">
+                  <label className="text-text-secondary text-sm flex items-center gap-2 mb-2">
                     <Mail className="w-4 h-4" />
                     Email
                   </label>
                   <Input
                     disabled
                     value={email}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border-white/10 text-gray-400 cursor-not-allowed"
+                    className="w-full px-4 py-3 rounded-xl bg-surface-glass border-border-glass text-text-secondary cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -631,7 +636,7 @@ const AccountSettings = () => {
       </div>
 
       {/* Password Section */}
-      <div className="glass-card rounded-2xl p-6 border border-white/5">
+      <div className="glass-card rounded-2xl p-6 border border-border-glass">
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-lg bg-gold-royal/20 flex items-center justify-center">
@@ -639,15 +644,15 @@ const AccountSettings = () => {
           </div>
           <div>
             <h2 className="font-display text-xl text-gold-light">Password</h2>
-            <p className="text-gray-500 text-sm">Update your password securely</p>
+            <p className="text-text-muted text-sm">Update your password securely</p>
           </div>
         </div>
 
-        <div className="h-px bg-gradient-to-r from-transparent via-gold-royal/30 to-transparent mb-4" />
+        <div className="h-px bg-linear-to-r from-transparent via-gold-royal/30 to-transparent mb-4" />
 
         <div className="flex items-center gap-3 p-4 rounded-xl bg-gold-royal/5 border border-gold-royal/10 mb-4">
           <AlertCircle className="w-5 h-5 text-gold-muted flex-shrink-0" />
-          <p className="text-gray-400 text-sm">
+          <p className="text-text-secondary text-sm">
             Please be careful when changing your password. You need both the old and the new ones to successfully change your password.
           </p>
         </div>
@@ -669,7 +674,7 @@ const AccountSettings = () => {
         onClose={handleClosePasswordPopup}
         title="Change Password"
       >
-        <p className="text-gray-400 text-sm mb-6">
+        <p className="text-text-secondary text-sm mb-6">
           Make changes to your password here. Click save when you're done.
         </p>
 
@@ -680,12 +685,12 @@ const AccountSettings = () => {
               name="oldPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white text-sm">Old Password</FormLabel>
+                  <FormLabel className="text-text-primary text-sm">Old Password</FormLabel>
                   <FormControl>
                     <OldPassword
                       placeholder="Enter your current password"
                       {...field}
-                      className="w-full px-4 py-3 rounded-xl bg-white/10 border-white/20 text-white"
+                      className="w-full px-4 py-3 rounded-xl bg-surface-glass border-border-glass text-text-primary"
                     />
                   </FormControl>
                   <FormMessage className="text-red-400 text-sm" />
@@ -698,12 +703,12 @@ const AccountSettings = () => {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white text-sm">New Password</FormLabel>
+                  <FormLabel className="text-text-primary text-sm">New Password</FormLabel>
                   <FormControl>
                     <NewPassword
                       placeholder="Enter your new password"
                       {...field}
-                      className="w-full px-4 py-3 rounded-xl bg-white/10 border-white/20 text-white"
+                      className="w-full px-4 py-3 rounded-xl bg-surface-glass border-border-glass text-text-primary"
                       onChange={(e) => {
                         field.onChange(e);
                         setPassword(e.target.value);
@@ -726,12 +731,12 @@ const AccountSettings = () => {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white text-sm">Confirm New Password</FormLabel>
+                  <FormLabel className="text-text-primary text-sm">Confirm New Password</FormLabel>
                   <FormControl>
                     <NewPasswordConfirm
                       placeholder="Confirm your new password"
                       {...field}
-                      className="w-full px-4 py-3 rounded-xl bg-white/10 border-white/20 text-white"
+                      className="w-full px-4 py-3 rounded-xl bg-surface-glass border-border-glass text-text-primary"
                     />
                   </FormControl>
                   <FormMessage className="text-red-400 text-sm" />

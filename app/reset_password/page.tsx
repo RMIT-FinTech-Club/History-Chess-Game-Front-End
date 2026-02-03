@@ -11,24 +11,16 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { NewPassword } from "@/components/profile/accountSetting/NewPassword";
-import { NewPasswordConfirm } from "@/components/profile/accountSetting/NewPasswordConfirm";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import { MdEmail } from "react-icons/md";
+import { FaCheck, FaXmark, FaKey, FaEye, FaEyeSlash } from "react-icons/fa6";
 import axiosInstance from "@/config/apiConfig";
 import axios from "axios";
-import styles from "@/css/otp.module.css";
 
 const emailSchema = z.object({
-  email: z
-    .string()
-    .email("Please enter a valid Gmail address")
-    .refine((email) => email.endsWith("@gmail.com"), {
-      message: "Email must be a Gmail address",
-    }),
+  email: z.string().email("Please enter a valid email address"),
 });
 
 const codeSchema = z.object({
@@ -67,6 +59,8 @@ const ResetPassword = () => {
   const [verifiedResetCode, setVerifiedResetCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({
     email: "",
     resetCode: "",
@@ -76,7 +70,14 @@ const ResetPassword = () => {
   const [otp, setOtp] = useState<string[]>(new Array(6).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [timer, setTimer] = useState(60);
+  const [password, setPassword] = useState("");
   const { setAuthData } = useGlobalStorage();
+
+  // Password requirements
+  const isMinLength = password.length >= 9;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecialChar = /[!@#$%^&*]/.test(password);
 
   // Countdown timer
   useEffect(() => {
@@ -103,39 +104,25 @@ const ResetPassword = () => {
   });
 
   const onEmailSubmit = useCallback(async (data: EmailFormValues) => {
-    setErrors({
-      email: "",
-      resetCode: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
+    setErrors({ email: "", resetCode: "", newPassword: "", confirmPassword: "" });
     setLoading(true);
     try {
-      const authTypeResponse = await axiosInstance.post(
-        "/users/check-auth-type",
-        { email: data.email }
-      );
+      const authTypeResponse = await axiosInstance.post("/users/check-auth-type", { email: data.email });
       if (authTypeResponse.data.googleAuth) {
         setEmail(data.email);
         setStep("google");
         return;
       }
-      await axiosInstance.post("/users/request-reset", {
-        email: data.email,
-      });
-      console.log("Request reset response: Code sent");
+      await axiosInstance.post("/users/request-reset", { email: data.email });
       setEmail(data.email);
       setStep("code");
+      setTimer(60);
       toast.success("Verification code sent to your email");
     } catch (err: unknown) {
       const message = axios.isAxiosError(err)
         ? err.response?.data?.message || "Failed to send verification code"
         : "Network error";
-      console.error("Request reset error:", err);
       setErrors((prev) => ({ ...prev, email: message }));
-      document
-        .getElementById("email-input")
-        ?.classList.add("border-red-500", "border-[0.3vh]");
       toast.error(message);
     } finally {
       setLoading(false);
@@ -144,12 +131,7 @@ const ResetPassword = () => {
 
   const onCodeSubmit = useCallback(
     async (data: CodeFormValues) => {
-      setErrors({
-        email: "",
-        resetCode: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
+      setErrors({ email: "", resetCode: "", newPassword: "", confirmPassword: "" });
       setLoading(true);
       try {
         await axiosInstance.post("/users/verify-reset-code", {
@@ -158,17 +140,15 @@ const ResetPassword = () => {
         });
         setVerifiedResetCode(data.resetCode);
         setStep("password");
-        toast.success("Code verified, please set your new password");
+        toast.success("Code verified! Please set your new password.");
       } catch (err: unknown) {
         const message = axios.isAxiosError(err)
           ? err.response?.data?.message || "Invalid or expired verification code"
           : "Network error";
-        console.error("Verify code error:", err);
         setErrors((prev) => ({ ...prev, resetCode: message }));
-        inputRefs.current.forEach((input) =>
-          input?.classList.add("border-red-500", "border-[0.3vh]")
-        );
         toast.error(message);
+        setOtp(new Array(6).fill(""));
+        inputRefs.current[0]?.focus();
       } finally {
         setLoading(false);
       }
@@ -178,27 +158,19 @@ const ResetPassword = () => {
 
   const onPasswordSubmit = useCallback(
     async (data: PasswordFormValues) => {
-      setErrors({
-        email: "",
-        resetCode: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
+      setErrors({ email: "", resetCode: "", newPassword: "", confirmPassword: "" });
       setLoading(true);
       try {
-        const resetResponse = await axiosInstance.post(
-          "/users/reset-password",
-          {
-            email,
-            resetCode: verifiedResetCode,
-            newPassword: data.newPassword,
-          }
-        );
-        const { token, id, username, email: userEmail, avatarUrl } = resetResponse.data;
+        const resetResponse = await axiosInstance.post("/users/reset-password", {
+          email,
+          resetCode: verifiedResetCode,
+          newPassword: data.newPassword,
+        });
+        const { token, id, username, email: userEmail, avatarUrl, role } = resetResponse.data;
 
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         if (!uuidRegex.test(id)) {
-          throw new Error("Invalid user ID in reset password response");
+          throw new Error("Invalid user ID in response");
         }
 
         setAuthData({
@@ -208,31 +180,15 @@ const ResetPassword = () => {
           accessToken: token,
           refreshToken: null,
           avatar: avatarUrl || null,
+          role,
         });
-        toast.success("Password reset successfully");
-        router.push("/profile");
+        toast.success("Password reset successfully!");
+        router.push("/home");
       } catch (err: unknown) {
         const message = axios.isAxiosError(err)
           ? err.response?.data?.message || "Failed to reset password"
           : "Network error";
-        console.error("Reset password error:", err);
-        if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) {
-            setErrors((prev) => ({ ...prev, newPassword: "User not found" }));
-          } else if (err.response?.status === 400) {
-            setErrors((prev) => ({ ...prev, newPassword: "Invalid reset code" }));
-          } else {
-            setErrors((prev) => ({ ...prev, newPassword: message }));
-          }
-        } else {
-          setErrors((prev) => ({ ...prev, newPassword: message }));
-        }
-        document
-          .getElementById("newPassword-input")
-          ?.classList.add("border-red-500", "border-[0.3vh]");
-        document
-          .getElementById("confirmPassword-input")
-          ?.classList.add("border-red-500", "border-[0.3vh]");
+        setErrors((prev) => ({ ...prev, newPassword: message }));
         toast.error(message);
       } finally {
         setLoading(false);
@@ -242,8 +198,10 @@ const ResetPassword = () => {
   );
 
   useEffect(() => {
-    inputRefs.current[0]?.focus();
-  }, []);
+    if (step === "code") {
+      inputRefs.current[0]?.focus();
+    }
+  }, [step]);
 
   const handleChange = (value: string, index: number) => {
     if (!/^\d?$/.test(value)) return;
@@ -261,10 +219,7 @@ const ResetPassword = () => {
     }
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     const key = e.key;
 
     if (key === "Backspace") {
@@ -310,17 +265,9 @@ const ResetPassword = () => {
   const handleResendOtp = async () => {
     setResending(true);
     setLoading(true);
-    setErrors({
-      email: "",
-      resetCode: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
+    setErrors({ email: "", resetCode: "", newPassword: "", confirmPassword: "" });
     try {
-      await axiosInstance.post("/users/request-reset", {
-        email,
-      });
-      console.log("Resend OTP response: Code sent");
+      await axiosInstance.post("/users/request-reset", { email });
       setOtp(Array(6).fill(""));
       setTimer(60);
       inputRefs.current[0]?.focus();
@@ -329,7 +276,6 @@ const ResetPassword = () => {
       const message = axios.isAxiosError(err)
         ? err.response?.data?.message || "Failed to resend verification code"
         : "Network error";
-      console.error("Resend OTP error:", err);
       setErrors((prev) => ({ ...prev, resetCode: message }));
       toast.error(message);
     } finally {
@@ -338,242 +284,389 @@ const ResetPassword = () => {
     }
   };
 
+  const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
+    <li className={`flex items-center gap-2 text-sm transition-colors duration-200 ${met ? "text-green-400" : "text-text-disabled"}`}>
+      {met ? <FaCheck className="text-green-400 text-xs" /> : <FaXmark className="text-text-disabled text-xs" />}
+      {text}
+    </li>
+  );
+
   return (
-    <div className="flex flex-col justify-center items-center h-[calc(100dvh-var(--navbar-height))]">
-      {/* Logo section unchanged */}
-      <div className="flex justify-center items-center relative h-[30vh] aspect-square">
-        <div
-          className="w-full h-full bg-[#DCB410] rounded-full absolute left-0 top-0"
-          style={{ filter: "blur(15vh)" }}
-        ></div>
-        <div
-          className={`z-10 bg-contain bg-no-repeat bg-center h-[40vh] aspect-square ${styles.logo}`}
-        ></div>
+    <div className="min-h-screen bg-bg-app relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/4 -left-20 w-96 h-96 bg-gold-royal/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-gold-shimmer/8 rounded-full blur-[100px]" />
       </div>
 
-      <div>
-        <h2 className="text-center text-[5vh] text-[#FFFFFF] mt-[4vh] font-bold">
-          {step === "email"
-            ? "Reset Password"
-            : step === "code"
-              ? ""
-              : step === "password"
-                ? "Reset Password"
-                : "Google Sign In"}
-        </h2>
-        {step === "email" && (
-          <Form {...emailForm}>
-            <form onSubmit={emailForm.handleSubmit(onEmailSubmit)}>
-              <FormField
-                control={emailForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative my-[4vh]">
-                        <MdEmail
-                          className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[5vh] cursor-pointer"
-                          onClick={() =>
-                            document.getElementById("email-input")?.focus()
-                          }
-                        />
-                        <Input
-                          id="email-input"
-                          placeholder="Enter your Gmail address"
-                          autoFocus
-                          {...field}
-                          className="
-                            !pl-[4vw]
-                            py-[4vh] w-[40vw]
-                            bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
-                            !text-[3vh] font-normal rounded-[1.5vh]
-                          "
-                          autoComplete="off"
-                        />
-                      </div>
-                    </FormControl>
-                    {errors.email && (
-                      <p className="text-red-500 text-[2.5vh] font-bold">{errors.email}</p>
-                    )}
-                  </FormItem>
-                )}
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          {/* Logo Section */}
+          <div className="flex justify-center mb-8 animate-fade-up">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gold-royal/30 rounded-full blur-[60px]" />
+              <div
+                className="relative w-32 h-32 md:w-40 md:h-40 bg-contain bg-center bg-no-repeat animate-float"
+                style={{ backgroundImage: "url('/FTC_Logo.png')" }}
               />
-              <div className="flex flex-col items-center justify-center">
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="!bg-[#DBB968] hover:!shadow-2xl hover:!shadow-amber-400 !w-[20vw] cursor-pointer !text-[#000000] !font-semibold !text-[3vh] !px-[2vw] !py-[3.5vh] !rounded-[1.5vh]"
-                >
-                  {loading ? "Sending..." : "Send Verification Code"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        )}
-        {step === "code" && (
-          <Form {...codeForm}>
-            <form onSubmit={codeForm.handleSubmit(onCodeSubmit)}>
-              <FormField
-                control={codeForm.control}
-                name="resetCode"
-                render={() => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="flex justify-center">
-                        {otp.map((digit, index) => (
-                          <input
-                            key={index}
-                            ref={(el) => {
-                              inputRefs.current[index] = el;
-                            }}
-                            type="text"
-                            inputMode="numeric"
-                            maxLength={1}
-                            autoFocus={index === 0}
-                            className={`
-                              w-[14vh] aspect-square text-center rounded-[5px] !text-white text-[6vw] md:text-[6vh]
-                              mt-[5vh]
-                              !border-[0.2vw] !border-[#27272A] !bg-[#000000] focus:!border-yellow-400 !outline-none
-                            `}
-                            value={digit}
-                            onPaste={handlePaste}
-                            onChange={(e) =>
-                              handleChange(e.target.value, index)
-                            }
-                            onKeyDown={(e) => handleKeyDown(e, index)}
-                          />
-                        ))}
-                      </div>
-                    </FormControl>
-                    {errors.resetCode && (
-                      <p className="text-red-500 text-[2.5vh] font-bold">{errors.resetCode}</p>
-                    )}
-                    <p className="text-white text-[2.5vw] text-center md:text-[1.5vw] mt-[5vh]">
-                      Enter the OTP sent via email. (Expired in{" "}
-                      <span className="text-[#E9B654]">
-                        {formatTime(timer)}
-                      </span>
-                      )
-                    </p>
-                  </FormItem>
-                )}
-              />
-              <div className="flex flex-col items-center justify-center gap-[4vh] mt-[4vh] md:min-w-[30vw]">
-                <Button
-                  type="submit"
-                  disabled={loading || resending}
-                  className="!w-[20vw] !bg-[#DBB968] hover:!shadow-2xl hover:!shadow-amber-400 cursor-pointer !text-[#000000] !font-semibold !text-[3vh] !px-[2vw] !py-[4vh] !rounded-[1.5vh]"
-                >
-                  {loading ? "Submitting..." : "Submit"}
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleResendOtp}
-                  disabled={loading || resending}
-                  className="!w-[20vw] !border !border-[#DBB968] hover:!shadow-2xl hover:!shadow-amber-400 hover:!bg-[#000000] cursor-pointer !text-[#EBEBEB] !font-semibold !text-[3vh] !px-[2vw] !py-[4vh] !rounded-[1.5vh]"
-                >
-                  {resending ? "Resending..." : "Resend OTP"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        )}
-        {step === "password" && (
-          <Form {...passwordForm}>
-            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}>
-              <FormField
-                control={passwordForm.control}
-                name="newPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-medium text-[3vh] text-[#FFFFFF] mt-[4vh]">
-                      New Password
-                    </FormLabel>
-                    <FormControl>
-                      <NewPassword
-                        id="newPassword-input"
-                        placeholder="Enter new password"
-                        {...field}
-                        autoFocus
-                        className="
-                          !pl-[3.5vw]
-                          py-[4vh] w-[40vw]
-                          bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
-                          !text-[3vh] font-normal rounded-[1.5vh]
-                        "
-                      />
-                    </FormControl>
-                    {errors.newPassword && (
-                      <p className="text-red-500 text-[2.5vh] font-bold">
-                        {errors.newPassword}
-                      </p>
-                    )}
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={passwordForm.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-medium text-[3vh] text-[#FFFFFF] mt-[4vh]">
-                      Confirm New Password
-                    </FormLabel>
-                    <FormControl>
-                      <NewPasswordConfirm
-                        id="confirmPassword-input"
-                        placeholder="Confirm new password"
-                        {...field}
-                        className="
-                          !pl-[3.5vw]
-                          py-[4vh] w-[40vw]
-                          bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
-                          !text-[3vh] font-normal rounded-[1.5vh]
-                        "
-                      />
-                    </FormControl>
-                    {errors.confirmPassword && (
-                      <p className="text-red-500 text-[2.5vh] font-bold">
-                        {errors.confirmPassword}
-                      </p>
-                    )}
-                  </FormItem>
-                )}
-              />
-              <div className="flex flex-col items-center justify-center mt-[4vh]">
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="!w-[20vw] !bg-[#DBB968] hover:!shadow-2xl hover:!shadow-amber-400 cursor-pointer !text-[#000000] !font-semibold !text-[3vh] !px-[2vw] !py-[4vh] rounded-[1.5vh]"
-                >
-                  {loading ? "Submitting..." : "Submit"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        )}
-        {step === "google" && (
-          <div className="w-[50vw] flex flex-col items-center justify-center">
-            <p className="text-white text-[2.5vw] text-center md:text-[1.5vw] my-[5vh] bg-[#2F2F2F] p-[2vh] rounded-[1.5vh]">
-              To reset your password, use Google’s account recovery process at{" "}
-              <a
-                href="https://myaccount.google.com/security"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[#184BF2] underline"
-              >
-                myaccount.google.com/security
-              </a>
-              .
-            </p>
-            <Button
-              onClick={() => router.push("/sign_in")}
-              className="w-[20vw] border border-[#DBB968] hover:shadow-2xl hover:shadow-amber-400 cursor-pointer text-[#EBEBEB] font-semibold text-[3vh] px-[2vw] py-[4vh] rounded-[1.5vh]"
-            >
-              Back to Sign In
-            </Button>
+            </div>
           </div>
-        )}
+
+          {/* Form Card */}
+          <div className="glass-gold rounded-2xl p-8 animate-fade-up stagger-1">
+            {step === "email" && (
+              <>
+                <h1 className="font-display text-3xl md:text-4xl text-center gold-gradient-text mb-2">
+                  RESET PASSWORD
+                </h1>
+                <p className="font-serif text-sm text-text-muted text-center mb-8">
+                  Enter your email to receive a verification code
+                </p>
+
+                <Form {...emailForm}>
+                  <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-6">
+                    <FormField
+                      control={emailForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-serif text-sm text-gold-light uppercase tracking-wider">
+                            Email Address
+                          </FormLabel>
+                          <FormControl>
+                            <div className={`
+                              flex items-center w-full 
+                              bg-bg-dark/80 border rounded-lg 
+                              transition-all duration-300
+                              ${errors.email ? 'border-red-500' : 'border-gold-deep/30'}
+                              focus-within:border-gold-royal focus-within:ring-1 focus-within:ring-gold-royal/50
+                            `}>
+                              <div className="flex items-center justify-center px-4 border-r border-gold-deep/20 min-h-[56px]">
+                                <MdEmail className="text-gold-muted text-xl" />
+                              </div>
+                              <input
+                                id="email-input"
+                                placeholder="Enter your email address"
+                                autoFocus
+                                {...field}
+                                className="
+                                  flex-1 bg-transparent border-none outline-none
+                                  px-4 py-4
+                                  text-text-primary placeholder:text-text-muted
+                                  font-sans text-base w-full
+                                  rounded-r-lg
+                                "
+                                autoComplete="off"
+                              />
+                            </div>
+                          </FormControl>
+                          {errors.email && (
+                            <p className="text-red-400 text-sm mt-1 font-sans">{errors.email}</p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="
+                        w-full py-4 rounded-lg
+                        bg-linear-to-r from-gold-main via-gold-royal to-gold-dark
+                        hover:from-gold-shimmer hover:via-gold-main hover:to-gold-royal
+                        text-bg-dark font-serif font-semibold text-lg
+                        transition-all duration-300 transform hover:scale-[1.02]
+                        shadow-lg hover:shadow-gold-royal/30
+                        disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+                      "
+                    >
+                      {loading ? "Sending..." : "Send Verification Code"}
+                    </Button>
+                  </form>
+                </Form>
+
+                <p className="text-center mt-6 text-text-muted font-sans">
+                  Remember your password?{" "}
+                  <a href="/sign_in" className="text-gold-light hover:text-gold-shimmer font-serif font-semibold transition-colors">
+                    Sign In
+                  </a>
+                </p>
+              </>
+            )}
+
+            {step === "code" && (
+              <>
+                <h1 className="font-display text-3xl md:text-4xl text-center gold-gradient-text mb-2">
+                  VERIFY CODE
+                </h1>
+                <p className="font-serif text-sm text-text-muted text-center mb-2">
+                  Enter the 6-digit code sent to
+                </p>
+                <p className="font-sans text-gold-light text-center mb-8">{email}</p>
+
+                <Form {...codeForm}>
+                  <form onSubmit={codeForm.handleSubmit(onCodeSubmit)} className="space-y-6">
+                    <FormField
+                      control={codeForm.control}
+                      name="resetCode"
+                      render={() => (
+                        <FormItem>
+                          <FormControl>
+                            <div className="flex justify-center gap-2 md:gap-3">
+                              {otp.map((digit, index) => (
+                                <input
+                                  key={index}
+                                  ref={(el) => {
+                                    inputRefs.current[index] = el;
+                                  }}
+                                  type="text"
+                                  inputMode="numeric"
+                                  maxLength={1}
+                                  autoFocus={index === 0}
+                                  className={`
+                                    w-12 h-14 md:w-14 md:h-16 text-center rounded-lg
+                                    text-text-primary text-2xl md:text-3xl font-display
+                                    bg-bg-dark/80 border-2
+                                    ${errors.resetCode ? 'border-red-500' : 'border-gold-deep/30'}
+                                    focus:border-gold-royal focus:ring-2 focus:ring-gold-royal/30
+                                    outline-none transition-all duration-300
+                                  `}
+                                  value={digit}
+                                  onPaste={handlePaste}
+                                  onChange={(e) => handleChange(e.target.value, index)}
+                                  onKeyDown={(e) => handleKeyDown(e, index)}
+                                />
+                              ))}
+                            </div>
+                          </FormControl>
+                          {errors.resetCode && (
+                            <p className="text-red-400 text-sm text-center mt-2 font-sans">{errors.resetCode}</p>
+                          )}
+                          <p className="text-text-muted text-sm text-center mt-4 font-sans">
+                            Code expires in{" "}
+                            <span className="text-gold-shimmer font-semibold">{formatTime(timer)}</span>
+                          </p>
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex flex-col gap-4">
+                      <Button
+                        type="submit"
+                        disabled={loading || resending}
+                        className="
+                          w-full py-4 rounded-lg
+                          bg-linear-to-r from-gold-main via-gold-royal to-gold-dark
+                          hover:from-gold-shimmer hover:via-gold-main hover:to-gold-royal
+                          text-bg-dark font-serif font-semibold text-lg
+                          transition-all duration-300 transform hover:scale-[1.02]
+                          shadow-lg hover:shadow-gold-royal/30
+                          disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+                        "
+                      >
+                        {loading ? "Verifying..." : "Verify Code"}
+                      </Button>
+                      <Button
+                        type="button"
+                        onClick={handleResendOtp}
+                        disabled={loading || resending || timer > 0}
+                        className="
+                          w-full py-4 rounded-lg
+                          bg-transparent border border-gold-deep/50
+                          hover:bg-gold-deep/10 hover:border-gold-royal
+                          text-gold-light font-serif font-medium text-base
+                          transition-all duration-300
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                        "
+                      >
+                        {resending ? "Sending..." : timer > 0 ? `Resend in ${formatTime(timer)}` : "Resend Code"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </>
+            )}
+
+            {step === "password" && (
+              <>
+                <h1 className="font-display text-3xl md:text-4xl text-center gold-gradient-text mb-2">
+                  NEW PASSWORD
+                </h1>
+                <p className="font-serif text-sm text-text-muted text-center mb-8">
+                  Create a strong password for your account
+                </p>
+
+                <Form {...passwordForm}>
+                  <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-5">
+                    <FormField
+                      control={passwordForm.control}
+                      name="newPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-serif text-sm text-gold-light uppercase tracking-wider">
+                            New Password
+                          </FormLabel>
+                          <FormControl>
+                            <div className={`
+                              flex items-center w-full 
+                              bg-bg-dark/80 border rounded-lg 
+                              transition-all duration-300
+                              ${errors.newPassword ? 'border-red-500' : 'border-gold-deep/30'}
+                              focus-within:border-gold-royal focus-within:ring-1 focus-within:ring-gold-royal/50
+                            `}>
+                              <div className="flex items-center justify-center px-4 border-r border-gold-deep/20 min-h-[56px]">
+                                <FaKey className="text-gold-muted text-lg transform -rotate-45" />
+                              </div>
+                              <input
+                                id="newPassword-input"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Enter new password"
+                                {...field}
+                                className="
+                                  flex-1 bg-transparent border-none outline-none
+                                  px-4 py-4
+                                  text-text-primary placeholder:text-text-muted
+                                  font-sans text-base w-full
+                                "
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setPassword(e.target.value);
+                                }}
+                                autoFocus
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="px-4 text-gold-muted hover:text-gold-light transition-colors"
+                              >
+                                {showPassword ? (
+                                  <FaEyeSlash className="text-lg" />
+                                ) : (
+                                  <FaEye className="text-lg" />
+                                )}
+                              </button>
+                            </div>
+                          </FormControl>
+                          <ul className="mt-2 space-y-1 font-sans">
+                            <PasswordRequirement met={isMinLength} text="At least 9 characters" />
+                            <PasswordRequirement met={hasUppercase} text="One uppercase letter" />
+                            <PasswordRequirement met={hasNumber} text="One number" />
+                            <PasswordRequirement met={hasSpecialChar} text="One special character (!@#$%^&*)" />
+                          </ul>
+                          {errors.newPassword && (
+                            <p className="text-red-400 text-sm mt-1 font-sans">{errors.newPassword}</p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={passwordForm.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="font-serif text-sm text-gold-light uppercase tracking-wider">
+                            Confirm Password
+                          </FormLabel>
+                          <FormControl>
+                            <div className={`
+                              flex items-center w-full 
+                              bg-bg-dark/80 border rounded-lg 
+                              transition-all duration-300
+                              ${errors.confirmPassword ? 'border-red-500' : 'border-gold-deep/30'}
+                              focus-within:border-gold-royal focus-within:ring-1 focus-within:ring-gold-royal/50
+                            `}>
+                              <div className="flex items-center justify-center px-4 border-r border-gold-deep/20 min-h-[56px]">
+                                <FaKey className="text-gold-muted text-lg transform -rotate-45" />
+                              </div>
+                              <input
+                                id="confirmPassword-input"
+                                type={showConfirmPassword ? "text" : "password"}
+                                placeholder="Confirm new password"
+                                {...field}
+                                className="
+                                  flex-1 bg-transparent border-none outline-none
+                                  px-4 py-4
+                                  text-text-primary placeholder:text-text-muted
+                                  font-sans text-base w-full
+                                "
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="px-4 text-gold-muted hover:text-gold-light transition-colors"
+                              >
+                                {showConfirmPassword ? (
+                                  <FaEyeSlash className="text-lg" />
+                                ) : (
+                                  <FaEye className="text-lg" />
+                                )}
+                              </button>
+                            </div>
+                          </FormControl>
+                          {errors.confirmPassword && (
+                            <p className="text-red-400 text-sm mt-1 font-sans">{errors.confirmPassword}</p>
+                          )}
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="
+                        w-full py-4 rounded-lg
+                        bg-linear-to-r from-gold-main via-gold-royal to-gold-dark
+                        hover:from-gold-shimmer hover:via-gold-main hover:to-gold-royal
+                        text-bg-dark font-serif font-semibold text-lg
+                        transition-all duration-300 transform hover:scale-[1.02]
+                        shadow-lg hover:shadow-gold-royal/30
+                        disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+                      "
+                    >
+                      {loading ? "Resetting..." : "Reset Password"}
+                    </Button>
+                  </form>
+                </Form>
+              </>
+            )}
+
+            {step === "google" && (
+              <>
+                <h1 className="font-display text-3xl md:text-4xl text-center gold-gradient-text mb-2">
+                  GOOGLE ACCOUNT
+                </h1>
+                <p className="font-serif text-sm text-text-muted text-center mb-8">
+                  This account uses Google authentication
+                </p>
+
+                <div className="bg-bg-dark/60 rounded-lg p-6 mb-6">
+                  <p className="text-text-secondary text-center font-sans text-sm leading-relaxed">
+                    To reset your password, please use Google's account recovery at{" "}
+                    <a
+                      href="https://myaccount.google.com/security"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gold-light hover:text-gold-shimmer underline transition-colors"
+                    >
+                      myaccount.google.com/security
+                    </a>
+                  </p>
+                </div>
+
+                <Button
+                  onClick={() => router.push("/sign_in")}
+                  className="
+                    w-full py-4 rounded-lg
+                    bg-transparent border border-gold-deep/50
+                    hover:bg-gold-deep/10 hover:border-gold-royal
+                    text-gold-light font-serif font-medium text-base
+                    transition-all duration-300
+                  "
+                >
+                  Back to Sign In
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

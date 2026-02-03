@@ -10,9 +10,8 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/ui/PasswordInput";
 import { MdEmail, MdPerson } from "react-icons/md";
+import { FaKey, FaEye, FaEyeSlash, FaCheck, FaXmark } from "react-icons/fa6";
 import { toast } from "sonner";
 import axios from "axios";
 import axiosInstance from "@/config/apiConfig";
@@ -26,9 +25,11 @@ const SignUp = () => {
     confirmPassword: "",
   });
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { setAuthData } = useGlobalStorage();
+  const { setPendingSignup } = useGlobalStorage();
   const form = useForm({
     defaultValues: {
       username: "",
@@ -58,7 +59,6 @@ const SignUp = () => {
       // Client-side validation
       if (!values.username) {
         setErrors((prev) => ({ ...prev, username: "Please enter your username." }));
-        document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
@@ -72,31 +72,24 @@ const SignUp = () => {
                 ? "Username must not exceed 50 characters."
                 : "Username must contain only letters and numbers.",
         }));
-        document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      document.getElementById("username-input")?.classList.remove("border-red-500", "border-[0.3vh]");
 
       if (!values.email) {
         setErrors((prev) => ({ ...prev, email: "Please enter your email." }));
-        document.getElementById("email-input")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      const validEmailRegex = /^[a-zA-Z0-9@.]+$/;
       const isValidEmailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email);
-      if (!validEmailRegex.test(values.email) || !isValidEmailFormat || !values.email.endsWith("@gmail.com")) {
-        setErrors((prev) => ({ ...prev, email: "Please enter a valid Gmail address." }));
-        document.getElementById("email-input")?.classList.add("border-red-500", "border-[0.3vh]");
+      if (!isValidEmailFormat) {
+        setErrors((prev) => ({ ...prev, email: "Please enter a valid email address." }));
         setLoading(false);
         return;
       }
-      document.getElementById("email-input")?.classList.remove("border-red-500", "border-[0.3vh]");
 
       if (!values.password) {
         setErrors((prev) => ({ ...prev, password: "Please enter your password." }));
-        document.querySelector("input[name='password']")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
@@ -109,274 +102,323 @@ const SignUp = () => {
       ) {
         setErrors((prev) => ({
           ...prev,
-          password:
-            values.password.length < 9
-              ? "Password must be at least 9 characters."
-              : values.password.length > 128
-                ? "Password must not exceed 128 characters."
-                : !/[A-Z]/.test(values.password)
-                  ? "Password must contain at least one uppercase letter."
-                  : !/[0-9]/.test(values.password)
-                    ? "Password must contain at least one number."
-                    : "Password must contain at least one special character (!@#$%^&*).",
+          password: "Password does not meet all requirements.",
         }));
-        document.querySelector("input[name='password']")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      document.querySelector("input[name='password']")?.classList.remove("border-red-500", "border-[0.3vh]");
 
       if (!values.confirmPassword) {
         setErrors((prev) => ({ ...prev, confirmPassword: "Please confirm your password." }));
-        document.querySelector("input[name='confirmPassword']")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
       if (values.password !== values.confirmPassword) {
         setErrors((prev) => ({ ...prev, confirmPassword: "Passwords do not match." }));
-        document.querySelector("input[name='confirmPassword']")?.classList.add("border-red-500", "border-[0.3vh]");
         setLoading(false);
         return;
       }
-      document.querySelector("input[name='confirmPassword']")?.classList.remove("border-red-500", "border-[0.3vh]");
 
       try {
-        const response = await axiosInstance.post("/users", {
+        // Send verification email
+        await axiosInstance.post("/users/signup-verification", {
+          email: values.email,
+        });
+
+        // Store pending signup data
+        setPendingSignup({
           username: values.username,
           email: values.email,
           password: values.password,
         });
-        const { token, id, username, email, avatarUrl } = response.data;
 
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        if (!uuidRegex.test(id)) {
-          throw new Error("Invalid user ID in signup response");
-        }
-
-        setAuthData({
-          userId: id,
-          userName: username,
-          email,
-          accessToken: token,
-          refreshToken: null,
-          avatar: avatarUrl || null,
-        });
-        document.getElementById("username-input")?.classList.add("border-green-500", "border-[0.3vh]");
-        document.getElementById("email-input")?.classList.add("border-green-500", "border-[0.3vh]");
-        document.querySelector("input[name='password']")?.classList.add("border-green-500", "border-[0.3vh]");
-        document.querySelector("input[name='confirmPassword']")?.classList.add("border-green-500", "border-[0.3vh]");
-        toast.success("Sign up successful!");
-        router.push("/profile");
+        toast.success("Verification code sent to your email!");
+        router.push("/validate_email");
       } catch (error: unknown) {
         const message = axios.isAxiosError(error)
-          ? error.response?.data?.message || "Sign up failed"
-          : "Sign up failed";
+          ? error.response?.data?.message || "Failed to send verification code"
+          : "Failed to send verification code";
         if (message.includes("username")) {
           setErrors((prev) => ({ ...prev, username: message }));
-          document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
-        } else if (message.includes("email")) {
+        } else if (message.includes("email") || message.includes("registered")) {
           setErrors((prev) => ({ ...prev, email: message }));
-          document.getElementById("email-input")?.classList.add("border-red-500", "border-[0.3vh]");
-        } else if (message.includes("password")) {
-          setErrors((prev) => ({ ...prev, password: message }));
-          document.querySelector("input[name='password']")?.classList.add("border-red-500", "border-[0.3vh]");
         } else {
-          setErrors((prev) => ({ ...prev, username: message }));
-          document.getElementById("username-input")?.classList.add("border-red-500", "border-[0.3vh]");
+          setErrors((prev) => ({ ...prev, email: message }));
         }
         toast.error(message);
       } finally {
         setLoading(false);
       }
     },
-    [router, setAuthData]
+    [router, setPendingSignup]
+  );
+
+  const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
+    <li className={`flex items-center gap-2 text-sm transition-colors duration-200 ${met ? "text-green-400" : "text-text-disabled"}`}>
+      {met ? <FaCheck className="text-green-400 text-xs" /> : <FaXmark className="text-text-disabled text-xs" />}
+      {text}
+    </li>
   );
 
   return (
-    <div className="min-h-screen text-white font-poppins font-bold relative md:flex md:justify-around md:items-center">
-      <div className="w-[35vw] aspect-[1/1] relative md:block hidden">
-        <div className="w-full absolute aspect-[1/1] bg-[#DBB968] rounded-[50%] blur-[15vw] left-0 top-[50%] -translate-y-[50%]"></div>
-        <div
-          className="w-full absolute aspect-[1/1] bg-no-repeat bg-center bg-contain left-0 top-[50%] -translate-y-[50%]"
-          style={{ backgroundImage: "url('/FTC_Logo.png')" }}
-        ></div>
+    <div className="min-h-screen bg-bg-app relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/3 -left-32 w-96 h-96 bg-gold-royal/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/3 -right-32 w-80 h-80 bg-gold-shimmer/8 rounded-full blur-[100px]" />
       </div>
-      <div className="flex flex-col items-center justify-center">
-        <h2 className="text-center text-[5.5vh] mt-[1vh]">Sign Up</h2>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-3 w-[80vw] md:w-[42vw]"
-          >
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-bold text-[3vh]">
-                    Username
-                  </FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <MdPerson
-                        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[5vh] cursor-pointer"
-                        onClick={() =>
-                          document.getElementById("username-input")?.focus()
-                        }
-                      />
-                      <Input
-                        id="username-input"
-                        placeholder="Enter your username"
-                        {...field}
-                        className="
-                          !pl-[3.75vw]
-                          py-[4vh] w-full
-                          bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
-                          !text-[3vh] font-normal rounded-[1.5vh]
-                        "
-                        autoComplete="off"
-                      />
-                    </div>
-                  </FormControl>
-                  {errors.username && (
-                    <p className="text-red-500 text-[2.5vh] font-bold">
-                      {errors.username}
-                    </p>
+
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md">
+          {/* Logo Section */}
+          <div className="flex justify-center mb-6 animate-fade-up">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gold-royal/30 rounded-full blur-[60px]" />
+              <div
+                className="relative w-24 h-24 md:w-32 md:h-32 bg-contain bg-center bg-no-repeat animate-float"
+                style={{ backgroundImage: "url('/FTC_Logo.png')" }}
+              />
+            </div>
+          </div>
+
+          {/* Form Card */}
+          <div className="glass-gold rounded-2xl p-8 animate-fade-up stagger-1">
+            <h1 className="font-display text-3xl md:text-4xl text-center gold-gradient-text mb-2">
+              JOIN THE BATTLE
+            </h1>
+            <p className="font-serif text-sm text-text-muted text-center mb-6">
+              Begin your journey to strategic greatness
+            </p>
+
+            <Form {...form}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-serif text-sm text-gold-light uppercase tracking-wider">
+                        Username
+                      </FormLabel>
+                      <FormControl>
+                        <div className={`
+                          flex items-center w-full 
+                          bg-bg-dark/80 border rounded-lg 
+                          transition-all duration-300
+                          ${errors.username ? 'border-red-500' : 'border-gold-deep/30'}
+                          focus-within:border-gold-royal focus-within:ring-1 focus-within:ring-gold-royal/50
+                        `}>
+                          <div className="flex items-center justify-center px-4 border-r border-gold-deep/20 min-h-[56px]">
+                            <MdPerson className="text-gold-muted text-xl" />
+                          </div>
+                          <input
+                            id="username-input"
+                            placeholder="Choose your username"
+                            {...field}
+                            className="
+                              flex-1 bg-transparent border-none outline-none
+                              px-4 py-4
+                              text-text-primary placeholder:text-text-muted
+                              font-sans text-base w-full
+                              rounded-r-lg
+                            "
+                            autoComplete="off"
+                          />
+                        </div>
+                      </FormControl>
+                      {errors.username && (
+                        <p className="text-red-400 text-sm mt-1 font-sans">{errors.username}</p>
+                      )}
+                    </FormItem>
                   )}
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-bold text-[3vh]">Email</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <MdEmail
-                        className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[5vh] cursor-pointer"
-                        onClick={() =>
-                          document.getElementById("email-input")?.focus()
-                        }
-                      />
-                      <Input
-                        id="email-input"
-                        placeholder="Enter your email"
-                        {...field}
-                        className="
-                          !pl-[3.75vw]
-                          py-[4vh] w-full
-                          bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
-                          !text-[3vh] font-normal rounded-[1.5vh]
-                        "
-                        autoComplete="off"
-                      />
-                    </div>
-                  </FormControl>
-                  {errors.email && (
-                    <p className="text-red-500 text-[2.5vh] font-bold">
-                      {errors.email}
-                    </p>
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-serif text-sm text-gold-light uppercase tracking-wider">
+                        Email
+                      </FormLabel>
+                      <FormControl>
+                        <div className={`
+                          flex items-center w-full 
+                          bg-bg-dark/80 border rounded-lg 
+                          transition-all duration-300
+                          ${errors.email ? 'border-red-500' : 'border-gold-deep/30'}
+                          focus-within:border-gold-royal focus-within:ring-1 focus-within:ring-gold-royal/50
+                        `}>
+                          <div className="flex items-center justify-center px-4 border-r border-gold-deep/20 min-h-[56px]">
+                            <MdEmail className="text-gold-muted text-xl" />
+                          </div>
+                          <input
+                            id="email-input"
+                            placeholder="Enter your email address"
+                            {...field}
+                            className="
+                              flex-1 bg-transparent border-none outline-none
+                              px-4 py-4
+                              text-text-primary placeholder:text-text-muted
+                              font-sans text-base w-full
+                              rounded-r-lg
+                            "
+                            autoComplete="off"
+                          />
+                        </div>
+                      </FormControl>
+                      {errors.email && (
+                        <p className="text-red-400 text-sm mt-1 font-sans">{errors.email}</p>
+                      )}
+                    </FormItem>
                   )}
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-bold text-[3vh]">
-                    Password
-                  </FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <PasswordInput
-                        placeholder="Enter your password"
-                        {...field}
-                        className="
-                          !pl-[3.75vw]
-                          py-[4vh] w-full
-                          bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
-                          !text-[3vh] font-normal rounded-[1.5vh]
-                        "
-                        onChange={(e) => {
-                          field.onChange(e);
-                          setPassword(e.target.value);
-                        }}
-                      />
-                    </div>
-                  </FormControl>
-                  <ul className="font-normal text-[2.5vh]">
-                    <li className={isMinLength ? "text-green-500" : ""}>
-                      ✔ 9 characters minimum
-                    </li>
-                    <li className={hasUppercase ? "text-green-500" : ""}>
-                      ✔ At least 1 capital letter
-                    </li>
-                    <li className={hasNumber ? "text-green-500" : ""}>
-                      ✔ At least 1 digit
-                    </li>
-                    <li className={hasSpecialChar ? "text-green-500" : ""}>
-                      ✔ At least 1 special character (!@#$%^&*)
-                    </li>
-                  </ul>
-                  {errors.password && (
-                    <p className="text-red-500 text-[2.5vh] font-bold">
-                      {errors.password}
-                    </p>
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-serif text-sm text-gold-light uppercase tracking-wider">
+                        Password
+                      </FormLabel>
+                      <FormControl>
+                        <div className={`
+                          flex items-center w-full 
+                          bg-bg-dark/80 border rounded-lg 
+                          transition-all duration-300
+                          ${errors.password ? 'border-red-500' : 'border-gold-deep/30'}
+                          focus-within:border-gold-royal focus-within:ring-1 focus-within:ring-gold-royal/50
+                        `}>
+                          <div className="flex items-center justify-center px-4 border-r border-gold-deep/20 min-h-[56px]">
+                            <FaKey className="text-gold-muted text-lg transform -rotate-45" />
+                          </div>
+                          <input
+                            id="password-input"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Create a strong password"
+                            {...field}
+                            className="
+                              flex-1 bg-transparent border-none outline-none
+                              px-4 py-4
+                              text-text-primary placeholder:text-text-muted
+                              font-sans text-base w-full
+                            "
+                            onChange={(e) => {
+                              field.onChange(e);
+                              setPassword(e.target.value);
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="px-4 text-gold-muted hover:text-gold-light transition-colors"
+                          >
+                            {showPassword ? (
+                              <FaEyeSlash className="text-lg" />
+                            ) : (
+                              <FaEye className="text-lg" />
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <ul className="mt-2 space-y-1 font-sans">
+                        <PasswordRequirement met={isMinLength} text="At least 9 characters" />
+                        <PasswordRequirement met={hasUppercase} text="One uppercase letter" />
+                        <PasswordRequirement met={hasNumber} text="One number" />
+                        <PasswordRequirement met={hasSpecialChar} text="One special character (!@#$%^&*)" />
+                      </ul>
+                      {errors.password && (
+                        <p className="text-red-400 text-sm mt-1 font-sans">{errors.password}</p>
+                      )}
+                    </FormItem>
                   )}
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-bold text-[3vh]">
-                    Confirm Password
-                  </FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <PasswordInput
-                        placeholder="Confirm your password"
-                        {...field}
-                        className="
-                          !pl-[3.75vw]
-                          py-[4vh] w-full
-                          bg-[#C4C4C4] border-[#DCB968] focus:border-[0.35vh] text-[#2F2F2F]
-                          !text-[3vh] font-normal rounded-[1.5vh]
-                        "
-                      />
-                    </div>
-                  </FormControl>
-                  {errors.confirmPassword && (
-                    <p className="text-red-500 text-[2.5vh] font-bold">
-                      {errors.confirmPassword}
-                    </p>
+                />
+
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="font-serif text-sm text-gold-light uppercase tracking-wider">
+                        Confirm Password
+                      </FormLabel>
+                      <FormControl>
+                        <div className={`
+                          flex items-center w-full 
+                          bg-bg-dark/80 border rounded-lg 
+                          transition-all duration-300
+                          ${errors.confirmPassword ? 'border-red-500' : 'border-gold-deep/30'}
+                          focus-within:border-gold-royal focus-within:ring-1 focus-within:ring-gold-royal/50
+                        `}>
+                          <div className="flex items-center justify-center px-4 border-r border-gold-deep/20 min-h-[56px]">
+                            <FaKey className="text-gold-muted text-lg transform -rotate-45" />
+                          </div>
+                          <input
+                            id="confirm-password-input"
+                            type={showConfirmPassword ? "text" : "password"}
+                            placeholder="Confirm your password"
+                            {...field}
+                            className="
+                              flex-1 bg-transparent border-none outline-none
+                              px-4 py-4
+                              text-text-primary placeholder:text-text-muted
+                              font-sans text-base w-full
+                            "
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="px-4 text-gold-muted hover:text-gold-light transition-colors"
+                          >
+                            {showConfirmPassword ? (
+                              <FaEyeSlash className="text-lg" />
+                            ) : (
+                              <FaEye className="text-lg" />
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      {errors.confirmPassword && (
+                        <p className="text-red-400 text-sm mt-1 font-sans">{errors.confirmPassword}</p>
+                      )}
+                    </FormItem>
                   )}
-                </FormItem>
-              )}
-            />
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#000000] mt-[1.75vh] mb-[1.75vh] !py-[3.5vh] !rounded-[1.5vh] !text-[3vh] !font-semibold hover:!bg-[#DBB968] !cursor-pointer"
-            >
-              {loading ? "Signing Up..." : "Sign Up"}
-            </Button>
-          </form>
-        </Form>
-        <div className="text-center text-[#C4C4C4] text-[3vh] font-normal my-[2vh]">
-          Already have an account?{" "}
-          <a
-            href="/sign_in"
-            className="text-[#184BF2] font-bold hover:underline"
-          >
-            Sign In
-          </a>
+                />
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="
+                    w-full py-4 mt-2 rounded-lg
+                    bg-linear-to-r from-gold-main via-gold-royal to-gold-dark
+                    hover:from-gold-shimmer hover:via-gold-main hover:to-gold-royal
+                    text-bg-dark font-serif font-semibold text-lg
+                    transition-all duration-300 transform hover:scale-[1.02]
+                    shadow-lg hover:shadow-gold-royal/30
+                    disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+                  "
+                >
+                  {loading ? "Sending Code..." : "Continue"}
+                </Button>
+              </form>
+            </Form>
+
+            {/* Sign In Link */}
+            <p className="text-center mt-6 text-text-muted font-sans">
+              Already have an account?{" "}
+              <a
+                href="/sign_in"
+                className="text-gold-light hover:text-gold-shimmer font-serif font-semibold transition-colors"
+              >
+                Sign In
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>

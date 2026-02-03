@@ -112,7 +112,23 @@ export type GameState = {
   eloUpdate?: {
     whiteElo?: number;
     blackElo?: number;
-  }
+    whiteChange?: number;
+    blackChange?: number;
+  };
+  players?: string[];
+  coinReward?: {
+    amount: number;
+    breakdown?: {
+      base: number;
+      eloBonus: number;
+      movesBonus: number;
+      streakBonus: number;
+      dynastyBonus: number;
+      total: number;
+    };
+    transactionHash?: string;
+    status: 'pending' | 'confirmed' | 'failed';
+  };
 };
 
 export interface UseOnlineSocketProps {

@@ -12,7 +12,7 @@ type PlayerProfile = {
 };
 
 export const useGameState = () => {
-  
+
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
   const [moveHistory, setMoveHistory] = useState<Array<{
@@ -22,58 +22,60 @@ export const useGameState = () => {
     time: number;
   }>>([]);
   const { userId, accessToken } = useGlobalStorage()
-  
+
   const [moveTimings, setMoveTimings] = useState<string[]>([]);
   const [capturedWhite, setCapturedWhite] = useState<string[]>([]);
   const [capturedBlack, setCapturedBlack] = useState<string[]>([]);
   const [autoRotateBoard, setAutoRotateBoard] = useState(false);
-  const [whiteProfile, setWhiteProfile] = useState<PlayerProfile>({ 
-    name: "White", 
-    image: "/footer/footer_bear.svg" 
+  const [whiteProfile, setWhiteProfile] = useState<PlayerProfile>({
+    name: "White",
+    image: "/footer/footer_bear.svg"
   });
-  const [blackProfile, setBlackProfile] = useState<PlayerProfile>({ 
-    name: "Black", 
-    image: "/footer/footer_bear.svg" 
+  const [blackProfile, setBlackProfile] = useState<PlayerProfile>({
+    name: "Black",
+    image: "/footer/footer_bear.svg"
   });
 
   const fetchUsers = async () => {
     const userList = gameState?.players;
     console.log("userList", userList);
 
+    if (!userList || userList.length < 2) return;
+
     const whiteUser = userList[0];
     const blackUser = userList[1];
-    
+
 
     if (whiteUser) {
       axios.get(`${basePath}/users/${whiteUser}`, {
         headers: {
-            Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         }
-    })
-      .then((response) => {
-        setWhiteProfile({
-          name: response.data.username,
-          image: response.data.avatarUrl,
-          elo: response.data.elo
-        });
       })
+        .then((response) => {
+          setWhiteProfile({
+            name: response.data.username,
+            image: response.data.avatarUrl,
+            elo: response.data.elo
+          });
+        })
     }
     if (blackUser) {
       axios.get(`${basePath}/users/${blackUser}`, {
         headers: {
-            Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         }
-    })
-      .then((response) => {
-        setBlackProfile({
-          name: response.data.username,
-          image: response.data.avatarUrl,
-          elo: response.data.elo
-        });
       })
+        .then((response) => {
+          setBlackProfile({
+            name: response.data.username,
+            image: response.data.avatarUrl,
+            elo: response.data.elo
+          });
+        })
     }
   };
-  
+
   // Update board orientation when auto-rotate changes
   useEffect(() => {
     fetchUsers();

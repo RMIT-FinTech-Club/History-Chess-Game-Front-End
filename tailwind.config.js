@@ -8,7 +8,20 @@ module.exports = {
 		"./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
 	],
 	theme: {
-		extend: {},
+		extend: {
+			colors: {
+				text: {
+					secondary: "var(--text-secondary)",
+					muted: "var(--text-muted)",
+				},
+				surface: {
+					glass: "var(--surface-glass)",
+				},
+				border: {
+					glass: "var(--border-glass)",
+				},
+			},
+		},
 	},
 	darkMode: "class",
 	plugins: [heroui()],

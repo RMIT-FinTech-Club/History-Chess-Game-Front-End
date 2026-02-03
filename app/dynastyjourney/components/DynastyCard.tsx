@@ -7,7 +7,7 @@ type DynastyCardProps = {
 	id: number;
 	image_url: string;
 	name: string;
-	EloRange: string;
+	LevelRange: string;
 	variant: DynastyCardVariant;
 	onPlay: () => void;
 };
@@ -15,7 +15,7 @@ type DynastyCardProps = {
 const DynastyCard: React.FC<DynastyCardProps> = ({
 	image_url,
 	name,
-	EloRange,
+	LevelRange,
 	variant,
 	onPlay,
 }: DynastyCardProps) => {
@@ -29,7 +29,7 @@ const DynastyCard: React.FC<DynastyCardProps> = ({
 			? "scale-100 border-[#d9b76b] shadow-[0px_18px_38px_rgba(0,0,0,0.45)] z-10]"
 			: variant === "inactive"
 				? "scale-60 cursor-pointer bg-black"
-				: variant === "left" 
+				: variant === "left"
 					? "scale-85 cursor-pointer bg-black ml-[-3.4vh]"
 					: "scale-85 cursor-pointer bg-black ml-[3.4vh]"
 
@@ -40,7 +40,7 @@ const DynastyCard: React.FC<DynastyCardProps> = ({
 	const titleClassName = `uppercase text-center font-bold tracking-[0.1vh] transition-all duration-300 ${isActive ? "text-[3vh]" : "text-[2vh]"
 		}`;
 
-	const eloClassName = `uppercase text-center transition-all duration-300 ${isActive ? "text-[2vh]" : "text-[1.4vh]"
+	const levelClassName = `uppercase text-center transition-all duration-300 ${isActive ? "text-[2vh]" : "text-[1.4vh]"
 		}`;
 
 	const glowClasses = isActive
@@ -62,8 +62,8 @@ const DynastyCard: React.FC<DynastyCardProps> = ({
 					className={`absolute bottom-0 left-0 w-full py-[1vh] px-[2vh] flex flex-col text-white ${overlayHeight}`}
 				>
 					<p className={titleClassName}>{name}</p>
-					<p className={`${eloClassName} my-auto`}>
-						Elo <span className="text-primary-yellow-1">{EloRange}</span>
+					<p className={`${levelClassName} my-auto`}>
+						Level <span className="text-primary-yellow-1">{LevelRange}</span>
 					</p>
 					<div
 						className={`absolute left-1/2 translate-x-[-50%] bottom-[calc(100%+2vh)] bg-[linear-gradient(0deg,#8F802B,#DEAD26)] p-[0.4vh] rounded-[2.4vh] transition-all duration-300 ${isActive

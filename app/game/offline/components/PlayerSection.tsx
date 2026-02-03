@@ -10,7 +10,7 @@ type BaseProps = {
   profileName?: string;
   profileImage?: string | null;
 };
-type Props = BaseProps & { elo?: number; side?: "w" | "b" };
+type Props = BaseProps & { elo?: number; side?: "w" | "b"; timeLeft?: number };
 
 export const PlayerSection: React.FC<Props> = ({
   color,
@@ -21,20 +21,32 @@ export const PlayerSection: React.FC<Props> = ({
   profileImage,
   elo = 1298,
   side = color === "White" ? "w" : "b",
+  timeLeft,
 }) => {
   const name = profileName || color;
 
   const initials =
     name.split(/[\s_]+/).filter(Boolean).slice(0, 2).map(w => w[0]!.toUpperCase()).join("") || "??";
 
+  // Format time (ms -> mm:ss)
+  const formatTime = (ms?: number) => {
+    if (ms === undefined || ms < 0) return "--:--";
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
   return (
     <div
-      className="
+      className={`
         relative overflow-hidden rounded-xl w-full
         border border-white/10 bg-white/5 backdrop-blur-[2px]
         shadow-[0_6px_18px_rgba(0,0,0,.35)]
         px-3 sm:px-4 py-3 text-[#EBEBEB]
-      "
+        transition-all duration-300
+        ${isCurrentTurn && gameActive ? "ring-1 ring-[#F7D27F]/50 bg-white/10" : ""}
+      `}
     >
       <div className="flex items-center gap-3">
         {/* Avatar */}
@@ -54,9 +66,17 @@ export const PlayerSection: React.FC<Props> = ({
           </div>
         )}
 
-        {/* Name & Elo */}
+        {/* Name & Elo & Time */}
         <div className="min-w-0 flex-1 flex flex-col justify-center overflow-hidden">
-          <span className="truncate font-medium text-base sm:text-lg leading-tight">{name}</span>
+          <div className="flex justify-between items-center w-full">
+            <span className="truncate font-medium text-base sm:text-lg leading-tight">{name}</span>
+            {timeLeft !== undefined && (
+              <span className={`font-mono font-bold text-lg sm:text-xl tabular-nums ${timeLeft < 30000 ? "text-red-400 animate-pulse" : "text-[#F7D27F]"
+                }`}>
+                {formatTime(timeLeft)}
+              </span>
+            )}
+          </div>
           <span className="text-xs sm:text-sm leading-tight opacity-85 tabular-nums">
             ELO: {elo.toLocaleString("en-US")}
           </span>

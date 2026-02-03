@@ -82,19 +82,19 @@ export default function PlayerSelector({
                         {selectedPlayer.username}
                     </p>
                     {!isRandomSelected && selectedPlayer.elo > 0 && (
-                        <p className="font-serif text-sm text-white/60">
+                        <p className="font-serif text-sm text-text-secondary">
                             ELO: {selectedPlayer.elo}
                         </p>
                     )}
                     {isRandomSelected && (
-                        <p className="font-serif text-xs text-white/50">
+                        <p className="font-serif text-xs text-text-muted">
                             Click to select a specific player
                         </p>
                     )}
                 </div>
 
                 {/* Dropdown Arrow */}
-                <div className="text-white/60">
+                <div className="text-text-secondary">
                     <svg
                         className={`w-5 h-5 transition-transform duration-200 ${showPlayerSelect ? "rotate-180" : ""}`}
                         fill="none"
@@ -108,14 +108,14 @@ export default function PlayerSelector({
 
             {/* Dropdown Player List */}
             {showPlayerSelect && (
-                <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl overflow-hidden shadow-2xl border border-white/10">
+                <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl overflow-hidden shadow-2xl border border-border-glass">
                     <div
                         ref={playerListRef}
                         className="bg-[#2A2524] backdrop-blur-xl max-h-[300px] overflow-y-auto"
                     >
                         {/* Header */}
-                        <div className="sticky top-0 bg-[#2A2524] px-4 py-3 border-b border-white/10">
-                            <h3 className="font-serif text-sm font-semibold text-white/80 uppercase tracking-wider">
+                        <div className="sticky top-0 bg-[#2A2524] px-4 py-3 border-b border-border-glass">
+                            <h3 className="font-serif text-sm font-semibold text-text-secondary uppercase tracking-wider">
                                 Select Opponent
                             </h3>
                         </div>
@@ -138,7 +138,7 @@ export default function PlayerSelector({
                                             transition-all duration-150
                                             ${isSelected
                                                 ? "bg-gold-highlight/20 border border-gold-highlight/50"
-                                                : "hover:bg-white/10 border border-transparent"
+                                                : "hover:bg-surface-glass border border-transparent"
                                             }
                                         `}
                                     >
@@ -168,12 +168,12 @@ export default function PlayerSelector({
                                                 {player.username}
                                             </p>
                                             {!isRandom && player.elo > 0 && (
-                                                <p className="font-serif text-xs text-white/50">
+                                                <p className="font-serif text-xs text-text-muted">
                                                     ELO: {player.elo}
                                                 </p>
                                             )}
                                             {isRandom && (
-                                                <p className="font-serif text-xs text-white/50">
+                                                <p className="font-serif text-xs text-text-muted">
                                                     Match with anyone online
                                                 </p>
                                             )}

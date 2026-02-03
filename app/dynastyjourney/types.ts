@@ -23,7 +23,6 @@ export interface BoardTheme {
 export interface Dynasty {
     id: number;
     name: string;
-    nameChinese: string;
     startElo: number;
     endElo: number;
     imageUrl: string;
@@ -40,20 +39,25 @@ export interface DynastyConfig {
 }
 
 export interface DynastyProgress {
-    currentElo: number;
+    currentElo: number; // PvP Elo (separate from Dynasty)
     peakElo: number;
     currentDynasty: Dynasty;
-    currentLevel: number;
+    currentLevel: number; // Rank within dynasty (1-5)
     peakDynasty: Dynasty;
     peakLevel: number;
     levelEloRange: {
         start: number;
         end: number;
     };
-    progressPercentage: number;
+    progressPercentage: number; // Now XP-based
     unlockedDynasties: Dynasty[];
     allDynasties: Dynasty[];
     nextDynasty: Dynasty | null;
+    // XP-based fields (Dynasty Journey progression)
+    dynastyLevel: number; // Overall level (1-50)
+    dynastyXp: number; // Current XP
+    xpToNextLevel: number; // XP needed for next level
+    xpProgressPercentage: number; // XP progress percentage
 }
 
 export interface DynastyAPIResponse<T> {

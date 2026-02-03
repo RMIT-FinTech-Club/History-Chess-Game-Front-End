@@ -18,7 +18,7 @@ export default function SideSelector({ selectedSide, onSideChangeAction, chessBo
                     <div
                         key={opt.value}
                         onClick={() => onSideChangeAction(opt.value)}
-                        className={`h-auto flex items-center col-span-1 px-[2vh] py-[1vh] cursor-pointer transition-colors hover:bg-[#DBB968] duration-200 border-solid rounded-[0.625rem] ${selectedSide === opt.value ? 'bg-[#DBB968] text-black' : 'bg-[#3B3433]'
+                        className={`h-auto flex items-center col-span-1 px-[2vh] py-[1vh] cursor-pointer transition-colors hover:bg-gold-hover duration-200 border-solid rounded-[0.625rem] ${selectedSide === opt.value ? 'bg-gold-hover text-black' : 'bg-surface-glass'
                             }`}
                     >
                         <Pieces

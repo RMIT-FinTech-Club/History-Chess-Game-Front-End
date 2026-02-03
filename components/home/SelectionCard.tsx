@@ -9,7 +9,7 @@ interface SelectionCardProps {
     image: string;
     onClick: () => void;
     delay?: number;
-    variant?: 'online' | 'offline';
+    variant?: 'online' | 'offline' | 'dynasty';
     features?: string[];
     playerCount?: number;
 }
@@ -53,12 +53,23 @@ export default function SelectionCard({
     const [isHovered, setIsHovered] = useState(false);
 
     const isOnline = variant === 'online';
-    const icon = isOnline ? '🌐' : '🤖';
-    const gradientColor = isOnline
-        ? 'from-emerald-500/20 via-cyan-500/10 to-blue-500/20'
-        : 'from-purple-500/20 via-violet-500/10 to-indigo-500/20';
-    const accentColor = isOnline ? 'text-emerald-400' : 'text-purple-400';
-    const borderAccent = isOnline ? 'group-hover:border-emerald-500/40' : 'group-hover:border-purple-500/40';
+    const isDynasty = variant === 'dynasty';
+
+    let icon = '🤖';
+    if (isOnline) icon = '🌐';
+    if (isDynasty) icon = '👑';
+
+    let gradientColor = 'from-purple-500/20 via-violet-500/10 to-indigo-500/20';
+    if (isOnline) gradientColor = 'from-emerald-500/20 via-cyan-500/10 to-blue-500/20';
+    if (isDynasty) gradientColor = 'from-amber-500/20 via-orange-500/10 to-red-500/20';
+
+    let accentColor = 'text-purple-400';
+    if (isOnline) accentColor = 'text-emerald-400';
+    if (isDynasty) accentColor = 'text-amber-400';
+
+    let borderAccent = 'group-hover:border-purple-500/40';
+    if (isOnline) borderAccent = 'group-hover:border-emerald-500/40';
+    if (isDynasty) borderAccent = 'group-hover:border-amber-500/40';
 
     return (
         <motion.div
@@ -116,7 +127,7 @@ export default function SelectionCard({
                     )}
 
                     {/* Difficulty selector preview for offline */}
-                    {!isOnline && (
+                    {!isOnline && !isDynasty && (
                         <div className="absolute top-6 left-6 z-20">
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10">
                                 <span className="text-sm text-white/70">AI Level:</span>
