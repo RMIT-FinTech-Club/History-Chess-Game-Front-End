@@ -8,7 +8,7 @@ import BackgroundEffects from "@/components/decor/BackgroundEffects";
 import SelectionCard from "@/components/home/SelectionCard";
 import { useEffect, useState } from "react";
 import axiosInstance from "@/config/apiConfig";
-import { Trophy, Clock, XCircle, Minus, ChevronRight, User } from "lucide-react";
+import { Trophy, XCircle, Minus, ChevronRight } from "lucide-react";
 
 // Chess wisdom quotes for daily tip section
 const chessQuotes = [
@@ -39,6 +39,14 @@ interface RecentMatch {
     opponentId?: string;
 }
 
+interface ApiMatch {
+    gameId: string;
+    opponentName?: string;
+    result: string;
+    createdAt: string;
+    opponentId?: string;
+}
+
 // Daily Challenge card component
 const DailyChallengeCard = () => (
     <motion.div
@@ -58,7 +66,7 @@ const DailyChallengeCard = () => (
             </div>
             <div>
                 <h3 className="font-display text-xl text-gold-100 mb-1">Daily Challenge</h3>
-                <p className="text-gray-400 text-sm mb-3">Complete today's puzzle to earn bonus XP</p>
+                <p className="text-gray-400 text-sm mb-3">Complete today&apos;s puzzle to earn bonus XP</p>
                 <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -175,7 +183,7 @@ export default function HomePage() {
 
                 const matches = historyRes.data || [];
                 const totalGames = matches.length;
-                const victories = matches.filter((m: any) => m.result === 'Victory').length;
+                const victories = matches.filter((m: ApiMatch) => m.result === 'Victory').length;
                 const winRate = totalGames > 0 ? Math.round((victories / totalGames) * 100) : 0;
 
                 setStats({
@@ -188,7 +196,7 @@ export default function HomePage() {
                 // Assuming history endpoint might be enriched later, but current 'ProfileMatches' had to fetch all users.
                 // To keep Home page fast, we might skip avatar fetching or do a quick lookup if the API supports it.
                 // For now, let's just map the recent 3 matches.
-                const recent = matches.slice(0, 3).map((m: any) => ({
+                const recent = matches.slice(0, 3).map((m: ApiMatch) => ({
                     id: m.gameId,
                     opponent: m.opponentName || 'Unknown',
                     result: m.result,
@@ -226,7 +234,7 @@ export default function HomePage() {
                         </h1>
                     </div>
                     <p className="text-gray-400 font-serif italic ml-12">
-                        "{dailyQuote.quote}" — <span className="text-gold-500/70">{dailyQuote.author}</span>
+                        &quot;{dailyQuote.quote}&quot; — <span className="text-gold-500/70">{dailyQuote.author}</span>
                     </p>
                 </motion.div>
 

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { JSX, useState } from "react";
-import { defaultPieces } from "../../components/Pieces";
+import React, { useState } from "react";
+import Image from "next/image";
+
 
 const dynastyThemes = [
   { id: "historyChessBoard", label: "Historical" },
@@ -69,14 +70,13 @@ export default function BoardChoose({ selected, onSelect, }: { selected: string;
 
 // PNG version of the pieces
 export function getCustomPieces(boardId: string, kingSkinUrl?: string) {
-  const theme = boardPieceColors[boardId] || boardPieceColors["historyChessBoard"];
 
   const pieceTypes = [
     "wK", "wQ", "wR", "wB", "wN", "wP",
     "bK", "bQ", "bR", "bB", "bN", "bP",
   ];
 
-  const customPieces: { [key: string]: React.FC<any> } = {};
+  const customPieces: { [key: string]: React.FC<{ squareWidth: number; isDragging: boolean }> } = {};
 
   pieceTypes.forEach((type) => {
     // If it's the White King and we have a custom skin, use that
@@ -96,19 +96,14 @@ export function getCustomPieces(boardId: string, kingSkinUrl?: string) {
           opacity: isDragging ? 0 : 1, // Hide original piece while dragging
         }}
       >
-        <img
-          src={imagePath}
-          alt={type}
-          style={{
-            width: "80%",
-            height: "80%",
-            objectFit: "contain",
-            pointerEvents: "none",
-            userSelect: "none",
-            // If dragging, we can either hide the image here or rely on opacity 0 on container
-            // display: isDragging ? "none" : "block", 
-          }}
-        />
+        <div className="relative w-[80%] h-[80%] pointer-events-none select-none">
+          <Image
+            src={imagePath}
+            alt={type}
+            fill
+            className="object-contain"
+          />
+        </div>
       </div>
     );
   });

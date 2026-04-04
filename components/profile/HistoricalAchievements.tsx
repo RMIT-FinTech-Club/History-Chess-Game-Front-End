@@ -1,20 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { Scroll, Award, Crown, Sword, BookOpen, Star } from "lucide-react";
-import { toast } from "sonner";
 
-interface Achievement {
-    id: string;
-    title: string;
-    description: string;
-    icon: React.ElementType;
-    isUnlocked: boolean;
-    progress: number;
-    maxProgress: number;
-    color: string;
-}
+
 
 const ACHIEVEMENTS_DATA = [
     {

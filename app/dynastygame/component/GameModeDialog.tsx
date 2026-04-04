@@ -10,9 +10,6 @@ import type { GameModeDialogProps } from "./types";
 
 export const GameModeDialog: React.FC<GameModeDialogProps> = ({
 	open,
-	aiDifficulty,
-	setAiDifficulty,
-	difficultyLevels,
 	handleStartSinglePlayer,
 	handleStartTwoPlayer,
 	isAiReady,

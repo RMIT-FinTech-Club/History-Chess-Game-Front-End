@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Coins } from "lucide-react";
-import type { CoinRewardDisplayProps, RewardBreakdown } from "./types";
+import type { CoinRewardDisplayProps } from "./types";
 
 /**
  * CoinRewardDisplay Component

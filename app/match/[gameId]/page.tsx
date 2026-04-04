@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
 import { ChevronLeft, ChevronRight, Trophy, PlayCircle, PauseCircle, Star, Swords, Clock, X } from 'lucide-react';
@@ -30,6 +30,11 @@ interface Move {
     continuation?: string;
 }
 
+interface AnalysisData {
+    whiteAccuracyPoint: number;
+    blackAccuracyPoint: number;
+}
+
 export default function MatchAnalysisPage() {
     const params = useParams();
     const searchParams = useSearchParams();
@@ -38,7 +43,7 @@ export default function MatchAnalysisPage() {
 
     const gameId = params.gameId as string;
     const opponentName = searchParams.get('opponentName') || 'Unknown Opponent';
-    const result = searchParams.get('result') || 'Finished';
+    // const result = searchParams.get('result') || 'Finished';
     const opponentId = searchParams.get('opponentId');
 
     const [loading, setLoading] = useState(true);
@@ -46,7 +51,7 @@ export default function MatchAnalysisPage() {
     const [currentMoveIndex, setCurrentMoveIndex] = useState(-1);
     const [game, setGame] = useState(new Chess());
     const [isPlaying, setIsPlaying] = useState(false);
-    const [analysis, setAnalysis] = useState<any>(null);
+    const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
     const boardPanelRef = useRef<HTMLDivElement>(null);
     const [boardWidth, setBoardWidth] = useState(400);
 
@@ -79,16 +84,9 @@ export default function MatchAnalysisPage() {
             resizeObserver.disconnect();
             window.removeEventListener('resize', resizeBoard);
         };
-    }, []);
+    }, [boardWidth]);
 
-    // Fetch Match Details
-    useEffect(() => {
-        if (gameId && accessToken) {
-            fetchMatchDetails();
-        }
-    }, [gameId, accessToken]);
-
-    const fetchMatchDetails = async () => {
+    const fetchMatchDetails = useCallback(async () => {
         try {
             setLoading(true);
             const analysisRes = await axiosInstance.get(`/game/analysis/${gameId}`, {
@@ -112,13 +110,45 @@ export default function MatchAnalysisPage() {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 });
                 setMoves(movesRes.data.moves || []);
-            } catch (fallbackError) {
+            } catch {
                 toast.error('Failed to load match details');
             }
         } finally {
             setLoading(false);
         }
-    };
+    }, [gameId, accessToken]);
+
+    // Fetch Match Details
+    useEffect(() => {
+        if (gameId && accessToken) {
+            fetchMatchDetails();
+        }
+    }, [gameId, accessToken, fetchMatchDetails]);
+
+    // Replay Logic
+    const handleMove = useCallback((index: number) => {
+        if (index < -1 || index >= moves.length) return;
+
+        const newGame = new Chess();
+        try {
+            for (let i = 0; i <= index; i++) {
+                const moveData = moves[i];
+                if (moveData.move) {
+                    newGame.move(moveData.move);
+                } else if (moveData.from && moveData.to) {
+                    newGame.move({ from: moveData.from, to: moveData.to, promotion: moveData.promotion || 'q' });
+                }
+            }
+        } catch {
+            // Silent catch for robustness
+            if (index >= 0 && moves[index].fen) {
+                newGame.load(moves[index].fen);
+            }
+        }
+
+        setGame(newGame);
+        setCurrentMoveIndex(index);
+    }, [moves]);
 
     // Replay Logic
     useEffect(() => {
@@ -133,31 +163,7 @@ export default function MatchAnalysisPage() {
             }, 1000); // Slightly faster replay
         }
         return () => clearInterval(interval);
-    }, [isPlaying, currentMoveIndex, moves]);
-
-    const handleMove = (index: number) => {
-        if (index < -1 || index >= moves.length) return;
-
-        const newGame = new Chess();
-        try {
-            for (let i = 0; i <= index; i++) {
-                const moveData = moves[i];
-                if (moveData.move) {
-                    newGame.move(moveData.move);
-                } else if (moveData.from && moveData.to) {
-                    newGame.move({ from: moveData.from, to: moveData.to, promotion: moveData.promotion || 'q' });
-                }
-            }
-        } catch (e) {
-            // Silent catch for robustness
-            if (index >= 0 && moves[index].fen) {
-                newGame.load(moves[index].fen);
-            }
-        }
-
-        setGame(newGame);
-        setCurrentMoveIndex(index);
-    };
+    }, [isPlaying, currentMoveIndex, moves, handleMove]);
 
     const currentMove = currentMoveIndex >= 0 ? moves[currentMoveIndex] : null;
 
@@ -289,8 +295,8 @@ export default function MatchAnalysisPage() {
                         ) : (
                             <div className="grid grid-cols-2 gap-3">
                                 {[
-                                    { label: 'White Accuracy', score: analysis?.whiteAccuracyPoint, color: analysis?.whiteAccuracyPoint >= 90 ? 'text-emerald-400' : 'text-gold-light' },
-                                    { label: 'Black Accuracy', score: analysis?.blackAccuracyPoint, color: analysis?.blackAccuracyPoint >= 90 ? 'text-emerald-400' : 'text-gold-light' }
+                                    { label: 'White Accuracy', score: analysis?.whiteAccuracyPoint, color: (analysis?.whiteAccuracyPoint ?? 0) >= 90 ? 'text-emerald-400' : 'text-gold-light' },
+                                    { label: 'Black Accuracy', score: analysis?.blackAccuracyPoint, color: (analysis?.blackAccuracyPoint ?? 0) >= 90 ? 'text-emerald-400' : 'text-gold-light' }
                                 ].map((stat, idx) => (
                                     <div key={idx} className="relative group">
                                         <div className="absolute inset-0 bg-surface-glass rounded border border-border-glass opacity-100" />

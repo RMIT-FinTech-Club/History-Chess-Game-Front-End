@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { HistoricalContext } from "@/config/marketApi";
-import { Info, BookOpen, Crown, Scroll } from "lucide-react";
+import { HistoricalContext } from "@/features/market/api/marketApi";
+import { BookOpen, Crown, Scroll } from "lucide-react";
 
 interface HistoricalTooltipProps {
     children: React.ReactNode;
@@ -13,6 +13,7 @@ interface HistoricalTooltipProps {
     delay?: number;
     side?: "left" | "right";
 }
+
 
 // Fallback data generator based on dynasty
 const getFallbackContext = (dynasty: string): HistoricalContext => {
@@ -98,7 +99,6 @@ export default function HistoricalTooltip({
     children,
     context,
     dynasty = "Unknown",
-    itemRarity = "COMMON",
     delay = 0.3,
     side = "right"
 }: HistoricalTooltipProps) {

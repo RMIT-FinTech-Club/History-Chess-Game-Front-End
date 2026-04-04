@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { GameState } from "../types";
-import { io, Socket } from "socket.io-client";
 import basePath from "@/config/pathConfig";
 import axios from "axios";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
@@ -21,7 +20,7 @@ export const useGameState = () => {
     color: string;
     time: number;
   }>>([]);
-  const { userId, accessToken } = useGlobalStorage()
+  const { accessToken } = useGlobalStorage()
 
   const [moveTimings, setMoveTimings] = useState<string[]>([]);
   const [capturedWhite, setCapturedWhite] = useState<string[]>([]);
@@ -36,7 +35,7 @@ export const useGameState = () => {
     image: "/footer/footer_bear.svg"
   });
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     const userList = gameState?.players;
     console.log("userList", userList);
 
@@ -74,7 +73,7 @@ export const useGameState = () => {
           });
         })
     }
-  };
+  }, [gameState?.players, accessToken]);
 
   // Update board orientation when auto-rotate changes
   useEffect(() => {
@@ -84,7 +83,7 @@ export const useGameState = () => {
     } else if (gameState?.playerColor) {
       setBoardOrientation(gameState.playerColor);
     }
-  }, [gameState?.turn, autoRotateBoard, gameState?.playerColor]);
+  }, [gameState, autoRotateBoard, fetchUsers]);
 
   return {
     gameState,

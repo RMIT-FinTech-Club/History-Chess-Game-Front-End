@@ -17,7 +17,6 @@ export type PlayerSectionProps = {
 
 export const PlayerSection = ({
   color,
-  pieces,
   timeInSeconds,
   isCurrentTurn,
   isPaused,

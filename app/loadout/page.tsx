@@ -13,7 +13,7 @@ import King from "@/public/loadout/SVG/king"
 import Pawn from "@/public/loadout/SVG/pawn"
 
 export default function SkinCarousel() {
-  const [skins, setSkins] = useState<any>(pawnSkins)
+  const [skins, setSkins] = useState<unknown[]>(pawnSkins)
   const [pieces, setPieces] = useState<number>(0)
   const piecesRef = useRef([
     {

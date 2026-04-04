@@ -8,7 +8,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trophy, Target, Crown, Award, TrendingUp, TrendingDown, Sparkles, Star, Swords } from "lucide-react";
+import { Trophy, Target, Award, TrendingUp, TrendingDown, Sparkles, Star, Swords } from "lucide-react";
 import type { GameOverDialogProps } from "./types";
 import { CoinRewardDisplay } from "./CoinRewardDisplay";
 
@@ -32,7 +32,7 @@ export const GameOverDialog: React.FC<GameOverDialogProps> = ({
     eloUpdate,
     coinReward,
     xpReward,
-    isWinner = false,
+    // isWinner = false,
     isPvP = true,
     playerColor,
 }) => {
@@ -285,4 +285,3 @@ export const GameOverDialog: React.FC<GameOverDialogProps> = ({
 };
 
 export default GameOverDialog;
-

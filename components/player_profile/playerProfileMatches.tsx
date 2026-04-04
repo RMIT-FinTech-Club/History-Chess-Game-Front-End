@@ -20,6 +20,20 @@ interface ProfileMatchesProps {
     onStreakUpdate?: (streak: number) => void // callback to send current streak upward
 }
 
+interface User {
+    username: string;
+    avatarUrl?: string;
+}
+
+interface ApiMatch {
+    opponentName?: string;
+    gameMode: string;
+    totalTime: number;
+    result: string;
+    gameId: string;
+    opponentId?: string;
+}
+
 export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesProps) {
     const params = useParams()
     const id = params?.id as string; // dynamic player ID from URL
@@ -27,8 +41,6 @@ export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesP
     const { accessToken } = useGlobalStorage()
     const [matches, setMatches] = useState<Match[]>([])
     const [error, setError] = useState<string | null>(null)
-    const [userAvatars, setUserAvatars] = useState<{ [key: string]: string }>({})
-    const [currentStreak, setCurrentStreak] = useState<number>(0)
 
     // Dialog State
     const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
@@ -78,13 +90,13 @@ export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesP
                 });
 
                 const avatarsMap: { [key: string]: string } = {};
-                usersResponse.data.users.forEach((user: any) => {
+                usersResponse.data.users.forEach((user: User) => {
                     avatarsMap[user.username.toLowerCase()] = user.avatarUrl || '';
                 });
-                setUserAvatars(avatarsMap);
+                // setUserAvatars(avatarsMap);
 
                 // Format match data
-                const formattedMatches = response.data.map((match: any) => {
+                const formattedMatches = response.data.map((match: ApiMatch) => {
                     const opponentLower = (match.opponentName || 'Unknown').toLowerCase();
                     return {
                         opponent: match.opponentName || 'Unknown',
@@ -104,19 +116,18 @@ export default function PlayerProfileMatches({ onStreakUpdate }: ProfileMatchesP
 
                 // Compute streak & update
                 const streak = calculateCurrentStreak(formattedMatches);
-                setCurrentStreak(streak);
+                // setCurrentStreak(streak);
                 if (onStreakUpdate) onStreakUpdate(streak)
-            } catch (err) {
-                console.error('Error fetching match history:', err)
+            } catch {
+                console.error('Error fetching match history')
                 setError('Failed to load match history')
                 setMatches([])
-                setCurrentStreak(0)
                 if (onStreakUpdate) onStreakUpdate(0)
             }
         }
 
         fetchMatchHistory()
-    }, [id, accessToken])
+    }, [id, accessToken, onStreakUpdate])
 
     return (
         <div className="w-full md:w-[60%] flex flex-col">

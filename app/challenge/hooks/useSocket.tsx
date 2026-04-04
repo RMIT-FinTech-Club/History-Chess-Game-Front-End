@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { UseSocketProps } from "./types"; // Ensure this path is correct relative to the hook
 
 // IMPORT THE GLOBAL SOCKET CONTEXT HOOK
@@ -16,7 +14,6 @@ export function useChallengeSocket({ // Retaining the rename for consistency
 }: Omit<UseSocketProps, 'onPlayersUpdateAction' | 'onChallengeReceivedAction'>) { // Update the prop type
     // Consume the socket and isConnected, userId, accessToken from the GLOBAL SocketContext
     const { socket, isConnected, userId, accessToken } = useSocketContext();
-    const router = useRouter(); // Router still needed if this hook handles gameStarting redirection
 
     useEffect(() => {
         // Essential checks: ensure socket is connected and necessary user data is available
@@ -78,8 +75,7 @@ export function useChallengeSocket({ // Retaining the rename for consistency
         isConnected,
         userId,
         accessToken,
-        setIsChallengingAction, // Keep this dependency as it's a prop passed in
-        router // Keep if router is used *inside* this effect (e.g. for gameStarting, but we moved that)
+        setIsChallengingAction // Keep this dependency as it's a prop passed in
     ]);
 
     // Return the socket and its connection status from the global context

@@ -15,6 +15,14 @@ import DynastyCarousel from "./components/DynastyCarousel";
 import DynastyModal from "./components/DynastyModal";
 import ProgressBar from "./components/ProgressBar";
 
+interface Transaction {
+	transactionType: string;
+	skinName?: string;
+	description?: string;
+	status: string;
+	transactionHash: string;
+}
+
 // Fallback data for when API is not available or user is not logged in
 const FALLBACK_DYNASTIES: Dynasty[] = [
 	{
@@ -249,7 +257,7 @@ export default function DynastyJourney() {
 
 	const [dynasties, setDynasties] = useState<Dynasty[]>(FALLBACK_DYNASTIES);
 	const [progress, setProgress] = useState<DynastyProgress | null>(null);
-	const [userTransactions, setUserTransactions] = useState<any[]>([]);
+	const [userTransactions, setUserTransactions] = useState<Transaction[]>([]);
 	const [selectedDynasty, setSelectedDynasty] = useState<Dynasty | null>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);

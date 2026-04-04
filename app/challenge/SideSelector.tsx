@@ -5,7 +5,7 @@ import { SideSelectorProps, sideOptions } from "./types";
 import { boardPieceColors } from "./PiecesBoardSelector";
 
 export default function SideSelector({ selectedSide, onSideChangeAction, chessBoard }: SideSelectorProps) {
-    const fullColorSet = boardPieceColors[chessBoard] || boardPieceColors["historyChessBoard"];
+
 
     return (
         <div className="grid grid-cols-3 gap-[2vh] mt-[2vh]">

@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import {
   Form,
   FormControl,
@@ -205,7 +206,8 @@ const SignIn = () => {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== basePath) return;
+      const allowedOrigins = [basePath, "http://localhost:8080", "http://127.0.0.1:8080"];
+      if (!allowedOrigins.includes(event.origin)) return;
       const { type, token, userId, username, email, avatarUrl, tempToken, role, error } = event.data;
       if (type === "google-auth") {
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -486,17 +488,18 @@ const SignIn = () => {
                     flex items-center justify-center gap-3
                   "
                 >
-                  <img
+                  <Image
                     src="/Google-Logo.svg"
                     alt="Google"
-                    className="w-5 h-5"
+                    width={20}
+                    height={20}
                   />
                   Continue with Google
                 </Button>
 
                 {/* Sign Up Link */}
                 <p className="text-center mt-8 text-text-muted font-sans">
-                  Don't have an account?{" "}
+                  Don&apos;t have an account?{" "}
                   <a
                     href="/sign_up"
                     className="text-gold-light hover:text-gold-shimmer font-serif font-semibold transition-colors"

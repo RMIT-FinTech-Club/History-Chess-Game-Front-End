@@ -1,24 +1,19 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import Image from "next/image"
 import {
     Package,
     Sparkles,
     Filter,
-    ExternalLink,
     Loader2,
     RefreshCw,
-    Crown,
-    Sword,
-    Shield,
     Gem
 } from "lucide-react"
-import axiosInstance from "@/config/apiConfig"
+import { useUserItems, UserItem } from "@/features/profile/hooks/useUserItems"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
-import { toast } from "sonner"
 import HistoricalTooltip from "@/components/ui/HistoricalTooltip"
-import { HistoricalContext } from "@/config/marketApi"
 import { useAchievements } from "@/context/AchievementContext"
 
 // Rarity color configurations
@@ -53,25 +48,10 @@ const rarityConfig: Record<string, { color: string; bgColor: string; borderColor
         borderColor: 'border-gold-royal/50',
         glow: 'shadow-gold-royal/50'
     },
-}
-
-// Category icons
+}// Category icons
 const categoryIcons: Record<string, React.ElementType> = {
     'SKIN': Sparkles,
     'ITEM': Package,
-}
-
-interface UserItem {
-    id: string;
-    tokenId: string;
-    name: string;
-    description: string;
-    imageUrl: string;
-    rarity: string;
-    dynasty: string;
-    category: 'SKIN' | 'ITEM';
-    mintedTime: string;
-    historicalContext?: HistoricalContext;
 }
 
 interface ItemInventoryProps {
@@ -82,10 +62,10 @@ export default function ItemInventory({ userId: propUserId }: ItemInventoryProps
     const { accessToken, userId: globalUserId } = useGlobalStorage()
     const userId = propUserId || globalUserId
 
-    const [skins, setSkins] = useState<UserItem[]>([])
-    const [items, setItems] = useState<UserItem[]>([])
-    const [loading, setLoading] = useState(true)
-    const [refreshing, setRefreshing] = useState(false)
+    const { data: inventoryData, isLoading: loading, refetch: fetchItems, isRefetching: refreshing } = useUserItems(userId, accessToken);
+
+    const skins = inventoryData?.data.skins || []
+    const items = inventoryData?.data.items || []
     const [activeTab, setActiveTab] = useState<'SKIN' | 'ITEM'>('SKIN')
     const [rarityFilter, setRarityFilter] = useState<string>('all')
     const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -101,44 +81,18 @@ export default function ItemInventory({ userId: propUserId }: ItemInventoryProps
 
     const { checkCollection } = useAchievements()
 
-    const fetchItems = useCallback(async (showRefresh = false) => {
-        if (!userId) return
-
-        if (showRefresh) {
-            setRefreshing(true)
-        } else {
-            setLoading(true)
-        }
-
-        try {
-            const response = await axiosInstance.get(`/items/user/${userId}`, {
-                headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
-            })
-
-            if (response.data.success) {
-                const userSkins = response.data.data.skins || []
-                const userItems = response.data.data.items || []
-                setSkins(userSkins)
-                setItems(userItems)
-
-                // Achievement Check: Collect dynasties
-                const allDynasties = [...userSkins, ...userItems].map((i: UserItem) => i.dynasty).filter(Boolean);
-                if (allDynasties.length > 0) {
-                    checkCollection(allDynasties);
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching items:', error)
-            toast.error('Failed to load inventory')
-        } finally {
-            setLoading(false)
-            setRefreshing(false)
-        }
-    }, [userId, accessToken])
-
     useEffect(() => {
-        fetchItems()
-    }, [fetchItems])
+        if (inventoryData?.success) {
+            const userSkins = inventoryData.data.skins || []
+            const userItems = inventoryData.data.items || []
+
+            // Achievement Check: Collect dynasties
+            const allDynasties = [...userSkins, ...userItems].map((i: UserItem) => i.dynasty).filter(Boolean);
+            if (allDynasties.length > 0) {
+                checkCollection(allDynasties);
+            }
+        }
+    }, [inventoryData, checkCollection])
 
     // Filter items by rarity
     const filteredItems = (activeTab === 'SKIN' ? skins : items).filter(item => {
@@ -179,7 +133,7 @@ export default function ItemInventory({ userId: propUserId }: ItemInventoryProps
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => fetchItems(true)}
+                        onClick={() => fetchItems()}
                         disabled={refreshing}
                         className="p-2 rounded-lg bg-white/5 border border-white/10 hover:border-gold-royal/30 transition-colors disabled:opacity-50"
                     >
@@ -308,14 +262,12 @@ export default function ItemInventory({ userId: propUserId }: ItemInventoryProps
                                         className={`group relative rounded-xl overflow-hidden bg-white/5 border ${rarity.borderColor} transition-all hover:shadow-lg ${rarity.glow}`}
                                     >
                                         {/* Item Image */}
-                                        <div className="aspect-square bg-linear-to-b from-white/5 to-transparent p-3">
-                                            <img
-                                                src={item.imageUrl}
+                                        <div className="aspect-square bg-linear-to-b from-white/5 to-transparent p-3 relative">
+                                            <Image
+                                                src={item.imageUrl || '/placeholder-item.png'}
                                                 alt={item.name}
-                                                className="w-full h-full object-contain rounded-lg"
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = '/placeholder-item.png'
-                                                }}
+                                                fill
+                                                className="object-contain rounded-lg"
                                             />
                                         </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const dynasties = [
     {
@@ -113,7 +113,7 @@ export default function DynastyShowcase() {
                                                 className="overflow-hidden"
                                             >
                                                 <p className="font-serif text-gray-300 text-sm italic mb-2">
-                                                    "{dynasty.title}"
+                                                    &quot;{dynasty.title}&quot;
                                                 </p>
                                                 <p className="font-sans text-gray-400 text-sm leading-relaxed">
                                                     {dynasty.desc}

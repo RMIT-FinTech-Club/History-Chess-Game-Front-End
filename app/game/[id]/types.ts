@@ -97,9 +97,9 @@ export interface PlayerSectionProps {
 
 // Add type definition for game state
 export type GameState = {
-  fen: string;
-  turn: "w" | "b";
-  playerColor: "white" | "black";
+  fen?: string;
+  turn?: "w" | "b";
+  playerColor?: "white" | "black";
   gameId?: string;
   gameOver?: boolean;
   result?: string;
@@ -151,11 +151,11 @@ export interface ConnectionStatusProps {
 }
 
 export interface ChessBoardSectionProps {
-  gameState: any;
-  handleDrop: (sourceSquare: any, targetSquare: any) => boolean;
-  onPieceClick: (piece: any, square: any) => void;
-  onSquareClick: (square: any) => void;
-  onPieceDragBegin: (piece: any, sourceSquare: any) => void;
+  gameState: GameState;
+  handleDrop: (sourceSquare: Square, targetSquare: Square) => boolean;
+  onPieceClick: (piece: string, square: Square) => void;
+  onSquareClick: (square: Square) => void;
+  onPieceDragBegin: (piece: string, sourceSquare: Square) => void;
   boardWidth: number;
   customSquareStyles: Record<string, React.CSSProperties>;
   boardOrientation: "white" | "black";
@@ -166,18 +166,18 @@ export interface GameLayoutProps {
   boardOrientation: "white" | "black";
   capturedWhite: string[];
   capturedBlack: string[];
-  gameState: any;
+  gameState: GameState;
   whiteProfile: { name: string; image: string, elo: number };
   blackProfile: { name: string; image: string, elo: number };
   formatTimeInSeconds: (ms?: number) => number;
-  handleDrop: any;
-  onPieceClick: any;
-  onSquareClick: any;
-  onPieceDragBegin: any;
+  handleDrop: (sourceSquare: Square, targetSquare: Square) => boolean;
+  onPieceClick: (piece: string, square: Square) => void;
+  onSquareClick: (square: Square) => void;
+  onPieceDragBegin: (piece: string, sourceSquare: Square) => void;
   boardWidth: number;
   customSquareStyles: Record<string, React.CSSProperties>;
   isCurrentPlayerTurn: boolean;
-  moveHistoryPairs: any[];
+  moveHistoryPairs: MoveHistoryPair[];
   handleNewGame: () => void;
   currentTurn: "w" | "b";
   totalMove: number;

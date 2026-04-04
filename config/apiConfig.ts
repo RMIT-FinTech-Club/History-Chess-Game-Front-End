@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 // Module augmentation for InternalAxiosRequestConfig
 declare module "axios" {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     interface InternalAxiosRequestConfig<D = any> {
         _retry?: boolean;
     }

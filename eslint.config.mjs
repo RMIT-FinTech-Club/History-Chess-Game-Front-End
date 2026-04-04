@@ -1,16 +1,26 @@
-// eslint.config.js (or .mjs for ES Modules)
-import tseslint from 'typescript-eslint';
+import { FlatCompat } from "@eslint/eslintrc";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-export default tseslint.config(
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
-    ignores: ["**/*"], // Ignore all files for now to pass build
+    ignores: [".next/*", "out/*", "public/*"],
   },
   {
-    files: ['**/*.{js,jsx,ts,tsx}'],
     rules: {
-      '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
-      'no-undef': 'off'
+      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/no-explicit-any": "error",
+      "no-undef": "off",
     },
   },
-);
+];
+
+export default eslintConfig;

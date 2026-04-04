@@ -8,7 +8,7 @@ import { useBoardSize } from "@/hooks/useBoardSize";
 import { useMoveHistory } from "./component/useMoveHistory";
 import { MoveHistoryTable } from "./component/MoveHistoryTable";
 import { useChessHandlers } from "./component/useChessHandlers";
-import { GameHeader } from "./component/GameHeader";
+
 import { GameOverDialog } from "./component/GameOverDialog";
 import { GameControls } from "./component/GameControls";
 import type { StockfishLevel } from "./component/useStockfish";
@@ -18,8 +18,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 const OfflinePage = () => {
 	const [mounted, setMounted] = useState(false);
-	const [currentTurn, setCurrentTurn] = useState<"w" | "b">("w");
-	const [gameActive, setGameActive] = useState(false);
 	const [gameStarted, setGameStarted] = useState(false);
 
 	const boardWidth = useBoardSize();
@@ -44,11 +42,8 @@ const OfflinePage = () => {
 		gameState,
 		makeMove,
 		undoMove,
-		currentTurn: gameTurn,
 		playerColor,
-		isThinking,
 		startSinglePlayerGame,
-		aiLevel,
 		isAiReady,
 	} = useOfflineGame();
 
@@ -64,7 +59,6 @@ const OfflinePage = () => {
 	});
 
 	const levelParam = searchParams.get("level");
-	const eloParam = searchParams.get("elo");
 
 	const stockfishDepth = levelParam ? parseInt(levelParam, 10) : 5; 
 
@@ -83,19 +77,16 @@ const OfflinePage = () => {
 		playerColorDefault,
 		aiDifficulty,
 		isAuthenticated,
+		gameStarted,
 	]);
 
-	useEffect(() => {
-		setCurrentTurn(gameTurn);
-	}, [gameTurn]);
+
 
 	useEffect(() => {
 		setMounted(true);
 	}, []);
 
-	useEffect(() => {
-		setGameActive(!gameState.isGameOver && history.length > 0);
-	}, [gameState.isGameOver, history.length]);
+
 
 	const handleNewGame = useCallback(() => {
 		startSinglePlayerGame(playerColorDefault, aiDifficulty);

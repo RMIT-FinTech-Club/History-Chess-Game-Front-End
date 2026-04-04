@@ -80,7 +80,7 @@ export const marketApi = {
         token: string
     ): Promise<MarketplaceItem> {
         const response = await axiosInstance.post("/market/items", item, {
-            headers: { Authorization: `Bearer ${token} ` },
+            headers: { Authorization: `Bearer ${token}` },
         });
         return response.data.item;
     },
@@ -96,7 +96,7 @@ export const marketApi = {
         const response = await axiosInstance.post(
             "/market/buy",
             { itemId, quantity },
-            { headers: { Authorization: `Bearer ${token} ` } }
+            { headers: { Authorization: `Bearer ${token}` } }
         );
         return response.data;
     },
@@ -137,7 +137,7 @@ export const marketApi = {
         const response = await axiosInstance.post(
             "/market/bid",
             { listingId, amount },
-            { headers: { Authorization: `Bearer ${token} ` } }
+            { headers: { Authorization: `Bearer ${token}` } }
         );
         return response.data;
     },
@@ -146,7 +146,7 @@ export const marketApi = {
      * Get bids for an auction
      */
     async getAuctionBids(listingId: string): Promise<Bid[]> {
-        const response = await axiosInstance.get(`/ market / auction / ${listingId}/bids`);
+        const response = await axiosInstance.get(`/market/auction/${listingId}/bids`);
         return response.data.bids || [];
     },
 

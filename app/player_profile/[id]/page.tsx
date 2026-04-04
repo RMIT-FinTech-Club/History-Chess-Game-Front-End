@@ -12,7 +12,11 @@ import BackgroundEffects from "@/components/decor/BackgroundEffects"
 import ProfileMatches from "@/components/profile/profileMatches"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
 
-// Types for API responses
+interface MatchRecord {
+    result: string;
+    gameMode: string;
+}
+
 interface UserProfile {
     id: string;
     username: string;
@@ -22,6 +26,13 @@ interface UserProfile {
     walletAddress: string | null;
     language: string;
     createdAt: string;
+}
+
+interface UserSummary {
+    id: string;
+    username: string;
+    elo: number;
+    avatarUrl?: string;
 }
 
 interface ProfileStats {
@@ -261,18 +272,18 @@ export default function PlayerProfilePage() {
             const matches = historyResponse.data || [];
 
             // Calculate match statistics
-            const victories = matches.filter((m: any) => m.result === 'Victory').length;
-            const defeats = matches.filter((m: any) => m.result === 'Defeat').length;
-            const draws = matches.filter((m: any) => m.result === 'Draw').length;
+            const victories = (matches as MatchRecord[]).filter((m) => m.result === 'Victory').length;
+            const defeats = (matches as MatchRecord[]).filter((m) => m.result === 'Defeat').length;
+            const draws = (matches as MatchRecord[]).filter((m) => m.result === 'Draw').length;
             const totalGames = matches.length;
             const winRate = totalGames > 0 ? Math.round((victories / totalGames) * 100) : 0;
-
+ 
             // Fetch global ranking
             const usersResponse = await axiosInstance.get('/users?limit=1000&offset=0', {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
-            const users = usersResponse.data.users.sort((a: any, b: any) => b.elo - a.elo);
-            const rank = users.findIndex((u: any) => u.id === targetUserId) + 1;
+            const users = (usersResponse.data.users as UserSummary[]).sort((a, b) => b.elo - a.elo);
+            const rank = users.findIndex((u) => u.id === targetUserId) + 1;
 
             // Calculate level from ELO
             const level = calculateLevel(profile.elo);
@@ -295,7 +306,7 @@ export default function PlayerProfilePage() {
         } finally {
             setLoading(false);
         }
-    }, [targetUserId, accessToken, router]);
+    }, [targetUserId, accessToken]);
 
     useEffect(() => {
         fetchProfileData();

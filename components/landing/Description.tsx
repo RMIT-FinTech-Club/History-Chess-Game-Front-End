@@ -85,16 +85,7 @@ const FeatureCard = ({ feature, index, isInView }: { feature: typeof features[0]
     </motion.div>
 );
 
-// Decorative timeline element
-const TimelineConnector = () => (
-    <div className="hidden lg:flex absolute left-1/2 top-0 bottom-0 -translate-x-1/2 flex-col items-center z-0 pointer-events-none">
-        <div className="h-16 w-[2px] bg-gradient-to-b from-transparent to-gold-500/30" />
-        <div className="w-4 h-4 rounded-full border-2 border-gold-500/30 bg-black/50" />
-        <div className="flex-1 w-[2px] bg-gold-500/20" />
-        <div className="w-4 h-4 rounded-full border-2 border-gold-500/30 bg-black/50" />
-        <div className="h-16 w-[2px] bg-gradient-to-b from-gold-500/30 to-transparent" />
-    </div>
-);
+
 
 export default function Description() {
     const ref = useRef(null);
@@ -149,8 +140,8 @@ export default function Description() {
 
                             <div className="mt-6 pt-6 border-t border-white/10">
                                 <p className="font-serif text-gold-200/80 italic text-lg">
-                                    "Experience a unique battlefield where every piece tells a story, and every move
-                                    echoes through the ages."
+                                    &quot;Experience a unique battlefield where every piece tells a story, and every move
+                                    echoes through the ages.&quot;
                                 </p>
                             </div>
                         </motion.div>

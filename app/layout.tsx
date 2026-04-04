@@ -6,7 +6,7 @@ import ClientWrapper from "@/context/ClientWrapper";
 import { AchievementProvider } from "@/context/AchievementContext";
 
 import "@/app/globals.css"
-import '@/css/styles.css'
+
 
 import { UserProvider } from "@/context/UserContext"
 

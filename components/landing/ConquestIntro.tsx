@@ -2,7 +2,7 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import Image from "next/image"; // Assuming artwork availability, or use placeholders
+
 
 export default function ConquestIntro() {
     const sectionRef = useRef(null);

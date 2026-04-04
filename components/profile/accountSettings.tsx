@@ -119,7 +119,7 @@ const AccountSettings = () => {
         },
       });
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   };
@@ -215,7 +215,7 @@ const AccountSettings = () => {
   useEffect(() => {
     setIsMounted(true);
     const controller = new AbortController();
-    fetchProfile().catch((error) => console.error("Fetch profile failed:", error));
+    fetchProfile().catch(() => console.error("Fetch profile failed"));
     return () => {
       setIsMounted(false);
       controller.abort();
@@ -675,7 +675,7 @@ const AccountSettings = () => {
         title="Change Password"
       >
         <p className="text-text-secondary text-sm mb-6">
-          Make changes to your password here. Click save when you're done.
+          Make changes to your password here. Click save when you&apos;re done.
         </p>
 
         <Form {...passwordForm}>

@@ -27,7 +27,7 @@ const rarityColors: Record<Rarity, string> = {
 interface Item {
   name: string;
   rarity: Rarity;
-  img: any; // Use 'any' since Next.js static imports are not simple strings
+  img: string | import('next/image').StaticImageData;
 }
 
 export default function ItemsEquippedProfile() {

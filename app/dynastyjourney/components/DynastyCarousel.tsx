@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Dynasty } from "../types";
 import DynastyNode from "./DynastyNode";
 import styles from "../DynastyJourney.module.css";
@@ -82,7 +82,7 @@ const DynastyCarousel: React.FC<DynastyCarouselProps> = ({
                 disabled={!canScrollLeft}
                 aria-label="Scroll left"
             >
-                <ChevronLeftIcon className={styles.carouselArrowIcon} />
+                <ChevronLeft className={styles.carouselArrowIcon} />
             </button>
 
             {/* Timeline scroll container */}
@@ -125,7 +125,7 @@ const DynastyCarousel: React.FC<DynastyCarouselProps> = ({
                 disabled={!canScrollRight}
                 aria-label="Scroll right"
             >
-                <ChevronRightIcon className={styles.carouselArrowIcon} />
+                <ChevronRight className={styles.carouselArrowIcon} />
             </button>
         </div>
     );

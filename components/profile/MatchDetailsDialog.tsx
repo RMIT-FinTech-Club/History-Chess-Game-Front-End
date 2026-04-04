@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Chessboard } from 'react-chessboard';
 import { Chess } from 'chess.js';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, ChevronRight, Trophy, Target, Activity, AlertCircle, PlayCircle, PauseCircle, Star, StopCircle, Award } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Trophy, Target, Activity, PlayCircle, PauseCircle, Star, StopCircle, Award } from 'lucide-react';
 import axiosInstance from '@/config/apiConfig';
 import { useGlobalStorage } from '@/hooks/GlobalStorage';
 import { toast } from 'sonner';
@@ -38,6 +37,11 @@ interface Move {
     continuation?: string;
 }
 
+interface MatchAnalysis {
+    whiteAccuracyPoint: number;
+    blackAccuracyPoint: number;
+}
+
 export const MatchDetailsDialog: React.FC<MatchDetailsDialogProps> = ({
     gameId,
     isOpen,
@@ -53,7 +57,7 @@ export const MatchDetailsDialog: React.FC<MatchDetailsDialogProps> = ({
     const [currentMoveIndex, setCurrentMoveIndex] = useState(-1);
     const [game, setGame] = useState(new Chess());
     const [isPlaying, setIsPlaying] = useState(false);
-    const [analysis, setAnalysis] = useState<any>(null);
+    const [analysis, setAnalysis] = useState<MatchAnalysis | null>(null);
 
     // Responsive board size
     const boardContainerRef = React.useRef<HTMLDivElement>(null);
@@ -86,19 +90,31 @@ export const MatchDetailsDialog: React.FC<MatchDetailsDialogProps> = ({
         return () => resizeObserver.disconnect();
     }, []);
 
-    useEffect(() => {
-        if (isOpen && gameId && accessToken) {
-            fetchMatchDetails();
-        } else {
-            // Reset state when closed or invalid
-            setGame(new Chess());
-            setMoves([]);
-            setCurrentMoveIndex(-1);
-            setIsPlaying(false);
-        }
-    }, [isOpen, gameId, accessToken]);
+    const handleMove = useCallback((index: number) => {
+        if (index < -1 || index >= moves.length) return;
 
-    const fetchMatchDetails = async () => {
+        const newGame = new Chess();
+
+        // Optimally: Just set the fen from the moves array at `index`.
+        if (index === -1) {
+            newGame.reset();
+        } else {
+            const move = moves[index];
+            if (move.fen) {
+                try {
+                    newGame.load(move.fen);
+                } catch (e) {
+                    // Fallback: try to reconstruct if FEN fails (less reliable without full history)
+                    console.warn("Invalid FEN, attempting reset", e);
+                }
+            }
+        }
+
+        setGame(newGame);
+        setCurrentMoveIndex(index);
+    }, [moves]);
+
+    const fetchMatchDetails = useCallback(async () => {
         try {
             setLoading(true);
             // Fetch analysis data which includes moves and accuracy
@@ -134,7 +150,19 @@ export const MatchDetailsDialog: React.FC<MatchDetailsDialogProps> = ({
         } finally {
             setLoading(false);
         }
-    };
+    }, [gameId, accessToken]);
+
+    useEffect(() => {
+        if (isOpen && gameId && accessToken) {
+            fetchMatchDetails();
+        } else {
+            // Reset state when closed or invalid
+            setGame(new Chess());
+            setMoves([]);
+            setCurrentMoveIndex(-1);
+            setIsPlaying(false);
+        }
+    }, [isOpen, gameId, accessToken, fetchMatchDetails]);
 
     // Replay functionality
     useEffect(() => {
@@ -149,32 +177,7 @@ export const MatchDetailsDialog: React.FC<MatchDetailsDialogProps> = ({
             }, 1500); // 1.5s per move for better viewing
         }
         return () => clearInterval(interval);
-    }, [isPlaying, currentMoveIndex, moves]);
-
-
-    const handleMove = (index: number) => {
-        if (index < -1 || index >= moves.length) return;
-
-        const newGame = new Chess();
-
-        // Optimally: Just set the fen from the moves array at `index`.
-        if (index === -1) {
-            newGame.reset();
-        } else {
-            const move = moves[index];
-            if (move.fen) {
-                try {
-                    newGame.load(move.fen);
-                } catch (e) {
-                    // Fallback: try to reconstruct if FEN fails (less reliable without full history)
-                    console.warn("Invalid FEN, attempting reset", e);
-                }
-            }
-        }
-
-        setGame(newGame);
-        setCurrentMoveIndex(index);
-    };
+    }, [isPlaying, currentMoveIndex, moves, handleMove]);
 
     const stopPlayback = () => {
         setIsPlaying(false);

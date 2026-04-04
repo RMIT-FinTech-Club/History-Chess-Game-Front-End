@@ -5,7 +5,11 @@ import { getCustomPieces } from "@/app/challenge/PiecesBoardSelector";
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Square } from "chess.js";
-import { Chessboard } from "react-chessboard";
+import dynamic from "next/dynamic";
+const Chessboard = dynamic(() => import("react-chessboard").then((mod) => mod.Chessboard), {
+  ssr: false,
+  loading: () => <div className="w-full aspect-square bg-black/20 animate-pulse rounded-lg" />
+});
 import "@/css/chessboard.css";
 import YellowLight from "@/components/decor/YellowLight";
 
@@ -85,7 +89,7 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
 
   // Use online-specific socket hook
   const {
-    socket,
+    // socket,
     isConnected,
     connectionStatus,
     opponentDisconnected,
@@ -165,21 +169,17 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   // Board theme variables
   const boardVars = useMemo(
     () => ({
-      ["--board-light" as any]: savedTheme?.light ?? "#F0D9B5",
-      ["--board-dark" as any]: savedTheme?.dark ?? "#B58863",
-      ["--board-frame" as any]: savedTheme?.accent ?? "#E9B654",
-      ["--board-frame-2" as any]: "#363624",
-    }) as React.CSSProperties,
+      "--board-light": savedTheme?.light ?? "#F0D9B5",
+      "--board-dark": savedTheme?.dark ?? "#B58863",
+      "--board-frame": savedTheme?.accent ?? "#E9B654",
+      "--board-frame-2": "#363624",
+    } as React.CSSProperties & Record<string, string>),
     [savedTheme]
   );
 
   const customPieces = useMemo(() => getCustomPieces(selectedBoardId), [selectedBoardId]);
 
-  // Convert time from milliseconds to seconds
-  const formatTimeInSeconds = (ms?: number) => {
-    if (typeof ms !== "number") return 0;
-    return Math.floor(ms / 1000);
-  };
+
 
   // Toggle auto rotate
   const handleToggleAutoRotate = () => {
@@ -193,10 +193,6 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
   };
 
   if (!mounted) return <p>Loading Chessboard...</p>;
-
-  const isCurrentPlayerTurn = gameState?.turn === "w"
-    ? gameState?.playerColor === "white"
-    : gameState?.playerColor === "black";
 
   const currentTurn = (gameState?.turn as "w" | "b") ?? "w";
   const totalMove = moveHistory.length;
@@ -341,28 +337,26 @@ const GamePage = ({ params }: { params: Promise<{ id: string }> }) => {
           {/* Left Sidebar - Players & Captured */}
           <aside className="hidden lg:flex lg:flex-col lg:w-[320px] xl:w-[360px] gap-6 shrink-0">
             <div className="space-y-4">
-              <PlayerSection
-                color="Black"
-                pieces={capturedBlack}
-                isCurrentTurn={currentTurn === "b"}
-                gameActive={gameActive}
-                elo={blackProfile.elo || 1200}
-                profileName={blackProfile.name || "Opponent"}
-                profileImage={blackProfile.image || undefined}
-                side="b"
-                timeLeft={gameState?.blackTimeLeft}
-              />
-              <PlayerSection
-                color="White"
-                pieces={capturedWhite}
-                isCurrentTurn={currentTurn === "w"}
-                gameActive={gameActive}
-                elo={whiteProfile.elo || 1200}
-                profileName={whiteProfile.name || "You"}
-                profileImage={whiteProfile.image || undefined}
-                side="w"
-                timeLeft={gameState?.whiteTimeLeft}
-              />
+                <PlayerSection
+                  color="Black"
+                  isCurrentTurn={currentTurn === "b"}
+                  gameActive={gameActive}
+                  elo={blackProfile.elo || 1200}
+                  profileName={blackProfile.name || "Opponent"}
+                  profileImage={blackProfile.image || undefined}
+                  side="b"
+                  timeLeft={gameState?.blackTimeLeft}
+                />
+                <PlayerSection
+                  color="White"
+                  isCurrentTurn={currentTurn === "w"}
+                  gameActive={gameActive}
+                  elo={whiteProfile.elo || 1200}
+                  profileName={whiteProfile.name || "You"}
+                  profileImage={whiteProfile.image || undefined}
+                  side="w"
+                  timeLeft={gameState?.whiteTimeLeft}
+                />
             </div>
 
             <div className="bg-black/20 backdrop-blur-md rounded-xl border border-white/10 p-4 shadow-lg">

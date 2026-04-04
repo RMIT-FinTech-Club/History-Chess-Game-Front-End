@@ -2,7 +2,8 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MarketplaceItem } from "@/config/marketApi";
+import Image from "next/image";
+import { MarketplaceItem } from "@/features/market/api/marketApi";
 
 const DYNASTIES = [
     "Đinh", "Tiền Lê", "Lý", "Trần", "Hồ",
@@ -122,8 +123,15 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }: AddItemModal
                 category: CATEGORIES[0],
             });
             setImagePreview(null);
-        } catch (err: any) {
-            setError(err.message || "Failed to add item");
+        } catch (err: unknown) {
+            let errorMessage = "Failed to add item";
+            if (err && typeof err === 'object' && 'response' in err) {
+                const axiosError = err as { response?: { data?: { error?: string } } };
+                errorMessage = axiosError.response?.data?.error || errorMessage;
+            } else if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -238,10 +246,11 @@ export default function AddItemModal({ isOpen, onClose, onSubmit }: AddItemModal
                                         <div className="relative">
                                             {imagePreview ? (
                                                 <div className="relative w-full h-40 rounded-xl overflow-hidden border border-white/10 bg-neutral-900">
-                                                    <img
+                                                    <Image
                                                         src={imagePreview}
                                                         alt="Preview"
-                                                        className="w-full h-full object-contain"
+                                                        fill
+                                                        className="object-contain"
                                                     />
                                                     <button
                                                         type="button"

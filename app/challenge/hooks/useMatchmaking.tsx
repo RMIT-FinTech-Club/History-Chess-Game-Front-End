@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Side, UseMatchmakingProps } from "../types"

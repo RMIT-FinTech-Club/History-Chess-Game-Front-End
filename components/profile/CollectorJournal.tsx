@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Book, ChevronRight, Scroll, Search } from "lucide-react";
 import { dynastyLoreData } from "@/app/dynastyjourney/data/lore";
@@ -167,7 +168,13 @@ export default function CollectorJournal() {
                                         <h3 className="text-xs uppercase tracking-widest text-[#DBB968] mb-2">Historical Figure</h3>
                                         <div className="flex items-center gap-4">
                                             {activeLore.famousFigure.imageUrl ? (
-                                                <img src={activeLore.famousFigure.imageUrl} className="w-16 h-16 rounded-full border-2 border-[#DBB968]" />
+                                                <Image
+                                                    src={activeLore.famousFigure.imageUrl}
+                                                    alt={activeLore.famousFigure.name}
+                                                    width={64}
+                                                    height={64}
+                                                    className="w-16 h-16 rounded-full border-2 border-[#DBB968] object-cover"
+                                                />
                                             ) : (
                                                 <div className="w-16 h-16 rounded-full bg-[#DBB968]/30 flex items-center justify-center border-2 border-[#DBB968]">
                                                     <span className="font-display text-xl text-[#DBB968]">{activeLore.famousFigure.name[0]}</span>

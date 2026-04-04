@@ -639,7 +639,7 @@ const ResetPassword = () => {
 
                 <div className="bg-bg-dark/60 rounded-lg p-6 mb-6">
                   <p className="text-text-secondary text-center font-sans text-sm leading-relaxed">
-                    To reset your password, please use Google's account recovery at{" "}
+                    To reset your password, please use Google&apos;s account recovery at{" "}
                     <a
                       href="https://myaccount.google.com/security"
                       target="_blank"

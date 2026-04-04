@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
+
 
 const artifacts = [
     { name: "Jade Emperor Set", rarity: "Legendary", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/30" },

@@ -2,13 +2,28 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { GameState, UseOnlineSocketProps } from "../types";
+import { UseOnlineSocketProps } from "../types";
 import { Chess } from 'chess.js';
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import basePath from "@/config/pathConfig";
 
 // Connection status type for UI feedback
+// Connection status type for UI feedback
 export type ConnectionStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnected' | 'error';
+
+interface ApiMove {
+  moveNumber: number;
+  move: string;
+  color?: string;
+  playerColor?: string;
+  duration?: number;
+}
+
+interface ApiGameState {
+  whiteTimeLeft?: number;
+  blackTimeLeft?: number;
+  color?: 'white' | 'black';
+}
 
 export const useOnlineSocket = ({
   gameId,
@@ -64,7 +79,7 @@ export const useOnlineSocket = ({
   }, [dismissReconnectToast]);
 
   // Recalculate all captured pieces from current position
-  const recalculateAllCapturedPieces = (fen: string) => {
+  const recalculateAllCapturedPieces = useCallback((fen: string) => {
     try {
       const chess = new Chess(fen);
       const board = chess.board();
@@ -106,7 +121,7 @@ export const useOnlineSocket = ({
     } catch (error) {
       console.error("Error recalculating captured pieces:", error);
     }
-  };
+  }, [setCapturedWhite, setCapturedBlack]);
 
   useEffect(() => {
     setConnectionStatus('connecting');
@@ -225,7 +240,6 @@ export const useOnlineSocket = ({
         }
       }
 
-      // Update game state
       setGameState(prev => ({
         ...state,
         playerColor: prev?.playerColor || state.playerColor || storedGameData.playerColor
@@ -314,7 +328,7 @@ export const useOnlineSocket = ({
     // Handle time updates - CRITICAL for countdown
     newSocket.on("timeUpdate", (data) => {
       console.log("Time update:", data);
-      setGameState((prev: any) => ({
+      setGameState((prev) => ({
         ...prev,
         whiteTimeLeft: data.whiteTimeLeft,
         blackTimeLeft: data.blackTimeLeft
@@ -331,7 +345,7 @@ export const useOnlineSocket = ({
     newSocket.on("gameOver", (data) => {
       console.log("Game over:", data);
 
-      setGameState((prev: any) => ({
+      setGameState((prev) => ({
         ...prev,
         gameOver: true,
         result: data.result,
@@ -375,12 +389,12 @@ export const useOnlineSocket = ({
     });
 
     // Handle custom server-side errors
-    newSocket.on("socketError", (data: { message: string, details?: any }) => {
+    newSocket.on("socketError", (data: { message: string, details?: unknown }) => {
       console.error("Server Socket Error:", data);
       toast.error(data.message || "Server socket error");
     });
 
-    newSocket.on("gameError", (data: { message: string, details?: any }) => {
+    newSocket.on("gameError", (data: { message: string, details?: unknown }) => {
       console.error("Game Logic Error:", data);
       toast.error(data.message || "Game logic error");
     });
@@ -389,7 +403,7 @@ export const useOnlineSocket = ({
     newSocket.on("moveHistory", (data) => {
       console.log("Received move history:", data.moves);
       if (data.moves && Array.isArray(data.moves)) {
-        const formattedMoves = data.moves.map((move: any) => ({
+        const formattedMoves = data.moves.map((move: ApiMove) => ({
           moveNumber: move.moveNumber,
           move: move.move,
           color: move.color || (move.playerColor === 'w' ? 'white' : 'black'),
@@ -402,7 +416,7 @@ export const useOnlineSocket = ({
     });
 
     // Helper function to calculate move time (Fallback only)
-    const calculateMoveTime = (state: any): number => {
+    const calculateMoveTime = (state: ApiGameState): number => {
       if (!state.whiteTimeLeft || !state.blackTimeLeft ||
         !prevTimesRef.current.whiteTimeLeft || !prevTimesRef.current.blackTimeLeft) {
         return 3000; // Default 3 seconds
@@ -443,7 +457,7 @@ export const useOnlineSocket = ({
         newSocket.close();
       }
     };
-  }, [gameId, router, autoRotateBoard, setGameState, setBoardOrientation, setMoveHistory, setCapturedWhite, setCapturedBlack, userId, dismissReconnectToast, showReconnectToast]); // Add toast helpers to dependencies
+  }, [gameId, router, autoRotateBoard, setGameState, setBoardOrientation, setMoveHistory, setCapturedWhite, setCapturedBlack, userId, dismissReconnectToast, showReconnectToast, recalculateAllCapturedPieces]); // Add recalculateAllCapturedPieces to dependencies
 
   // Function to send moves 
   const sendMove = (move: string) => {

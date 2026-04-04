@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AuctionListing } from "@/config/marketApi";
+import Image from "next/image";
+import { AuctionListing } from "@/features/market/api/marketApi";
 
 interface BidModalProps {
     auction: AuctionListing | null;
@@ -37,8 +38,15 @@ export default function BidModal({ auction, isOpen, onClose, onSubmit }: BidModa
             await onSubmit(auction.id || auction._id!, amount);
             onClose();
             setBidAmount("");
-        } catch (err: any) {
-            setError(err.message || "Failed to place bid");
+        } catch (err: unknown) {
+            let errorMessage = "Failed to place bid";
+            if (err && typeof err === 'object' && 'response' in err) {
+                const axiosError = err as { response?: { data?: { error?: string } } };
+                errorMessage = axiosError.response?.data?.error || errorMessage;
+            } else if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -91,11 +99,12 @@ export default function BidModal({ auction, isOpen, onClose, onSubmit }: BidModa
                             {/* Item preview */}
                             <div className="px-6 py-4 border-y border-white/10">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-20 h-20 rounded-xl bg-white/5 flex items-center justify-center">
-                                        <img
+                                    <div className="w-20 h-20 rounded-xl bg-white/5 flex items-center justify-center relative">
+                                        <Image
                                             src={details?.imageUrl || "/placeholder-item.png"}
-                                            alt={details?.name}
-                                            className="w-16 h-16 object-contain"
+                                            alt={details?.name || "Item preview"}
+                                            fill
+                                            className="object-contain"
                                         />
                                     </div>
                                     <div className="flex-1">

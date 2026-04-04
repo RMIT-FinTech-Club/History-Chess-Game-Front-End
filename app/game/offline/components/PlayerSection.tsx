@@ -4,7 +4,6 @@ import React from "react";
 
 type BaseProps = {
   color: "White" | "Black";
-  pieces: string[];
   isCurrentTurn: boolean;
   gameActive: boolean;
   profileName?: string;
@@ -14,7 +13,6 @@ type Props = BaseProps & { elo?: number; side?: "w" | "b"; timeLeft?: number };
 
 export const PlayerSection: React.FC<Props> = ({
   color,
-  pieces,
   isCurrentTurn,
   gameActive,
   profileName,

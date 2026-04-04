@@ -14,9 +14,6 @@ export type MoveHistoryPair = {
 
 export type GameModeDialogProps = {
   open: boolean;
-  aiDifficulty: StockfishLevel;
-  setAiDifficulty: number;
-  difficultyLevels: StockfishLevel[];
   handleStartSinglePlayer: (color: "w") => void;
   handleStartTwoPlayer: () => void;
   isAiReady: boolean;

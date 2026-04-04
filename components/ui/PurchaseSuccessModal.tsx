@@ -2,7 +2,8 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect } from "react";
-import { MarketplaceItem } from "@/config/marketApi";
+import Image from "next/image";
+import { MarketplaceItem } from "@/features/market/api/marketApi";
 
 interface PurchaseSuccessModalProps {
     isOpen: boolean;
@@ -71,11 +72,14 @@ export default function PurchaseSuccessModal({ isOpen, onClose, item }: Purchase
                             </p>
 
                             <div className="w-full p-4 bg-white/5 rounded-xl border border-white/10 flex items-center gap-4 mb-6">
-                                <img
-                                    src={item.imageUrl || "/placeholder-item.png"}
-                                    alt={item.name}
-                                    className="w-16 h-16 object-contain"
-                                />
+                                <div className="w-16 h-16 relative shrink-0">
+                                    <Image
+                                        src={item.imageUrl || "/placeholder-item.png"}
+                                        alt={item.name}
+                                        fill
+                                        className="object-contain"
+                                    />
+                                </div>
                                 <div className="text-left">
                                     <div className="text-xs text-[#DBB968] uppercase tracking-wider mb-1">
                                         {item.rarity} Relic

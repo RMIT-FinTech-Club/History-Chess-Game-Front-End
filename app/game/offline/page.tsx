@@ -3,11 +3,15 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { Chessboard } from "react-chessboard";
+import dynamic from "next/dynamic";
+const Chessboard = dynamic(() => import("react-chessboard").then((mod) => mod.Chessboard), {
+  ssr: false,
+  loading: () => <div className="w-full aspect-square bg-black/20 animate-pulse rounded-lg" />
+});
 import "@/css/chessboard.css";
 import { PlayerSection } from "@/app/game/offline/components/PlayerSection";
 import { useOfflineGame } from "@/app/game/offline/hooks/useOfflineGame";
-import { useBoardSize } from "@/hooks/useBoardSize";
+
 import { useMoveHistory } from "./hooks/useMoveHistory";
 import { useChessHandlers } from "./hooks/useChessHandlers";
 import { GameHeader } from "./components/GameHeader";
@@ -79,12 +83,12 @@ const OfflinePage = () => {
     currentTurn: gameTurn,
     isSinglePlayer,
     playerColor,
-    isThinking,
+    // isThinking,
     startSinglePlayerGame,
     startTwoPlayerGame,
     aiLevel,
     isAiReady,
-    handleTimeOut,
+    // handleTimeOut,
   } = useOfflineGame();
 
   const moveHistoryPairs = useMoveHistory(history, moveTimings);
@@ -104,7 +108,7 @@ const OfflinePage = () => {
     if (!isSinglePlayer && autoRotateBoard) {
       setBoardOrientation(gameTurn === "w" ? "white" : "black");
     }
-  }, [gameTurn, isSinglePlayer, autoRotateBoard]);
+  }, [gameTurn, isSinglePlayer, autoRotateBoard, setBoardOrientation]);
 
   // Dynamic Board Resizing to prevent overlap
   useEffect(() => {
@@ -255,7 +259,7 @@ const OfflinePage = () => {
     } else {
       setShowGameModeDialog(true);
     }
-  }, [isDynastyMode, router]);
+  }, [isDynastyMode, router, setShowGameModeDialog]);
 
   // --- Handlers ---
   const handleStartSinglePlayer = useCallback(
@@ -266,7 +270,7 @@ const OfflinePage = () => {
       setAutoRotateBoard(false);
       setMoveTimeHistory([]); // Reset time history
     },
-    [startSinglePlayerGame, aiDifficulty]
+    [startSinglePlayerGame, aiDifficulty, setShowGameModeDialog, setBoardOrientation, setAutoRotateBoard]
   );
 
   const handleStartTwoPlayer = useCallback(() => {
@@ -274,18 +278,16 @@ const OfflinePage = () => {
     setShowGameModeDialog(false);
     setBoardOrientation("white");
     setMoveTimeHistory([]); // Reset time history
-  }, [startTwoPlayerGame]);
+  }, [startTwoPlayerGame, setShowGameModeDialog, setBoardOrientation]);
 
   const handleUndo = useCallback(() => {
-    const lastTurn = fen.split(" ")[1] === "w" ? "b" : "w";
     undoMove();
 
     // Restore previous timer state
     if (moveTimeHistory.length > 0) {
-      const previousTimeState = moveTimeHistory[moveTimeHistory.length - 1];
       setMoveTimeHistory(prev => prev.slice(0, -1));
     }
-  }, [fen, undoMove, moveTimeHistory, gameActive, gameState.isGameOver]);
+  }, [undoMove, moveTimeHistory]);
 
   const handleSurrender = useCallback(() => {
     if (gameActive && !gameState.isGameOver) {
@@ -295,7 +297,7 @@ const OfflinePage = () => {
       gameState.message = `${surrenderingPlayer} has surrendered.`;
       setGameActive(false);
     }
-  }, [gameActive, gameState.isGameOver, currentTurn]);
+  }, [gameActive, gameState, currentTurn, setGameActive]);
 
   const toggleAutoRotate = useCallback(() => {
     if (!isSinglePlayer) {
@@ -305,7 +307,7 @@ const OfflinePage = () => {
         setBoardOrientation(currentTurn === "w" ? "white" : "black");
       }
     }
-  }, [isSinglePlayer, autoRotateBoard, currentTurn]);
+  }, [isSinglePlayer, autoRotateBoard, currentTurn, setAutoRotateBoard, setBoardOrientation]);
 
   useEffect(() => {
     // Check for theme from URL params (Dynasty Journey)
@@ -332,10 +334,10 @@ const OfflinePage = () => {
   const boardVars = useMemo(
     () =>
       ({
-        ["--board-light" as any]: savedTheme?.light ?? "#F0D9B5",
-        ["--board-dark" as any]: savedTheme?.dark ?? "#B58863",
-        ["--board-frame" as any]: savedTheme?.accent ?? "#E9B654",
-        ["--board-frame-2" as any]: "#363624",
+        "--board-light": savedTheme?.light ?? "#F0D9B5",
+        "--board-dark": savedTheme?.dark ?? "#B58863",
+        "--board-frame": savedTheme?.accent ?? "#E9B654",
+        "--board-frame-2": "#363624",
       }) as React.CSSProperties,
     [savedTheme]
   );
@@ -416,7 +418,6 @@ const OfflinePage = () => {
             <div className="space-y-4">
               <PlayerSection
                 color="Black"
-                pieces={capturedBlack}
                 isCurrentTurn={currentTurn === "b"}
                 gameActive={gameActive}
                 elo={isSinglePlayer && playerColor === "w" ? getBotElo(aiDifficulty) : 1200}
@@ -425,7 +426,6 @@ const OfflinePage = () => {
               />
               <PlayerSection
                 color="White"
-                pieces={capturedWhite}
                 isCurrentTurn={currentTurn === "w"}
                 gameActive={gameActive}
                 elo={isSinglePlayer && playerColor === "w" ? 1200 : getBotElo(aiDifficulty)}
@@ -460,7 +460,7 @@ const OfflinePage = () => {
               style={{
                 boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.1), 0 25px 80px -15px rgba(0, 0, 0, 0.7)",
                 ...boardVars,
-                ["--board-frame-2" as any]: "#2a221b", // Darker wood frame
+                ["--board-frame-2" as keyof React.CSSProperties]: "#2a221b", // Darker wood frame
               }}
             >
               <Chessboard

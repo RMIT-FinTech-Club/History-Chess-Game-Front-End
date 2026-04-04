@@ -4,21 +4,16 @@ import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Trophy, Gamepad2, Settings, Crown, Wallet, Target, ChevronUp, ChevronDown, Star, Receipt, Package, Edit, Award, Book } from "lucide-react"
 import CountUp from "react-countup"
-import { useRouter } from "next/navigation"
 import axiosInstance from "@/config/apiConfig"
 import { toast } from "sonner"
 
-import BackgroundEffects from "@/components/decor/BackgroundEffects"
-import ProfileMatches from "@/components/profile/profileMatches"
-import AccountSettings from "@/components/profile/accountSettings"
-import TransactionHistory from "@/components/profile/TransactionHistory"
-import ItemInventory from "@/components/profile/ItemInventory"
-import AvatarSelector from "@/components/profile/AvatarSelector"
-import HistoricalAchievements from "@/components/profile/HistoricalAchievements"
-import CollectorJournal from "@/components/profile/CollectorJournal"
-import { useGlobalStorage } from "@/hooks/GlobalStorage"
+interface MatchRecord {
+    result: string;
+    gameMode: string;
+    totalTime: string;
+    createdAt: string;
+}
 
-// Types for API responses
 interface UserProfile {
     id: string;
     username: string;
@@ -31,11 +26,14 @@ interface UserProfile {
     createdAt: string;
 }
 
-interface WalletBalance {
-    totalGameCoins: string;
-    confirmedGameCoins: string;
-    pendingGameCoins: string;
+interface UserSummary {
+    id: string;
+    username: string;
+    elo: number;
+    avatarUrl?: string;
 }
+
+
 
 interface ProfileStats {
     level: number;
@@ -48,6 +46,17 @@ interface ProfileStats {
     walletBalance: string;
     elo: number;
 }
+
+import BackgroundEffects from "@/components/decor/BackgroundEffects"
+import ProfileMatches from "@/components/profile/profileMatches"
+import AccountSettings from "@/components/profile/accountSettings"
+import TransactionHistory from "@/components/profile/TransactionHistory"
+import ItemInventory from "@/components/profile/ItemInventory"
+import AvatarSelector from "@/components/profile/AvatarSelector"
+import HistoricalAchievements from "@/components/profile/HistoricalAchievements"
+import CollectorJournal from "@/components/profile/CollectorJournal"
+import { useGlobalStorage } from "@/hooks/GlobalStorage"
+
 
 // Calculate level from ELO
 const calculateLevel = (elo: number): number => {
@@ -226,7 +235,7 @@ const ProfileStatistics = ({ stats, loading }: { stats: ProfileStats; loading: b
 
 export default function ProfilePage() {
     const { userId, userName, avatar, accessToken, setAuthData, setWalletBalance } = useGlobalStorage()
-    const router = useRouter()
+
     const [isProfileExpanded, setIsProfileExpanded] = useState<boolean>(true)
     const [activeTab, setActiveTab] = useState(0)
     const [loading, setLoading] = useState(true)
@@ -259,10 +268,10 @@ export default function ProfilePage() {
             setAuthData({
                 userId: profile.id,
                 userName: profile.username,
-                email: profile.email,
+                email: profileResponse.data.email, // Keep original email from full profile data
                 accessToken,
                 avatar: profile.avatarUrl,
-                role: profile.role,
+                role: profileResponse.data.role, // Keep original role from full profile data
                 refreshToken: null
             });
 
@@ -273,9 +282,9 @@ export default function ProfilePage() {
             const matches = historyResponse.data || [];
 
             // Calculate match statistics
-            const victories = matches.filter((m: any) => m.result === 'Victory').length;
-            const defeats = matches.filter((m: any) => m.result === 'Defeat').length;
-            const draws = matches.filter((m: any) => m.result === 'Draw').length;
+            const victories = (matches as MatchRecord[]).filter((m) => m.result === 'Victory').length;
+            const defeats = (matches as MatchRecord[]).filter((m) => m.result === 'Defeat').length;
+            const draws = (matches as MatchRecord[]).filter((m) => m.result === 'Draw').length;
             const totalGames = matches.length;
             const winRate = totalGames > 0 ? Math.round((victories / totalGames) * 100) : 0;
 
@@ -283,8 +292,8 @@ export default function ProfilePage() {
             const usersResponse = await axiosInstance.get('/users?limit=1000&offset=0', {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
-            const users = usersResponse.data.users.sort((a: any, b: any) => b.elo - a.elo);
-            const rank = users.findIndex((u: any) => u.id === userId) + 1;
+            const users = (usersResponse.data.users as UserSummary[]).sort((a, b) => b.elo - a.elo);
+            const rank = users.findIndex((u) => u.id === userId) + 1;
 
             // Fetch wallet balance
             let walletBalance = '0';
@@ -321,7 +330,7 @@ export default function ProfilePage() {
         } finally {
             setLoading(false);
         }
-    }, [userId, accessToken, setAuthData]);
+    }, [userId, accessToken, setAuthData, setWalletBalance]);
 
     useEffect(() => {
         fetchProfileData();

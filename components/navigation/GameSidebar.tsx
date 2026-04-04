@@ -1,14 +1,11 @@
 import { useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+
 import {
-    FaChessBoard,
     FaChartLine,
-    FaCog,
     FaFlag,
     FaChevronLeft,
     FaChevronRight,
-    FaHome
 } from "react-icons/fa";
 import { IoSettingsSharp, IoColorPalette } from "react-icons/io5";
 
@@ -24,7 +21,7 @@ export default function GameSidebar({
     onToggleTheme
 }: GameSidebarProps) {
     const [isExpanded, setIsExpanded] = useState(false);
-    const router = useRouter();
+
 
     const toggleSidebar = () => setIsExpanded(!isExpanded);
 
@@ -103,7 +100,7 @@ export default function GameSidebar({
 
 // Helper Component for Sidebar Items
 interface SidebarItemProps {
-    icon: any;
+    icon: React.ElementType;
     label: string;
     isExpanded: boolean;
     onClick?: () => void;

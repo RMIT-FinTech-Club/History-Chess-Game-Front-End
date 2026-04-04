@@ -20,7 +20,7 @@ export const useTimeoutHandler = (gameState: GameState | null) => {
       setTimeoutResult("White wins by timeout");
       console.log("Black ran out of time");
     }
-  }, [gameState?.whiteTimeLeft, gameState?.blackTimeLeft, gameState?.gameOver, timeoutGameOver]);
+  }, [gameState, timeoutGameOver]);
 
   const resetTimeout = () => {
     setTimeoutGameOver(false);

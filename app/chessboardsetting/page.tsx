@@ -48,10 +48,10 @@ export default function ChessboardSettingsPage() {
   const vars = useMemo(
     () =>
       ({
-        ["--board-light" as any]: theme.light,
-        ["--board-dark" as any]: theme.dark,
-        ["--board-frame" as any]: "#E9B654",
-        ["--board-frame-2" as any]: "#d2cac2ff",
+        ["--board-light" as keyof React.CSSProperties]: theme.light,
+        ["--board-dark" as keyof React.CSSProperties]: theme.dark,
+        ["--board-frame" as keyof React.CSSProperties]: "#E9B654",
+        ["--board-frame-2" as keyof React.CSSProperties]: "#d2cac2ff",
       }) as React.CSSProperties,
     [theme]
   );

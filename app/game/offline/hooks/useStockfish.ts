@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 export type StockfishLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 15 | 20;
 
@@ -13,6 +13,17 @@ export function useStockfish({ level = 5, timeForMove = 1000 }: UseStockfishOpti
   const [engineLevel, setEngineLevel] = useState<StockfishLevel>(level);
   const engineRef = useRef<Worker | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const onMoveCallback = useRef<(move: string) => void | null>(null);
+
+  // Setup engine with appropriate skill level
+  const setupEngine = useCallback(() => {
+    if (!engineRef.current) return;
+
+    // Configure engine based on level
+    engineRef.current.postMessage('ucinewgame');
+    engineRef.current.postMessage(`setoption name Skill Level value ${engineLevel}`);
+  }, [engineLevel]);
 
   useEffect(() => {
     // Initialize the Stockfish engine
@@ -51,25 +62,14 @@ export function useStockfish({ level = 5, timeForMove = 1000 }: UseStockfishOpti
       }
       stockfishWorker.terminate();
     };
-  }, []);
+  }, [setupEngine]);
 
   // Update engine level when it changes
   useEffect(() => {
     if (isReady && engineRef.current) {
       setupEngine();
     }
-  }, [engineLevel, isReady]);
-
-  // Setup engine with appropriate skill level
-  const setupEngine = () => {
-    if (!engineRef.current) return;
-
-    // Configure engine based on level
-    engineRef.current.postMessage('ucinewgame');
-    engineRef.current.postMessage(`setoption name Skill Level value ${engineLevel}`);
-  };
-
-  const onMoveCallback = useRef<(move: string) => void | null>(null);
+  }, [engineLevel, isReady, setupEngine]);
 
   // Find best move for a given FEN position
   const findBestMove = (fen: string, callback: (move: string) => void) => {

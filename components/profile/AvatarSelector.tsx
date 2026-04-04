@@ -2,7 +2,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
+import Image from "next/image"
 import { X, Check, Loader2, Image as ImageIcon } from "lucide-react"
 import axiosInstance from "@/config/apiConfig"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
@@ -44,7 +45,7 @@ export default function AvatarSelector({ isOpen, onClose, currentAvatar, onAvata
                     // Filter items that are valid for avatars (e.g. category ITEM)
                     // We assume all unlocked ITEMs can be used as avatars for now
                     const items = response.data.data.items || [];
-                    const avatars = items.map((item: any) => ({
+                    const avatars: AvatarItem[] = items.map((item: { id: string; name: string; imageUrl: string; dynasty?: string }) => ({
                         id: item.id,
                         name: item.name,
                         imageUrl: item.imageUrl,
@@ -149,10 +150,11 @@ export default function AvatarSelector({ isOpen, onClose, currentAvatar, onAvata
                                                 : 'border-white/10 hover:border-gold-royal/50'
                                             }`}
                                     >
-                                        <img
+                                        <Image
                                             src={avatar.imageUrl}
                                             alt={avatar.name}
-                                            className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                                            fill
+                                            className="object-cover transition-transform group-hover:scale-110"
                                         />
 
                                         {currentAvatar === avatar.imageUrl && (

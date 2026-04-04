@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
-import { LockClosedIcon } from "@heroicons/react/24/solid";
+import { Lock } from "lucide-react";
 import type { Dynasty } from "../types";
 import styles from "../DynastyJourney.module.css";
 
@@ -19,7 +18,7 @@ const DynastyNode: React.FC<DynastyNodeProps> = ({
     isCurrent,
     onClick,
 }) => {
-    const [imageSrc, setImageSrc] = useState<string | null>(null);
+
 
     const nodeClasses = [
         styles.dynastyNode,
@@ -37,7 +36,7 @@ const DynastyNode: React.FC<DynastyNodeProps> = ({
 
             <div className={styles.dynastyNodeInner}>
                 <Image
-                    src={imageSrc || dynasty.imageUrl}
+                    src={dynasty.imageUrl}
                     alt={dynasty.name}
                     fill
                     className={styles.dynastyNodeImage}
@@ -51,7 +50,7 @@ const DynastyNode: React.FC<DynastyNodeProps> = ({
 
                 <div className={styles.dynastyNodeOverlay}>
                     {!isUnlocked ? (
-                        <LockClosedIcon className={styles.lockIcon} />
+                        <Lock className={styles.lockIcon} />
                     ) : (
                         <span className={styles.dynastyNumber}>{dynasty.id}</span>
                     )}

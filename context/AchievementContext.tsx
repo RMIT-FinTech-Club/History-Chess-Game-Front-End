@@ -24,6 +24,12 @@ interface AchievementContextType {
     checkCollection: (itemDynasties: string[]) => void;
 }
 
+interface BackendAchievement {
+    achievementId: string;
+    currentProgress: number;
+    isUnlocked: boolean;
+}
+
 // Initial Data
 const INITIAL_ACHIEVEMENTS: Record<AchievementId, Omit<Achievement, "currentProgress" | "isUnlocked">> = {
     scholar: { id: "scholar", title: "Dynasty Scholar", description: "Explore the lore of 5 different dynasties", maxProgress: 5 },
@@ -39,7 +45,7 @@ export function AchievementProvider({ children }: { children: React.ReactNode })
     const { accessToken, userId } = useGlobalStorage();
 
     const [achievements, setAchievements] = useState<Record<AchievementId, Achievement>>(() => {
-        const defaults: any = {};
+        const defaults = {} as Record<AchievementId, Achievement>;
         Object.values(INITIAL_ACHIEVEMENTS).forEach(a => {
             defaults[a.id] = { ...a, currentProgress: 0, isUnlocked: false };
         });
@@ -61,7 +67,7 @@ export function AchievementProvider({ children }: { children: React.ReactNode })
                 if (response.data.success) {
                     setAchievements(prev => {
                         const updated = { ...prev };
-                        response.data.data.forEach((backendAch: any) => {
+                        (response.data.data as BackendAchievement[]).forEach((backendAch) => {
                             const key = backendAch.achievementId as AchievementId;
                             if (updated[key]) {
                                 updated[key] = {

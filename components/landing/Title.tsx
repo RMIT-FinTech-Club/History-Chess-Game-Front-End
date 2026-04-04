@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
 import Heading from "@/public/landing/SVG/heading";
 import styles from "@/css/landing/title.module.css";
 
@@ -17,7 +17,7 @@ const FloatingChessPiece = ({
     initialX: string;
     initialY: string;
     delay: number;
-    scrollY: any;
+    scrollY: MotionValue<number>;
 }) => {
     const y = useTransform(scrollY, [0, 500], [0, -100 - delay * 30]);
     const opacity = useTransform(scrollY, [0, 400], [0.6, 0]);

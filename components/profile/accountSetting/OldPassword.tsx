@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { FaKey, FaEye, FaEyeSlash } from "react-icons/fa6";
+import { FaLockOpen, FaEye, FaEyeSlash } from "react-icons/fa6";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -10,20 +10,18 @@ const OldPassword = React.forwardRef<
   React.ComponentProps<"input">
 >(({ className, ...props }, ref) => {
   const [showPassword, setShowPassword] = React.useState(false);
-  const disabled =
-    props.value === "" || props.value === undefined || props.disabled;
 
   return (
     <div className="relative">
-      {/* Left-side Key Icon */}
-      <FaKey
+      {/* Left-side Lock Icon */}
+      <FaLockOpen
         className="absolute top-1/2 left-6 md:left-4 transform -translate-y-1/2 text-[#2F2F2F] text-[4vh] cursor-pointer"
-        onClick={() => document.getElementById("old-password")?.focus()}
+        onClick={() => document.getElementById("password-old")?.focus()}
       />
 
       {/* Password Input Field */}
       <Input
-        id="old-password"
+        id="password-old"
         type={showPassword ? "text" : "password"}
         className={cn(
           "pl-10 pr-10 bg-[#c4c4c4] text-[#000000] focus:border-[0.2rem] focus:border-[#DBB968]",
@@ -52,9 +50,19 @@ const OldPassword = React.forwardRef<
           <FaEye aria-hidden="true" />
         )}
       </button>
+
+      {/* Hide browser's default password toggle */}
+      <style>{`
+        #password-old::-ms-reveal,
+        #password-old::-ms-clear {
+          visibility: hidden;
+          pointer-events: none;
+          display: none;
+        }
+      `}</style>
     </div>
   );
 });
-OldPassword.displayName = "NewPasswordConfirm";
+OldPassword.displayName = "OldPassword";
 
 export { OldPassword };

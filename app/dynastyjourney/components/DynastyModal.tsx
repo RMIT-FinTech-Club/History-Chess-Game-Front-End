@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { XMarkIcon } from "@heroicons/react/24/solid";
+import { X } from "lucide-react";
 import type { Dynasty } from "../types";
 import { dynastyLoreData } from "../data/lore";
 import styles from "../DynastyJourney.module.css";
@@ -82,7 +82,7 @@ const DynastyModal: React.FC<DynastyModalProps> = ({
                     type="button"
                     aria-label="Close modal"
                 >
-                    <XMarkIcon className="w-5 h-5" />
+                    <X className="w-5 h-5" />
                 </button>
 
                 <div className={styles.modalHeader}>
@@ -127,7 +127,7 @@ const DynastyModal: React.FC<DynastyModalProps> = ({
                                         <span className="text-xs font-serif text-gray-400">{lore.period}</span>
                                     </div>
 
-                                    <p className="text-sm text-gray-300 italic">"{lore.description}"</p>
+                                    <p className="text-sm text-gray-300 italic">&quot;{lore.description}&quot;</p>
 
                                     <div className="grid grid-cols-1 gap-2 mt-2">
                                         {lore.keyEvents.map((evt, i) => (

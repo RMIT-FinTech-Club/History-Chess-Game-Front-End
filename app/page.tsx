@@ -1,7 +1,3 @@
-"use client"
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useGlobalStorage } from "@/hooks/GlobalStorage"
 import BackgroundEffects from "@/components/decor/BackgroundEffects"
 import Title from "@/components/landing/Title"
 import ConquestIntro from "@/components/landing/ConquestIntro"
@@ -11,19 +7,12 @@ import ArenaIntro from "@/components/landing/ArenaIntro"
 import Step1 from "@/components/landing/Step1"
 import Step2 from "@/components/landing/Step2"
 import Button from "@/components/landing/Button"
+import RedirectIfAuthenticated from "@/components/auth/RedirectIfAuthenticated"
 
 export default function LandingPage() {
-  const router = useRouter()
-  const { isAuthenticated } = useGlobalStorage()
-
-  useEffect(() => {
-    if (isAuthenticated()) {
-      router.push("/home")
-    }
-  }, [isAuthenticated, router])
-
   return (
     <>
+      <RedirectIfAuthenticated />
       <BackgroundEffects />
 
       <div className="flex flex-col items-center justify-center relative w-full">

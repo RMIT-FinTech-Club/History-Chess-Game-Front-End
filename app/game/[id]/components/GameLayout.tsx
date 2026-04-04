@@ -6,7 +6,7 @@ import { GameControls } from "./GameControls";
 import { GameLayoutProps } from "../types";
 import { CapturedPieces } from "./CapturedPieces";
 import { MatchDetail } from "./MatchDetailProps";
-import { GameHeader } from "./GameHeader";
+
 
 export const GameLayout: React.FC<GameLayoutProps> = ({
   boardOrientation,
@@ -20,7 +20,6 @@ export const GameLayout: React.FC<GameLayoutProps> = ({
   onPieceClick,
   onSquareClick,
   onPieceDragBegin,
-  boardWidth,
   customSquareStyles,
   isCurrentPlayerTurn,
   moveHistoryPairs,

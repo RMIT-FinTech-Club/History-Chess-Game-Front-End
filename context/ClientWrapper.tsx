@@ -9,6 +9,9 @@ import { SocketProvider } from "@/context/WebSocketContext";
 import { useLobby, LobbyProvider } from "@/context/LobbyContext";
 import ChallengeModal from "@/app/challenge/ChallengeModal";
 import GlobalGameRedirector from "@/context/GlobalGameRedirector";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 const GlobalChallengeModalManager = () => {
   const { isChallengeModalOpen, incomingChallengeData, acceptChallenge, declineChallenge } = useLobby();
@@ -70,7 +73,7 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
   const applySocketProvider = !noSocketRoutes.includes(pathname); // Renamed for clarity
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       {applySocketProvider ? (
         <SocketProvider>
           <LobbyProvider>
@@ -81,19 +84,13 @@ const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
           </LobbyProvider>
         </SocketProvider>
       ) : (
-        // Render content without SocketProvider if it's one of the excluded routes
-        // Note: Components like LobbyProvider, ChallengeModalManager, and GameRedirector
-        // that depend on SocketProvider should not be rendered here.
-        // If LobbyProvider itself doesn't strictly depend on SocketProvider for its
-        // initial render or if it handles a disconnected socket gracefully, you might
-        // consider its placement. For now, I'm assuming it's tightly coupled.
         <>
           {showNavBar && <NavBar />}
           <Content style={{ paddingTop: showNavBar ? "var(--navbar-height)" : 0 }}>{children}</Content>
         </>
       )}
       {showFooter && <Footer />}
-    </>
+    </QueryClientProvider>
   );
 };
 

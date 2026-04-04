@@ -103,6 +103,7 @@ export function useChessLogic() {
 
     checkingSquares.push(kingSquare); // Highlight the king too
     return [...new Set(checkingSquares)];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game, fen, getPathBetween]); // Depend on game instance and fen
 
   // Check game state

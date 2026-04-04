@@ -1,11 +1,9 @@
 import { Home, ShoppingBag, Trophy, Users, Swords } from "lucide-react";
-import { IconType } from "react-icons";
-import { FaChessBoard } from "react-icons/fa6";
 
 export interface NavItem {
     label: string;
     href: string;
-    icon?: any; // LucideIcon or IconType
+    icon?: React.ElementType; // LucideIcon or IconType
     isExternal?: boolean;
 }
 

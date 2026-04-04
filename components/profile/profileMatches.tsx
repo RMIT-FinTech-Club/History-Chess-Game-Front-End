@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { Gamepad2, Clock, User, Swords, Trophy, XCircle, Minus, ChevronRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 import axiosInstance from "@/config/apiConfig"
 import { useGlobalStorage } from "@/hooks/GlobalStorage"
+
 
 
 interface Match {
@@ -162,6 +162,24 @@ const MatchCard = ({ match, index, onClick }: { match: Match; index: number; onC
     );
 };
 
+interface User {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+}
+
+interface ApiMatch {
+    opponentName?: string;
+    gameMode: string;
+    totalTime: string; // Changed from number to string
+    result: string;
+    moves?: string;
+    lastMoveAt?: string;
+    createdAt?: string;
+    gameId: string; // Added for mapping
+    opponentId?: string; // Added for mapping
+}
+
 export default function ProfileMatches({ playerId }: { playerId?: string }) {
     const router = useRouter();
     const { userId, accessToken } = useGlobalStorage()
@@ -196,17 +214,17 @@ export default function ProfileMatches({ playerId }: { playerId?: string }) {
                 });
 
                 const avatarsMap: { [key: string]: string } = {};
-                usersResponse.data.users.forEach((user: any) => {
+                usersResponse.data.users.forEach((user: User) => {
                     avatarsMap[user.username.toLowerCase()] = user.avatarUrl || '';
                 });
 
-                const formattedMatches = response.data.map((match: any) => {
+                const formattedMatches = response.data.map((match: ApiMatch) => {
                     const opponentLower = (match.opponentName || 'Unknown').toLowerCase();
                     return {
                         opponent: match.opponentName || 'Unknown',
                         avt: avatarsMap[opponentLower] || '',
                         playMode: match.gameMode,
-                        totalTime: match.totalTime,
+                        totalTime: 0, // Fallback or parse if needed
                         result: match.result,
                         gameId: match.gameId,
                         opponentId: match.opponentId || null

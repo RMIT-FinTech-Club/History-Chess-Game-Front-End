@@ -42,14 +42,12 @@ function LeaderboardContent() {
 
       if (isMountedRef.current && response.data.users) {
         // Map backend response to Player type
-        const players: Player[] = response.data.users
-          // .filter((p: any) => p.id !== userId) // Include self in leaderboard? usually yes.
-          .map((p: any) => ({
-            id: p.id,
-            username: p.username,
-            avatarUrl: p.avatarUrl,
-            elo: p.elo
-          }));
+        const players: Player[] = (response.data.users as Player[]).map((p) => ({
+          id: p.id,
+          username: p.username,
+          avatarUrl: p.avatarUrl,
+          elo: p.elo
+        }));
 
         // Initial sort by Elo
         setAllPlayers(players.sort((a, b) => b.elo - a.elo));

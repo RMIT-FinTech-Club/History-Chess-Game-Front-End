@@ -1,17 +1,25 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { useGlobalStorage } from "@/hooks/GlobalStorage";
 import BackgroundEffects from "@/components/decor/BackgroundEffects";
 import BidModal from "@/components/market/BidModal";
 import AddItemModal from "@/components/market/AddItemModal";
 import PurchaseSuccessModal from "@/components/ui/PurchaseSuccessModal";
 import HistoricalTooltip from "@/components/ui/HistoricalTooltip";
-import marketApi, {
+import {
   MarketplaceItem,
   AuctionListing,
-} from "@/config/marketApi";
+} from "@/features/market/api/marketApi";
+import {
+  useMarketItems,
+  useAuctions,
+  useBuyItem,
+  usePlaceBid,
+  useAddItem,
+} from "@/features/market/hooks/useMarket";
 
 // Dynasty progression for filtering
 const DYNASTIES = [
@@ -92,12 +100,17 @@ const ItemCard = ({ item, onBuy }: ItemCardProps) => {
             }}
           />
 
-          <motion.img
-            src={item.imageUrl || "/placeholder-item.png"}
-            alt={item.name}
-            className="relative z-10 w-fit h-full max-h-[140px] object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-transform duration-500"
+          <motion.div
             whileHover={{ scale: 1.15, rotate: 3 }}
-          />
+            className="relative z-10 w-full h-full max-h-[140px]"
+          >
+            <Image
+              src={item.imageUrl || "/placeholder-item.png"}
+              alt={item.name}
+              fill
+              className="object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-transform duration-500"
+            />
+          </motion.div>
         </div>
 
         {/* Content Section */}
@@ -229,10 +242,11 @@ const AuctionCard = ({ auction, onBid }: AuctionCardProps) => {
         {/* Image */}
         <div className="relative h-44 flex items-center justify-center">
           <div className="absolute inset-0 bg-linear-to-b from-purple-500/10 to-transparent" />
-          <img
+          <Image
             src={details?.imageUrl || "/placeholder-item.png"}
             alt={details?.name || "Auction Item"}
-            className="relative z-10 w-28 h-28 object-contain"
+            fill
+            className="relative z-10 object-contain"
           />
         </div>
 
@@ -412,9 +426,6 @@ const TabButton = ({ active, onClick, icon, label, count }: TabButtonProps) => (
 export default function MarketplacePage() {
   const { accessToken, role, walletBalance, setWalletBalance } = useGlobalStorage();
   const [activeTab, setActiveTab] = useState<TabType>("marketplace");
-  const [items, setItems] = useState<MarketplaceItem[]>([]);
-  const [auctions, setAuctions] = useState<AuctionListing[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedDynasty, setSelectedDynasty] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -427,30 +438,23 @@ export default function MarketplacePage() {
   // Check if user is admin
   const isAdmin = role === "ADMIN";
 
-  // Fetch data
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      if (activeTab === "marketplace") {
-        const data = await marketApi.getItems({
-          dynasty: selectedDynasty || undefined,
-          category: selectedCategory || undefined,
-        });
-        setItems(data);
-      } else {
-        const data = await marketApi.getAuctions();
-        setAuctions(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch marketplace data:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTab, selectedDynasty, selectedCategory]);
+  // React Query Hooks
+  const { data: marketplaceItems, isLoading: itemsLoading } = useMarketItems({
+    dynasty: selectedDynasty || undefined,
+    category: selectedCategory || undefined,
+  });
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const { data: auctionListings, isLoading: auctionsLoading } = useAuctions();
+
+  const buyItemMutation = useBuyItem();
+  const placeBidMutation = usePlaceBid();
+  const addItemMutation = useAddItem();
+
+  const items = marketplaceItems || [];
+  const auctions = auctionListings || [];
+  const isLoading = activeTab === "marketplace" ? itemsLoading : auctionsLoading;
+
+
 
   // Handlers
   const handleBuy = async (item: MarketplaceItem) => {
@@ -459,21 +463,19 @@ export default function MarketplacePage() {
       return;
     }
     try {
-      const result = await marketApi.buyItem(item.id || item._id!, 1, accessToken);
-      if (result.success) {
-        setPurchasedItem(item);
-        setSuccessModalOpen(true);
-        fetchData();
+      await buyItemMutation.mutateAsync({ itemId: item.id || item._id!, accessToken });
+      setPurchasedItem(item);
+      setSuccessModalOpen(true);
 
-        // Optimistic update for wallet balance
-        const currentBalance = parseFloat(walletBalance);
-        const newBalance = currentBalance - item.price;
-        if (!isNaN(newBalance)) {
-          setWalletBalance(newBalance.toString());
-        }
+      // Optimistic update for wallet balance
+      const currentBalance = parseFloat(walletBalance);
+      const newBalance = currentBalance - item.price;
+      if (!isNaN(newBalance)) {
+        setWalletBalance(newBalance.toString());
       }
-    } catch (error: any) {
-      alert(error.response?.data?.error || "Failed to purchase item");
+    } catch (error: unknown) {
+      const errorMessage = (error as { response?: { data?: { error?: string } } }).response?.data?.error || "Failed to purchase item";
+      alert(errorMessage);
     }
   };
 
@@ -486,8 +488,7 @@ export default function MarketplacePage() {
     if (!accessToken) {
       throw new Error("Please login to place a bid");
     }
-    await marketApi.placeBid(listingId, amount, accessToken);
-    fetchData();
+    await placeBidMutation.mutateAsync({ listingId, amount, accessToken });
   };
 
   const handleAddItem = () => {
@@ -498,8 +499,7 @@ export default function MarketplacePage() {
     if (!accessToken) {
       throw new Error("Please login to add items");
     }
-    await marketApi.addItem(data, accessToken);
-    fetchData();
+    await addItemMutation.mutateAsync({ data, accessToken });
   };
 
   // Filter items by search
@@ -573,7 +573,7 @@ export default function MarketplacePage() {
           {/* Items Grid */}
           <div className="flex-1">
             <AnimatePresence mode="wait">
-              {loading ? (
+              {isLoading ? (
                 <motion.div
                   key="loading"
                   initial={{ opacity: 0 }}
